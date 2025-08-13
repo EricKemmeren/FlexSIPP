@@ -109,8 +109,9 @@ def plot_experiments(exps, save_path=None, **kwargs):
         logger.info(f"Plotting {e}")
         e.plot(axs, **kwargs)
 
-    extra_legend, = axs[0].plot([0, 0], [0, 0], color="g")
-    extra_legend.set_label("Expected Arrival Time")
+    if "expected_arrival_time" in kwargs:
+        extra_legend, = axs[0].plot([0, 0], [0, 0], color="g")
+        extra_legend.set_label("Expected Arrival Time")
     axs[0].legend()
     if save_path is not None:
         fig.savefig(save_path)
@@ -252,6 +253,9 @@ class Experiment:
         return {
             "label": self.metadata["label"],
         }
+
+    def get_metadata(self):
+        return self.metadata
 
 def run_experiments(exps: list[Experiment], timeout, **kwargs):
     for e in exps:
