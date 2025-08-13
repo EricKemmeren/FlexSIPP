@@ -1,3 +1,6 @@
+import os
+from copy import deepcopy
+
 import numpy as np
 import pandas as pd
 import json
@@ -67,16 +70,17 @@ class Runner:
         return series
 
     def get_inclusive_stops(self, agent):
-        all_stops = agent["stops"]
-        all_stops.extend([{
+        all_stops = deepcopy(agent["stops"])
+        all_stops.insert(0, {
             "expected_arrival": agent["start_time"],
             "time": agent["start_time"],
             "location": agent["origin"]
-        }, {
+        })
+        all_stops.append({
             "expected_arrival": agent["endTime"],
             "time": agent["endTime"],
             "location": agent["destination"]
-        }])
+        })
         return all_stops
 
     def allowed_nodes(self, f, t, agent):
@@ -118,12 +122,13 @@ class TadRunner(Runner):
         run_experiments(experiments, timeout, filter_tracks=allowed_nodes)
         return experiments
 
-    def plot(self, experiments, save=None, x_offset=900, y_offset=900):
+    def plot(self, experiments, save=None, x_offset=900, y_range=900, y_offset=0, include_expected_arrival=True):
         if experiments:
             expected_arrival = self.r_stop["expected_arrival"].iloc[0] - self.r_start["time"].iloc[0]
             kwargs = {"min_x": 0, "max_x": x_offset,
-                      "min_y": expected_arrival - y_offset, "max_y": expected_arrival + y_offset,
-                      "expected_arrival_time": expected_arrival}
+                      "min_y": expected_arrival - y_range + y_offset, "max_y": expected_arrival + y_range + y_offset}
+            if include_expected_arrival:
+                kwargs |= {"expected_arrival_time": expected_arrival + y_offset}
             if save is not None:
                 save_path = self.save_dir / save
                 save_path.parent.mkdir(exist_ok=True, parents=True)
@@ -140,7 +145,7 @@ class RTRunner(Runner):
         origin = self.r_start["location"].iloc[0]
         experiment_settings = []
 
-        stops = agent["stops"][self.r_start.index[0] + 1:self.r_stop.index[0] + 1]
+        stops = self.get_inclusive_stops(agent)[self.r_start.index[0] + 1:self.r_stop.index[0] + 1]
 
         for stop in stops:
             experiment_settings.append({
@@ -183,7 +188,91 @@ class RTRunner(Runner):
         time_df = sum_cols(time_df, recompute_cols, "Recompute Time")
         time_df = sum_cols(time_df, search_cols, "Search Time")
 
-        path_df = pd.DataFrame(
-            {exp.metadata["label"]: np.mean([len(path.split(";")) for path in exp.results[2]]) for exp in experiments if
-             exp.results}, index=["Average path length"]).transpose()
+        path_data = {}
+
+        for exp in experiments:
+            total_paths = 0
+            acc_length = 0
+            if exp.results:
+                for path, occurences in exp.results[2].items():
+                    total_paths += occurences
+                    length = len(path.split(";")) * occurences
+                    acc_length += length
+                path_data[exp.metadata["label"]] = {"Average path length": acc_length / total_paths, "Total paths": total_paths} | exp.get_complexity()
+
+        path_df = pd.DataFrame(path_data).transpose()
         return path_df.join(time_df["Search Time"])
+
+class AgentRunner(Runner):
+    def run(self, trainseries, direction, f, t, repeats, interval, timeout=300, i_save_dir=None):
+        if i_save_dir == None:
+            return []
+
+        agent = self._get_replanning_agent(trainseries, direction, f)
+        if len(agent) == 0:
+            return []
+        allowed_nodes = self.allowed_nodes(f, t, agent)
+
+        start_time = self.r_start["time"].iloc[0]
+        origin = self.r_start["location"].iloc[0]
+        expected_arrival = self.r_stop["time"].iloc[0]
+        destination = self.r_stop["location"].iloc[0]
+
+        if direction == "o" or direction == 1:
+            direction = 1
+        else:
+            direction = 0
+
+        n_trains = len(self.agent_df)
+
+        completed_repeats = [int(item[1:-4]) for item in os.listdir(i_save_dir)]
+
+        print(f"Completed repeats: {completed_repeats}")
+
+        for repeat in range(repeats):
+            path_data = {}
+            train_ids = np.arange(1, n_trains)
+            train_ids = train_ids[train_ids != agent["id"]]
+            shuffled_ids = np.random.permutation(train_ids)
+
+            if repeat in completed_repeats:
+                continue
+
+            for idx in range(0, n_trains, interval):
+                filter_agents = set(shuffled_ids[:idx])
+                filter_agents.add(agent["id"])
+
+                experiment_settings = {
+                    "start_time": start_time,
+                    "origin": origin,
+                    "destination": destination,
+                    "max_buffer_time": 900,
+                    "use_recovery_time": True,
+                    "filter_agents": filter_agents,
+                    "metadata": {
+                        "expected_arrival": expected_arrival,
+                        "label": f'{idx}',
+                        "repeat": f'{repeat}',
+                        "trains excluded": filter_agents
+                    }
+                }
+
+                experiment = setup_experiment(self.scenario, [experiment_settings], default_direction=direction)[0]
+                run_experiments([experiment], timeout, filter_tracks=allowed_nodes)
+
+                path_data[experiment.metadata["label"]] = self.get_path_data(experiment)
+            path_df = pd.DataFrame(path_data).transpose()
+            path_df.to_csv(i_save_dir / f"r{repeat}.csv")
+
+    def get_path_data(self, experiment):
+        path_data = {}
+
+        total_paths = 0
+        acc_length = 0
+        if experiment.results:
+            for path, occurences in experiment.results[2].items():
+                total_paths += occurences
+                length = len(path.split(";")) * occurences
+                acc_length += length
+            path_data = {"Average path length": acc_length / total_paths, "Total paths": total_paths} | experiment.get_complexity() | experiment.get_metadata() | experiment.get_running_time()
+        return path_data
