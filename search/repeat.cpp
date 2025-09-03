@@ -34,34 +34,34 @@
 //}
 
 double update_reference_time(const EdgeATF& path, rePEAT::Open& open_list){
-    double upper_bound = std::max(path.alpha, path.beta);
+    double upper_bound = path.beta;
     double lower_bound = path.alpha;
-    std::cerr << "Starting update tref with alpha " << lower_bound << " beta " << upper_bound << " delta " << std::endl;
+    std::cerr << "Starting update tref with alpha " << lower_bound << " beta " << upper_bound << " delta " << path.delta << std::endl;
     while(lower_bound < upper_bound){
         if(open_list.empty()){
             return std::numeric_limits<double>::infinity();
         }
         auto n = open_list.top();
         open_list.pop();
-        std::cerr << "popped " << n;
+        std::cerr << "popped " << n.g;
         lower_bound = n.f - path.delta;
         std::cerr << ", new lb " << lower_bound << std::endl;
-        if (n.g.alpha > lower_bound + epsilon()){
+        if (n.g.alpha > (lower_bound + epsilon())){
             std::cerr << "Result from lb ";
-            return lower_bound;
+            return std::max(path.alpha, lower_bound) + epsilon();
         }
     }
     std::cerr << "Result from ub ";
-    return upper_bound;
+    return upper_bound + epsilon();
 }
 
 CompoundATF<std::vector<GraphNode *>> rePEAT::search(GraphNode * source, const Location& dest, MetaData & m,
-                                                     double start_time, gamma_t gamma){
+                                                     double start_time, gamma_t gamma, intervalTime_t search_duration){
     double t_ref = start_time;
     std::vector<GraphNode *> path;
     CompoundATF solutions(path);
     m.init();
-    while(t_ref < end(source->state.interval)){
+    while((t_ref < end(source->state.interval) + std::get<4>(source->state.interval)) && (t_ref < start_time + search_duration)){
         std::cerr << "tref: " << t_ref << "\n";
         Open open_list;
         open_list.emplace(EdgeATF(-std::numeric_limits<double>::infinity(), t_ref, std::numeric_limits<double>::infinity(), 0.0, gamma), 0, source, nullptr);
@@ -72,5 +72,6 @@ CompoundATF<std::vector<GraphNode *>> rePEAT::search(GraphNode * source, const L
         solutions.add(res.second, res.first);
         t_ref = update_reference_time(res.second, open_list);
     }
+    std::cerr << "At end of safe interval at start node at " << t_ref << "source int " << std::get<4>(source->state.interval) << std::endl;
     return solutions;
 }

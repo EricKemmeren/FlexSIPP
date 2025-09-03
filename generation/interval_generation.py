@@ -1,5 +1,6 @@
 import sys
 import queue as Q
+import math
 from logging import getLogger
 
 from generation.graph import BlockEdge, Graph, Node, TrackEdge, TrackGraph, BlockGraph, Direction
@@ -7,7 +8,7 @@ from generation.signal_sections import convertMovesToBlock
 
 logger = getLogger('__main__.' + __name__)
 
-def process_scenario(data, g: TrackGraph, g_block: BlockGraph, agent):
+def process_scenario(data, g: TrackGraph, g_block: BlockGraph):
     """Process the data from the scenario."""
     # Create a global end time (end of the planning horizon)
     g.global_end_time = max([2 * move["endTime"] for entry in data["trains"] for move in entry["movements"]])
@@ -21,27 +22,23 @@ def process_scenario(data, g: TrackGraph, g_block: BlockGraph, agent):
         measures["trainLength"] = sum([types[x]["length"] for x in entry["trainUnitTypes"]])
         if len({types[i]["speed"] for i in entry["trainUnitTypes"]}) != 1:
             logger.error("[ERROR] Not all train units have the same type")
+        # Get Train data
         measures["trainSpeed"] = types[entry["trainUnitTypes"][0]]["speed"] / 3.6
+        measures["acceleration"] = types[entry["trainUnitTypes"][0]]["acceleration"]
+        measures["deceleration"] = types[entry["trainUnitTypes"][0]]["deceleration"]
+        measures["minimumStopTime"] = types[entry["trainUnitTypes"][0]]["minimum_station_time"]
+
+        # Get Scenario data
         measures["walkingSpeed"] = data["walkingSpeed"]
         measures["headwayFollowing"] = data["headwayFollowing"]
         measures["headwayCrossing"] = data["headwayCrossing"]
         measures["releaseTime"] = data["releaseTime"] if "releaseTime" in data else 0
         measures["setupTime"] = data["setupTime"] if "setupTime" in data else 0
         measures["sightReactionTime"] = data["sightReactionTime"] if "sightReactionTime" in data else 0
-        measures["minimumStopTime"] = data["minimumStopTime"] if "minimumStopTime" in data else 60
         moves_per_agent[trainNumber] = []
         block_intervals[trainNumber] = {e.get_identifier():[] for e in g_block.edges} | {n: [] for n in g_block.nodes}
         # Each of the planned moves of the train must be converted to intervals
         process_moves(entry, g, g_block, measures, moves_per_agent, block_intervals, trainNumber)
-    # Combine intervals and merge overlapping intervals, taking into account the current agent
-    block_intervals = combine_intervals_per_train(block_intervals, g_block, agent)
-    for node in block_intervals:
-        for i in range(len(block_intervals[node])):
-            interval = block_intervals[node][i]
-            if int(interval[0]) > int(interval[1]):
-                logger.error(f"ERROR  node {node}: unsafe node interval {interval} has later end than start")
-            if i > 0 and int(interval[0]) < int(block_intervals[node][i-1][1]):
-                logger.error(f"ERROR  node {node}: unsafe node interval {interval} has a start which comes before the end of previous interval {block_intervals[node][i-1]}")
     return block_intervals, moves_per_agent
 
 
@@ -117,7 +114,7 @@ def distance_between_nodes(g: Graph, start: Node, end, agent_velocity):
                     return tmp
                 pq.put((time_distances[v.name], pq_counter, v))
                 pq_counter += 1
-    raise ValueError(f"No path found between {start} and {end}")
+    return sys.maxsize
 
 def calculate_path(g, start, end):
     distances = {n: sys.maxsize for n in g.nodes}
@@ -200,54 +197,93 @@ def construct_path(g: Graph, move, print_path_error=True, current_agent=0, agent
 
     return path
 
-def calculate_blocking_time(e: TrackEdge, cur_time, blocking_intervals, measures, current_train, path: list[BlockEdge]):
-
+def calculate_blocking_time(e: TrackEdge, cur_time, blocking_intervals, measures, current_train, path: list[BlockEdge], initial_velocity: float):
     station_time = 0
     if current_train in e.stops_at_station:
         station_time = e.stops_at_station[current_train] - cur_time
+        initial_velocity = 0
 
-    train_speed = min(e.max_speed, measures["trainSpeed"])
-    clearing_time = measures["trainLength"] / train_speed
-    end_occupation_time = cur_time + e.length / train_speed + clearing_time + station_time
-
-    # Recovery time calculation
-    if current_train in e.stops_at_station:
-        recovery_time = max(0, station_time - measures["minimumStopTime"])
+    max_train_speed = min(e.max_speed, measures["trainSpeed"])
+    if max_train_speed >= initial_velocity:
+        acceleration = measures["acceleration"]
     else:
-        recovery_time = (e.length / train_speed) - e.length / (train_speed * 1.08)
+        acceleration = -1 * measures["deceleration"]
 
-    # Calculate running time, clearing time and release time for current track
-    occupation_time = (
+    if e.length > 0:
+        l_min = (( max_train_speed ** 2) - (initial_velocity ** 2)) / (2 * acceleration)
+        if l_min >= e.length:
+            train_speed = (initial_velocity + math.sqrt((initial_velocity ** 2) + 2 * acceleration * e.length )) / 2
+            end_train_speed = initial_velocity + (e.length / train_speed) * acceleration
+        else:
+            train_speed = e.length / (((max_train_speed - initial_velocity) / acceleration) + ((e.length - l_min) / max_train_speed))
+            end_train_speed = max_train_speed
+        logger.debug(f"start: {initial_velocity}, avg: {train_speed}, end: {end_train_speed}, max: {max_train_speed}, acceleration: {acceleration}, acceleration_distance: {l_min}, edge: {e.length}")
+
+
+        clearing_time = measures["trainLength"] / train_speed
+        end_occupation_time = cur_time + e.length / train_speed + clearing_time + station_time
+
+        # Recovery time calculation
+        if current_train in e.stops_at_station:
+            recovery_time = max(0, station_time - measures["minimumStopTime"])
+        else:
+            recovery_time = (e.length / train_speed) - e.length / (train_speed * 1.08)
+
+        # Calculate running time, clearing time and release time for current track
+        occupation_time = (
+                cur_time,
+                end_occupation_time + measures["releaseTime"],
+                e.length / train_speed + station_time,
+                current_train,
+                recovery_time
+            )
+
+        # Calculate the approach time for the next piece of track,
+        end_approach_time = cur_time + station_time + (e.length / train_speed)
+
+    else:
+        end_train_speed = initial_velocity
+        logger.debug(f"velocity: {initial_velocity}")
+        end_occupation_time = cur_time + station_time
+
+        # Recovery time calculation
+        if current_train in e.stops_at_station:
+            recovery_time = max(0, station_time - measures["minimumStopTime"])
+        else:
+            recovery_time = 0
+
+        occupation_time = (
             cur_time,
             end_occupation_time + measures["releaseTime"],
-            e.length / train_speed + station_time,
+            station_time,
             current_train,
             recovery_time
         )
+        end_approach_time = cur_time + station_time
 
     for block in e.from_node.blocks(Direction.BOTH):
         blocking_intervals[block.get_identifier()].append(occupation_time)
 
-    # Calculate the approach time for the next piece of track,
-    start_approach_time = cur_time - measures["setupTime"] - measures["sightReactionTime"]
-    end_approach_time =   cur_time + station_time + (e.length / train_speed)
+    # Recovery time calculation
+    start_approach_time = cur_time + station_time - measures["setupTime"] - measures["sightReactionTime"]
 
-    N_BLOCKS = 2
+    N_BLOCKS = 1
 
     # Find current spot in block graph
-    bools = [e.from_node in block.tracknodes(Direction.SAME) for block in path]
+    bools = [e.to_node in block.tracknodes(Direction.SAME) for block in path]
     current_path_index = bools.index(True) if True in bools else None
 
     if current_path_index is not None:
-        logger.debug(f"Edge {e} belongs to block: {path[current_path_index]}")
+        logger.debug(f"belongs to block: {path[current_path_index]}")
     else:
-        logger.debug(f"Edge {e} does not belong to any block in path: {path}")
+        logger.debug(f"does not belong to any block in path: {path}")
 
-    next_blocks_approach_time = (start_approach_time,
-                     end_approach_time,
-                     0,
-                     current_train,
-                     0.0
+    next_blocks_approach_time = (
+        start_approach_time,
+        end_approach_time,
+        0,
+        current_train,
+        0.0
     )
 
     approach_blocks = set()
@@ -264,12 +300,14 @@ def calculate_blocking_time(e: TrackEdge, cur_time, blocking_intervals, measures
     if current_path_index is not None:
         e.set_plotting_info(current_train, cur_time, end_approach_time, path[current_path_index])
 
-    return end_approach_time
+    return end_approach_time, end_train_speed
 
 def generate_unsafe_intervals(g_block, path: list[TrackEdge], block_path: list[BlockEdge], move, measures, current_train):
     cur_time = move["startTime"]
     block_intervals = {e.get_identifier():[] for e in g_block.edges} | {n: [] for n in g_block.nodes}
+    agent_velocity = 0.0
     for e in path:
+        logger.debug(f"Edge: {e}")
         # If the train reverses: going from an A to B side -> use walking speed
         # if ("A" in e.from_node.name and "B" in e.to_node.name) or ("B" in e.from_node.name and "A" in e.to_node.name):
         #     # When turning around, the headway is also included in the end time, so the train has to wait until it can depart after reversing
@@ -279,12 +317,14 @@ def generate_unsafe_intervals(g_block, path: list[TrackEdge], block_path: list[B
         #     cur_time = end_time
         # In all other cases use train speed
         # else:
-            end_time = calculate_blocking_time(e, cur_time, block_intervals, measures, current_train, block_path)
-            # Time train leaves the node
-            cur_time = end_time
+        end_time, agent_velocity = calculate_blocking_time(e, cur_time, block_intervals, measures, current_train, block_path, agent_velocity)
+        # Time train leaves the node
+        cur_time = end_time
     return block_intervals
 
-def combine_intervals(intervals, combined, agent):
+def combine_intervals(intervals, combined, agents):
+    if not type(agents) is set:
+        agents = [int(agents)]
     for train in intervals:
         for n in intervals[train]:
             intervals[train][n].sort()
@@ -298,7 +338,7 @@ def combine_intervals(intervals, combined, agent):
                     elif x[0] >= tup[0] and x[0] <= tup[1] and x[1] <= tup[1] and x[1] >= tup[0]:
                         combined[n].remove(x)
                 if not double:
-                    if train != int(agent):
+                    if train not in agents:
                         combined[n].append(tup)
 
 def sort_and_merge(combined):

@@ -22,6 +22,7 @@ int main(int argc, char* argv[]) {
                      "gzip'd file containing the edge arrival time functions.")
                     ("search,s", po::value<std::string>()->default_value("repeat"), "Search algorithm to use")
                     ("startTime,t", po::value<double>()->default_value(0.0), "Start Time of search.")
+                    ("searchDuration,d", po::value<double>()->default_value(900.0), "Maximum duration of search.")
                     ("lookups,l", po::value<long>()->default_value(100), "Number of lookups to test repeat");
             po::variables_map vm;
             po::store(po::parse_command_line(argc, argv, desc), vm);
@@ -55,8 +56,10 @@ int main(int argc, char* argv[]) {
                 MetaData m;
                 gamma_t initial_gamma(g.n_agents + 1);
 
+                intervalTime_t max_search_time = vm["searchDuration"].as<double>();
+
                 auto search_start_time = std::chrono::high_resolution_clock::now();
-                auto res = rePEAT::search(source, goal_loc, m, start_time, initial_gamma);
+                auto res = rePEAT::search(source, goal_loc, m, start_time, initial_gamma, max_search_time);
                 auto search_time = std::chrono::high_resolution_clock::now();
                 auto search_duration = std::chrono::duration_cast<std::chrono::milliseconds >(
                         search_time - search_start_time);
@@ -67,8 +70,11 @@ int main(int argc, char* argv[]) {
                 std::cout << "Search time: " << search_duration.count() << " milliseconds\n";
                 std::flush(std::cout);
 
-                auto c = res.time_lookup(vm["lookups"].as<long>());
+//                auto c = res.time_lookup(vm["lookups"].as<long>());
             } else {
+                std::cout << vm.count("edgegraph") << std::endl;
+                std::cout << std::filesystem::is_regular_file(vm["edgegraph"].as<std::filesystem::path>()) << std::endl;
+                std::cout << vm["edgegraph"].as<std::filesystem::path>() << std::endl;
                 std::cout << desc << std::endl;
             }
 
