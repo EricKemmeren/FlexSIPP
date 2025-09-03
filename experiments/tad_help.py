@@ -198,7 +198,7 @@ class RTRunner(Runner):
                     total_paths += occurences
                     length = len(path.split(";")) * occurences
                     acc_length += length
-                path_data[exp.metadata["label"]] = {"Average path length": acc_length / total_paths, "Total paths": total_paths} | exp.get_complexity()
+                path_data[exp.metadata["label"]] = {"Average path length": acc_length / total_paths, "Total paths": total_paths} | exp.get_complexity() | exp.get_atfs()
 
         path_df = pd.DataFrame(path_data).transpose()
         return path_df.join(time_df["Search Time"])
@@ -274,5 +274,5 @@ class AgentRunner(Runner):
                 total_paths += occurences
                 length = len(path.split(";")) * occurences
                 acc_length += length
-            path_data = {"Average path length": acc_length / total_paths, "Total paths": total_paths} | experiment.get_complexity() | experiment.get_metadata() | experiment.get_running_time()
+            path_data = {"Average path length": acc_length / total_paths, "Total paths": total_paths} | experiment.get_complexity() | experiment.get_metadata() | experiment.get_running_time() | exp.get_atfs()
         return path_data
