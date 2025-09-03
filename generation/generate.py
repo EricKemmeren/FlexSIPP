@@ -115,10 +115,10 @@ def time_interval_creation(block_intervals, g_block, buffer_times, recovery_time
     safe_computation_time = time.time() - start_time
     return safe_block_intervals, safe_block_edges_intervals, atfs, indices_to_states, safe_computation_time
 
-def plot_route(plot_agent, moves_per_agent, block_routes, block_intervals, g_block, buffer_times, recovery_times, plottings=None, exclude_agent=-1):
+def plot_route(plot_agent, moves_per_agent, block_routes, block_intervals, g_block, buffer_times, recovery_times, plottings=None, exclude_agent=-1, **kwargs):
     if plottings is None:
         plottings = (moves_per_agent[plot_agent][0], block_routes[plot_agent][0]) if plot_agent in block_routes else None
-    plot_blocking_staircase(block_intervals, block_routes, moves_per_agent, g_block, buffer_times, recovery_times, plot_routes=plottings, exclude_agent=exclude_agent)
+    plot_blocking_staircase(block_intervals, block_routes, moves_per_agent, g_block, buffer_times, recovery_times, plot_routes=plottings, exclude_agent=exclude_agent, **kwargs)
 
 
 def main():

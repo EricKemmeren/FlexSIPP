@@ -1,9 +1,12 @@
+import math
+import re
 from datetime import timedelta
 from logging import getLogger
 
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import numpy as np
+from matplotlib import cm
 from matplotlib.lines import Line2D
 
 from generation.graph import BlockEdge, TrackEdge, Direction, BlockGraph
@@ -25,38 +28,71 @@ def replaceAB(node, intervals):
         return node + "L"
     return node
 
-def plot_train_path(moves_per_agent, color_map=None, node_map=None, exclude_agent=-1):
+# def plot_train_path(moves_per_agent, color_map=None, node_map=None, exclude_agent=-1):
+#     for agent_id, movements in moves_per_agent.items():
+#         if agent_id == exclude_agent:
+#             continue
+#         length_in_block = {b: 0 for b in node_map}
+#         color=None
+#         for movement in movements:
+#             for edge in movement:
+#                 plotting_info = edge.plotting_info
+#                 if plotting_info and agent_id in plotting_info:
+#                     block = plotting_info[agent_id]["block"].get_identifier()
+#                     if block in node_map:
+#                         y, e = node_map[block]
+#                         lib = length_in_block[block]
+#                         y = y + lib
+#                         start = plotting_info[agent_id]["start_time"]
+#                         end = plotting_info[agent_id]["end_time"]
+#                         train, = plt.plot([y, y + edge.length], [start, end], color=color,
+#                                           linestyle="-")
+#                         length_in_block[block] = lib + edge.length
+#                         color=train.get_color()
+#         if color_map is not None:
+#             color_map[agent_id] = color
+
+def plot_train_path(moves_per_agent, color_map=None, node_map=None, exclude_agent=-1, usable_colors=None, xoffset=200):
     for agent_id, movements in moves_per_agent.items():
         if agent_id == exclude_agent:
             continue
         length_in_block = {b: 0 for b in node_map}
-        color=None
+        if usable_colors is None:
+            color=None
+        else:
+            color = usable_colors.pop()
         for movement in movements:
             for edge in movement:
-                plotting_info = edge.plotting_info
-                if plotting_info and agent_id in plotting_info:
-                    block = plotting_info[agent_id]["block"].get_identifier()
-                    if block in node_map:
-                        y, e = node_map[block]
-                        lib = length_in_block[block]
-                        y = y + lib
-                        start = plotting_info[agent_id]["start_time"]
-                        end = plotting_info[agent_id]["end_time"]
-                        train, = plt.plot([y, y + edge.length], [start, end], color=color,
-                                          linestyle="-")
-                        length_in_block[block] = lib + edge.length
-                        color=train.get_color()
+                if edge.length > 0:
+                    plotting_info = edge.plotting_info
+                    if plotting_info and agent_id in plotting_info:
+                        block = plotting_info[agent_id]["block"].get_identifier()
+                        if block in node_map:
+                            y, e = node_map[block]
+                            lib = length_in_block[block]
+                            y = y + lib
+                            start = plotting_info[agent_id]["start_time"]
+                            end = plotting_info[agent_id]["end_time"]
+                            train, = plt.plot([y - xoffset, y + edge.length - xoffset], [start, end], color=color,
+                                              linestyle="-")
+                            length_in_block[block] = lib + edge.length
+                            color=train.get_color()
         if color_map is not None:
             color_map[agent_id] = color
 
-def plot_blocking_staircase(blocking_times, block_routes, moves_per_agent, g_block: BlockGraph, buffer_times, recovery_times, plot_routes=None, exclude_agent=-1):
+def plot_blocking_staircase(blocking_times, block_routes, moves_per_agent, g_block: BlockGraph, buffer_times, recovery_times, plot_routes=None, exclude_agent=-1, **kwargs):
+    all_colors = cm.tab20(range(20)).tolist() + cm.tab20(range(20)).tolist() + cm.tab20(range(20)).tolist() + cm.tab20(range(20)).tolist() + cm.tab20(range(20)).tolist() + cm.tab20(range(20)).tolist()
     node_map = dict()
     y = 0
+    plt.rcParams.update({'font.size': 12})
     ax = plt.gca()
     plt.grid()
 
     x_axis = []
     xtics = []
+
+    start_station = kwargs.get("start", '')
+    end_station = kwargs.get("end", '')
 
     plot_route_track, plot_route_block = None, None
     if plot_routes:
@@ -79,7 +115,7 @@ def plot_blocking_staircase(blocking_times, block_routes, moves_per_agent, g_blo
 
     color_map = {}
 
-    plot_train_path(moves_per_agent, color_map, node_map, exclude_agent)
+    plot_train_path(moves_per_agent, color_map, node_map, exclude_agent, usable_colors=all_colors)
     use_bt = False
     use_crt = False
 
@@ -94,10 +130,11 @@ def plot_blocking_staircase(blocking_times, block_routes, moves_per_agent, g_blo
                 # ax.errorbar((2 * y + edge.length) / 2, stop, yerr=errors, fmt="none", color=color_map[train])
                 if buffer_times[train][node] > 0:
                     use_bt = True
-                    color = color_map[train] if train in color_map else None
-                    error_block = patches.Rectangle((y, stop), edge.length, buffer_times[train][node], linewidth=1, facecolor=color, alpha=0.3)
-                    if train not in color_map:
+                    color = color_map[train]
+                    if color is None:
+                        color = all_colors.pop()
                         color_map[train] = color
+                    error_block = patches.Rectangle((y, stop), edge.length, buffer_times[train][node], linewidth=1, facecolor=color, alpha=0.5)
                     ax.add_patch(error_block)
 
                 # if recovery_times[train][node] > 0:
@@ -105,7 +142,7 @@ def plot_blocking_staircase(blocking_times, block_routes, moves_per_agent, g_blo
                 #     recovery_block = patches.Rectangle((y, stop), edge.length, recovery_times[train][node], linewidth=1, facecolor=None, alpha=0.0, hatch=r"\\")
                 #     ax.add_patch(recovery_block)
 
-    plt.ylabel(f"Time (s)")
+    plt.ylabel(f"Time (hh:mm)")
     plt.xlabel(f"Distance")
 
     legend_items = [
@@ -113,9 +150,7 @@ def plot_blocking_staircase(blocking_times, block_routes, moves_per_agent, g_blo
         patches.Patch(facecolor=None,   edgecolor="red", label="Blocking Time", fill=False),
     ]
     if use_bt:
-        legend_items.append(patches.Patch(facecolor="green", edgecolor=None,  label="Buffer time", alpha=0.3),)
-    if use_crt:
-        legend_items.append(patches.Patch(hatch=r"\\\\", edgecolor=None,  label="Recovery time", alpha=0.0))
+        legend_items.append(patches.Patch(facecolor="green", edgecolor=None,  label="Flexibility", alpha=0.3),)
     plt.legend(handles=legend_items ,loc="upper left")
     station_identifiers = {}
     for station, (n_a, n_b) in g_block.stations.items():
@@ -124,23 +159,39 @@ def plot_blocking_staircase(blocking_times, block_routes, moves_per_agent, g_blo
         for e in g_block.nodes[n_b].outgoing:
             station_identifiers[e.get_identifier()] = station
 
+    start_x = None
+    end_x   = None
+
     for block_id, (dist, edge) in node_map.items():
         if block_id in station_identifiers:
-                xtics.append(station_identifiers[block_id])
-        # else:
-        #     xtics.append("")
-                x_axis.append(dist)
+            station = station_identifiers[block_id]
+            xtics.append(station)
+            x_axis.append(dist)
+
+            if start_station in station:
+                start_x = dist
+            if end_station in station:
+                end_x = dist
 
     # for key, value in distance_markers.items():
     #     x_axis.append(value)
     #     xtics.append(key)
+    def td_str(td, a=1):
+        return ':'.join(re.split(r'[:.]+', str(td)) [a:2])
 
     plt.xticks(x_axis, xtics, rotation=90)
-    ax.set_yticklabels([str(timedelta(seconds=ytick)) for ytick in ax.get_yticks()])
+
+    lefty, righty = ax.set_ylim(bottom=kwargs.get("min_y", None), top=kwargs.get("max_y", None))
+
+    first_miny = math.ceil(lefty / 60) * 60
+    yticks = list(np.arange(first_miny, righty + 1, kwargs.get("interval_y", 600)))
+
+    a = 1 if righty - lefty < 3600 else 0
+
+    ax.set_yticks(yticks, labels=[td_str(str(timedelta(seconds=ytick - lefty)), a=a) for ytick in yticks])
     plt.tight_layout()
 
-
-    # plt.gca().invert_yaxis()
-    plt.title(f"Agents")
-    plt.savefig("images/blocking_staircase")
+    plt.xlim(start_x, end_x)
+    if "savefig" in kwargs:
+        plt.savefig(kwargs.get("savefig"))
     plt.show()

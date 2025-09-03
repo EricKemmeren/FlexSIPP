@@ -264,12 +264,13 @@ def calculate_blocking_time(e: TrackEdge, cur_time, blocking_intervals, measures
     for block in e.from_node.blocks(Direction.BOTH):
         blocking_intervals[block.get_identifier()].append(occupation_time)
 
-    start_approach_time = cur_time - measures["setupTime"] - measures["sightReactionTime"]
+    # Recovery time calculation
+    start_approach_time = cur_time + station_time - measures["setupTime"] - measures["sightReactionTime"]
 
-    N_BLOCKS = 2
+    N_BLOCKS = 1
 
     # Find current spot in block graph
-    bools = [e.from_node in block.tracknodes(Direction.SAME) for block in path]
+    bools = [e.to_node in block.tracknodes(Direction.SAME) for block in path]
     current_path_index = bools.index(True) if True in bools else None
 
     if current_path_index is not None:
@@ -277,11 +278,12 @@ def calculate_blocking_time(e: TrackEdge, cur_time, blocking_intervals, measures
     else:
         logger.debug(f"does not belong to any block in path: {path}")
 
-    next_blocks_approach_time = (start_approach_time,
-                     end_approach_time,
-                     0,
-                     current_train,
-                     0.0
+    next_blocks_approach_time = (
+        start_approach_time,
+        end_approach_time,
+        0,
+        current_train,
+        0.0
     )
 
     approach_blocks = set()
