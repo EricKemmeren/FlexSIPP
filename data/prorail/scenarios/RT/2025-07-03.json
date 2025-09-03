@@ -1763,7 +1763,7 @@
                 {
                     "endLocation": "GDG|2",
                     "endTime": 4740.0,
-                    "startLocation": "GVC|6",
+                    "startLocation": "GVC|4",
                     "startTime": 2880.0,
                     "stops": [
                         {
@@ -4225,7 +4225,7 @@
                 {
                     "endLocation": "GDG|2",
                     "endTime": 2940.0,
-                    "startLocation": "GVC|6",
+                    "startLocation": "GVC|4",
                     "startTime": 1080.0,
                     "stops": [
                         {
@@ -4344,7 +4344,7 @@
                 {
                     "endLocation": "TL|3",
                     "endTime": 6960.0,
-                    "startLocation": "GVC|6",
+                    "startLocation": "GVC|4",
                     "startTime": 180.0,
                     "stops": [
                         {
@@ -4742,7 +4742,7 @@
                 {
                     "endLocation": "HT|4a",
                     "endTime": 10620.0,
-                    "startLocation": "GVC|6",
+                    "startLocation": "GVC|4",
                     "startTime": 3780.0,
                     "stops": [
                         {
@@ -5745,7 +5745,7 @@
                 {
                     "endLocation": "ES|2",
                     "endTime": 12840.0,
-                    "startLocation": "GVC|5",
+                    "startLocation": "GVC|3",
                     "startTime": 4500.0,
                     "stops": [
                         {
@@ -5801,7 +5801,7 @@
                 {
                     "endLocation": "GDG|2",
                     "endTime": 6540.0,
-                    "startLocation": "GVC|6",
+                    "startLocation": "GVC|4",
                     "startTime": 4680.0,
                     "stops": [
                         {
@@ -6068,7 +6068,7 @@
                 {
                     "endLocation": "TL|3",
                     "endTime": 8760.0,
-                    "startLocation": "GVC|6",
+                    "startLocation": "GVC|4",
                     "startTime": 1980.0,
                     "stops": [
                         {
@@ -6952,24 +6952,6 @@
         {
             "movements": [
                 {
-                    "endLocation": "BD|5",
-                    "endTime": 3720.0,
-                    "startLocation": "RTD|7",
-                    "startTime": 1740.0,
-                    "stops": []
-                }
-            ],
-            "trainNumber": "9252",
-            "trainUnitTypes": [
-                "EUROCITY"
-            ],
-            "trainUnits": [
-                "19884"
-            ]
-        },
-        {
-            "movements": [
-                {
                     "endLocation": "ASD|10a",
                     "endTime": 4020.0,
                     "startLocation": "DT|1",
@@ -7109,7 +7091,7 @@
                 {
                     "endLocation": "ES|2",
                     "endTime": 9240.0,
-                    "startLocation": "GVC|5",
+                    "startLocation": "GVC|3",
                     "startTime": 900.0,
                     "stops": [
                         {
@@ -7401,7 +7383,7 @@
                 {
                     "endLocation": "ES|1",
                     "endTime": 11040.0,
-                    "startLocation": "GVC|5",
+                    "startLocation": "GVC|3",
                     "startTime": 2700.0,
                     "stops": [
                         {
