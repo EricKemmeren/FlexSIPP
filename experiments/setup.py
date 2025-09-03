@@ -1,3 +1,4 @@
+import re
 import subprocess
 import math
 import matplotlib.pyplot as plt
@@ -17,7 +18,7 @@ linestyles = [
     (0, (5, 0))
 ]
 
-def plot_atf(segments, axs, eatfs, **kwargs):
+def plot_atf(segments, ax, eatfs, **kwargs):
     color = kwargs.get('color', None)
     label = kwargs.get('label', None)
     linestyle = linestyles[kwargs.get('linestyle', 0)]
@@ -26,93 +27,91 @@ def plot_atf(segments, axs, eatfs, **kwargs):
 
     if 'expected_arrival_time' in kwargs:
         eat = kwargs['expected_arrival_time']
-        axs[0].axhline(eat, color="g")
+        ax.axhline(eat, color="g")
 
     line = None
     for (x0, x1, y0, y1) in segments:
         if x0 == "-inf" and x1 != "inf" and y1 != "inf":
-            axs[0].hlines(float(y1) + y_offset, 0, float(x1), colors=color, linestyle=linestyle)
-        line, = axs[0].plot([float(x0), float(x1)], [float(y0) + y_offset, float(y1) + y_offset], color=color, linestyle=linestyle)
+            ax.hlines(float(y1) + y_offset, 0, float(x1), colors=color, linestyle=linestyle)
+        line, = ax.plot([float(x0), float(x1)], [float(y0) + y_offset, float(y1) + y_offset], color=color, linestyle=linestyle)
     line.set_label(label) if line is not None else None
 
-    plotted_intervals = []
-    for path_eatf in eatfs.values():
-        for (zeta, alpha, beta, delta, gammas) in path_eatf:
-            min_gamma = 0
-            max_gamma = 0
-            for gamma_min, gamma_max, rt, location, initial_delay in gammas:
-                # if gamma_max > gamma_min:
-                #     raise ValueError(f"Max gamma > Min gamma, {gamma_max} > {gamma_min}")
-                min_gamma += max(float(gamma_min), 0)
-                max_gamma += max(float(gamma_max), 0)
-
-            alpha = float(alpha)
-            beta = float(beta)
-
-            plotted_intervals.append((min(alpha, beta), beta, min_gamma, max_gamma))
-
-            if alpha <= beta:
-                # axs[1].plot([previous_beta, alpha], [min_gamma + y_offset, min_gamma + y_offset], color=color)
-                axs[1].plot([alpha, beta], [min_gamma + y_offset, max_gamma + y_offset], color=color, linestyle=linestyle)
+    # plotted_intervals = []
+    # for path_eatf in eatfs.values():
+    #     for (zeta, alpha, beta, delta, gammas) in path_eatf:
+    #         min_gamma = 0
+    #         max_gamma = 0
+    #         for gamma_min, gamma_max, rt, location, initial_delay in gammas:
+    #             # if gamma_max > gamma_min:
+    #             #     raise ValueError(f"Max gamma > Min gamma, {gamma_max} > {gamma_min}")
+    #             min_gamma += max(float(gamma_min), 0)
+    #             max_gamma += max(float(gamma_max), 0)
+    #
+    #         alpha = float(alpha)
+    #         beta = float(beta)
+    #
+    #         plotted_intervals.append((min(alpha, beta), beta, min_gamma, max_gamma))
+    #
+    #         if alpha <= beta:
+    #             # axs[1].plot([previous_beta, alpha], [min_gamma + y_offset, min_gamma + y_offset], color=color)
+    #             ax[1].plot([alpha, beta], [min_gamma + y_offset, max_gamma + y_offset], color=color, linestyle=linestyle)
             # else:
             #     # axs[1].plot([previous_beta, beta - (gamma_diff)], [min_gamma + y_offset, min_gamma + y_offset], color=color)
             #     axs[1].plot([beta - (gamma_diff), beta], [min_gamma + y_offset, max_gamma + y_offset], color=color)
             # axs[1].plot([float(alpha), float(beta)], [min_gammas, max_gammas], color=color)
-            previous_beta = beta
-
-    previous_beta = 0
-    plotted_intervals.sort(key=lambda x: x[0])
-
-    for (alpha, beta, min_gamma, max_gamma) in plotted_intervals:
-        axs[1].plot([previous_beta, alpha], [min_gamma + y_offset, min_gamma + y_offset], color=color, linestyle=linestyle)
-        previous_beta = beta
+    #         previous_beta = beta
+    #
+    # previous_beta = 0
+    # plotted_intervals.sort(key=lambda x: x[0])
+    #
+    # for (alpha, beta, min_gamma, max_gamma) in plotted_intervals:
+    #     ax[1].plot([previous_beta, alpha], [min_gamma + y_offset, min_gamma + y_offset], color=color, linestyle=linestyle)
+    #     previous_beta = beta
 
             # logger.info(f"{alpha}, {beta}, {gammas}, {min_gammas} - {max_gammas}")
 
 def setup_plt(**kwargs):
-    widths = [10]
-    heights = [4, 1]
-    fig, axs = plt.subplots(ncols=1, nrows=2, gridspec_kw={"height_ratios": heights, "width_ratios": widths})
-    axs = axs.transpose()
-    fig.set_figheight(7)
-    fig.set_figwidth(15)
-
-    axs[0].set_xlabel("Departure time (hh:mm:ss)")
-    axs[1].set_xlabel("Departure time (hh:mm:ss)")
-    axs[0].set_ylabel("Arrival time (hh:mm:ss)")
-    axs[1].set_ylabel("Total delay of agents (s)")
-    leftx, rightx = axs[0].set_xlim(left=kwargs.get("min_x", None), right=kwargs.get("max_x", None))
-    axs[1].set_xlim(left=kwargs.get("min_x", None), right=kwargs.get("max_x", None))
-    lefty, righty = axs[0].set_ylim(bottom=kwargs.get("min_y", None), top=kwargs.get("max_y", None))
-    axs[0].grid()
-    axs[1].grid()
+    def td_str(td, a=1):
+        return ':'.join(re.split(r'[:.]+', str(td)) [a:2])
+    plt.rcParams.update({'font.size': 15})
+    fig, ax = plt.subplots()
+    fig.set_figheight(5.5)
+    fig.set_figwidth(11.5)
+    leftx, rightx = ax.set_xlim(left=kwargs.get("min_x", None), right=kwargs.get("max_x", None))
+    lefty, righty = ax.set_ylim(bottom=kwargs.get("min_y", None), top=kwargs.get("max_y", None))
+    ax.grid()
 
     first_minx = math.ceil(leftx / 60) * 60
     xticks = list(np.arange(first_minx, rightx + 1, 60))
 
-    axs[0].set_xticks(xticks, labels=[str(timedelta(seconds=xtick)) for xtick in xticks])
-    axs[1].set_xticks(xticks, labels=[str(timedelta(seconds=xtick)) for xtick in xticks])
+    ax.set_xticks(xticks, labels=[td_str(str(timedelta(seconds=xtick))) for xtick in xticks])
 
     first_miny = math.ceil(lefty / 60) * 60
     yticks = list(np.arange(first_miny, righty + 1, 120))
 
-    axs[0].set_yticks(yticks, labels=[str(timedelta(seconds=ytick)) for ytick in yticks])
+    a = 1 if righty < 3600 else 0
 
-    return fig, axs
+    ax.set_yticks(yticks, labels=[td_str(str(timedelta(seconds=ytick)), a=a) for ytick in yticks])
+
+    ax.set_xlabel("Departure time (minute)")
+    ax.set_ylabel(f"Arrival time ({'hour:' if a == 0 else ''}minute)")
+
+    return fig, ax
 
 def plot_experiments(exps, save_path=None, **kwargs):
-    fig, axs = setup_plt(**kwargs)
+    fig, ax = setup_plt(**kwargs)
     for e in exps:
         if e.results is None:
             logger.info(f"No results found, skipping {e}")
             continue
         logger.info(f"Plotting {e}")
-        e.plot(axs, **kwargs)
+        e.plot(ax, **kwargs)
 
     if "expected_arrival_time" in kwargs:
-        extra_legend, = axs[0].plot([0, 0], [0, 0], color="g")
+        extra_legend, = ax.plot([0, 0], [0, 0], color="g")
         extra_legend.set_label("Expected Arrival Time")
-    axs[0].legend()
+    ax.legend()
+    plt.tight_layout()
     if save_path is not None:
         fig.savefig(save_path)
         plt.close(fig)
@@ -190,11 +189,11 @@ class Scenario:
     def get_flexibility(self, block_intervals, max_buffer_time, use_recovery_time):
         return generate.time_flexibility_creation(self.block_routes, block_intervals, max_buffer_time, use_recovery_time)
 
-    def plot(self, agent_to_plot_route_of, block_intervals, buffer_times, recovery_times, plot_route_of_agent_to_plot_route_of=True):
+    def plot(self, agent_to_plot_route_of, block_intervals, buffer_times, recovery_times, plot_route_of_agent_to_plot_route_of=True, **kwargs):
         exclude_agent=-1
         if not plot_route_of_agent_to_plot_route_of:
             exclude_agent=agent_to_plot_route_of
-        generate.plot_route(agent_to_plot_route_of, self.moves_per_agent, self.block_routes, block_intervals, self.l.g_block, buffer_times, recovery_times, exclude_agent=exclude_agent)
+        generate.plot_route(agent_to_plot_route_of, self.moves_per_agent, self.block_routes, block_intervals, self.l.g_block, buffer_times, recovery_times, exclude_agent=exclude_agent, **kwargs)
 
 class Experiment:
     def __init__(self, s: Scenario, agent: Agent, filter_agents, max_buffer_time, use_recovery_time, metadata):
@@ -228,8 +227,8 @@ class Experiment:
             logger.error(f'Search failed for repeat, ec: {proc.returncode}')
 
 
-    def plot(self, axs, **kwargs):
-        plot_atf(self.results[1], axs, self.results[3], label=self.metadata["label"], color=self.metadata["color"], y_offset=self.metadata["offset"], linestyle=self.metadata["linestyle"], **kwargs)
+    def plot(self, ax, **kwargs):
+        plot_atf(self.results[1], ax, self.results[3], label=self.metadata["label"], color=self.metadata["color"], y_offset=self.metadata["offset"], linestyle=self.metadata["linestyle"], **kwargs)
 
     def get_running_time(self):
         return {
@@ -256,6 +255,12 @@ class Experiment:
 
     def get_metadata(self):
         return self.metadata
+
+    def get_atfs(self):
+        return {
+            "atfs": self.results[1],
+            "paths": self.results[3],
+        }
 
 def run_experiments(exps: list[Experiment], timeout, **kwargs):
     for e in exps:
