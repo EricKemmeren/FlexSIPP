@@ -9,54 +9,15 @@
         {
             "movements": [
                 {
-                    "endLocation": "RTD|11",
-                    "endTime": 2640.0,
-                    "startLocation": "SHL|5",
-                    "startTime": 1080.0,
-                    "stops": [
-                    ]
-                }
-            ],
-            "trainNumber": "2450",
-            "trainUnitTypes": [
-                "ICNG"
-            ],
-            "trainUnits": [
-                "3225"
-            ]
-        },
-        {
-            "movements": [
-                {
-                    "endLocation": "AMFS|2",
-                    "endTime": 5160.0,
+                    "endLocation": "SHL|1",
+                    "endTime": 4646,
                     "startLocation": "RTD|12",
                     "startTime": 780.0,
                     "stops": [
                         {
                             "expected_arrival": 2340.0,
                             "location": "SHL|1",
-                            "time": 2400.0
-                        },
-                        {
-                            "expected_arrival": 2760.0,
-                            "location": "ASDZ|2",
-                            "time": 2880.0
-                        },
-                        {
-                            "expected_arrival": 3180.0,
-                            "location": "DVD|1",
-                            "time": 3180.0
-                        },
-                        {
-                            "expected_arrival": 4080.0,
-                            "location": "HVS|3",
-                            "time": 4140.0
-                        },
-                        {
-                            "expected_arrival": 4800.0,
-                            "location": "AMF|1",
-                            "time": 4920.0
+                            "time": 4646.0
                         }
                     ]
                 }
