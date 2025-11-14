@@ -11,7 +11,6 @@ from setup import *
 
 class Runner:
     def __init__(self, l: Layout, s_file, save_dir):
-        print(s_file)
         self.r_stop = None
         self.r_start = None
         self.scenario = Scenario(l, s_file)
@@ -52,7 +51,10 @@ class Runner:
             return stops["location"].str.contains(from_stop).any()
 
         series = self._get_series(trainseries, direction)
-        agent= series.loc[series.apply(filter, axis=1)].iloc[0]
+        if series is None:
+            logger.warning(f"No agent found that matches train series {trainseries} in direction {direction} starting from stop {from_stop}. Now adding the required train to the agent DataFrame")
+            return None
+        agent = series.loc[series.apply(filter, axis=1)].iloc[0]
         return agent
 
     def _get_series(self, trainseries, direction):
@@ -66,8 +68,9 @@ class Runner:
                                            self.agent_df['trainNumber'].astype(int) < (
                                                int(trainseries) + 1) * 100)].sort_values("endTime")
         if series.empty:
-            raise ValueError("No agent found")
-        return series
+            return None
+        else:
+            return series
 
     def get_inclusive_stops(self, agent):
         all_stops = deepcopy(agent["stops"])
@@ -83,43 +86,76 @@ class Runner:
         })
         return all_stops
 
-    def allowed_nodes(self, f, t, agent):
+    def filter_nodes(self, f, t, agent):
         stops_df = pd.DataFrame(self.get_inclusive_stops(agent))
         self.r_start = stops_df.loc[stops_df["location"].str.contains(f, na=False)]
         self.r_stop = stops_df.loc[stops_df["location"].str.contains(t, na=False)]
-        return calculate_allowed_nodes(self.r_start, self.r_stop, agent, self.scenario.l)
+        return calculated_filtered_nodes(self.r_start, self.r_stop, agent, self.scenario.l)
 
 
 class TadRunner(Runner):
-    def run(self, trainseries, direction, f, t, timeout=300, default_direction=1, max_buffer_time=900):
+    """The parameters startTime, endTime, trainTypes, and stop are only given for planning a new train, not replanning a delayed train"""
+    def run(self, trainseries, direction, f, t, timeout=300, default_direction=1, max_buffer_time=900, startTime=0, trainTypes=["EUROSTAR"], stop=[]):
         agent = self._get_replanning_agent(trainseries, direction, f)
-        allowed_nodes = self.allowed_nodes(f, t, agent)
+        if agent is not None:
+            filter_nodes = self.filter_nodes(f, t, agent)
+            agent_id = agent["id"]
+        else:
+            agent_id = trainseries + direction
+            filter_nodes = []
+            endTime = self.scenario.global_end_time
+            # Add the required train to the dataframe
+            if len(trainTypes) > 1 and trainTypes[0] in self.scenario.train_unit_types:
+                self.agent_df.loc[-1] = Agent(agent_id, f, t, self.scenario.train_unit_types[trainTypes[0]]["speed"], startTime, endTime,
+                                          startTimeHuman=str(timedelta(seconds=startTime)),
+                                          endTimeHuman=str(timedelta(seconds=endTime)),
+                                          trainUnitTypes=trainTypes,
+                                          stops=stop
+                                        )
+                logger.info("Not filtering any tracks from the safe intervals.")
+            else:
+                logger.error(f"Could not find train type {trainTypes[0]} in train types {self.scenario.train_unit_types.keys()}")
         # Setup experiment
+        # TODO set self.rstart and rstop if agent is new agent
         experiment_settings = [
             {
                 "start_time": self.r_start["time"].iloc[0],
                 "origin": self.r_start["location"].iloc[0],
                 "destination": self.r_stop["location"].iloc[0],
-                "filter_agents": agent['id'],
+                "agent_id": agent_id,
                 "metadata": {
                     "offset": 0,
+                    "search": "repeat"
                 },
-            },{
+            },
+            {
                 "start_time": self.r_start["time"].iloc[0],
                 "origin": self.r_start["location"].iloc[0],
                 "destination": self.r_stop["location"].iloc[0],
                 "max_buffer_time": max_buffer_time,
                 "use_recovery_time": True,
-                "filter_agents": agent['id'],
+                "agent_id": agent_id,
                 "metadata": {
                     "color": "Blue",
                     "label": "Recovery time",
+                    "search": "repeat"
+                }
+            },
+            {
+                "start_time": self.r_start["time"].iloc[0],
+                "origin": self.r_start["location"].iloc[0],
+                "destination": self.r_stop["location"].iloc[0],
+                "agent_id": agent_id,
+                "metadata": {
+                    "color": "Green",
+                    "offset": 0,
+                    "search": "sipp"
                 }
             }
         ]
 
         experiments = setup_experiment(self.scenario, experiment_settings, default_direction=default_direction)
-        run_experiments(experiments, timeout, filter_tracks=allowed_nodes)
+        run_experiments(experiments, timeout, filter_tracks=filter_nodes)
         return experiments
 
     def plot(self, experiments, save=None, x_offset=900, y_range=900, y_offset=0, include_expected_arrival=True):
@@ -194,9 +230,9 @@ class RTRunner(Runner):
             total_paths = 0
             acc_length = 0
             if exp.results:
-                for path, occurences in exp.results[2].items():
-                    total_paths += occurences
-                    length = len(path.split(";")) * occurences
+                for path, occurrences in exp.results[2].items():
+                    total_paths += occurrences
+                    length = len(path.split(";")) * occurrences
                     acc_length += length
                 path_data[exp.metadata["label"]] = {"Average path length": acc_length / total_paths, "Total paths": total_paths} | exp.get_complexity() | exp.get_atfs()
 
@@ -211,7 +247,7 @@ class AgentRunner(Runner):
         agent = self._get_replanning_agent(trainseries, direction, f)
         if len(agent) == 0:
             return []
-        allowed_nodes = self.allowed_nodes(f, t, agent)
+        allowed_nodes = self.filter_nodes(f, t, agent)
 
         start_time = self.r_start["time"].iloc[0]
         origin = self.r_start["location"].iloc[0]

@@ -3,3 +3,6 @@ __pycache__/
 /data/prorail/*
 /donna_parsing/log.txt
 !/data/prorail/scenarios
+**/results/
+*.txt
+**/output

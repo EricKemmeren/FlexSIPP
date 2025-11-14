@@ -13,6 +13,7 @@ if __name__ == "__main__":
 import json
 import time
 import argparse
+import statistics
 from pathlib import Path
 
 from generation.buffer_time import flexibility
@@ -48,6 +49,7 @@ def read_scenario(file, g, g_block):
     start_time = time.time()
     block_intervals, moves_per_agent = process_scenario(data, g, g_block)
     end_time = time.time()
+    logging.info(f"Processing scenario {str(file).split('/')[-1]} with {len(data['trains'])} trains over a time span of {g.global_end_time} with on average {statistics.mean([len(t['movements'][0]['stops']) for t in data['trains']])} stops per train")
     return block_intervals, moves_per_agent, end_time - start_time
 
 def write_intervals_to_file(file, safe_node_intervals, safe_edge_intervals, indices_to_states, **kwargs):
@@ -63,6 +65,7 @@ def write_intervals_to_file(file, safe_node_intervals, safe_edge_intervals, indi
         for e in safe_edge_intervals:
             if filter_origin(indices_to_states[e[0]]) in filter_tracks or filter_origin(indices_to_states[e[1]]) in filter_tracks:
                 new_safe_edge_intervals.append(e)
+        logging.info(f"Reduced the SIPP graph by filtering {len(filter_tracks)} tracks: {len(safe_edge_intervals)} safe edge intervals reduced to {len(new_safe_edge_intervals)}")
         safe_edge_intervals = new_safe_edge_intervals
 
 

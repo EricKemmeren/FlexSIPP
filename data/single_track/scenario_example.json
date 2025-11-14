@@ -30,14 +30,14 @@
                     "startLocation": "t-1B",
                     "startTime": 1000,
                     "endTime": 1400,
-                    "endLocation": "t-8B",
+                    "endLocation": "t-14A",
                     "stops": {}
                 }
             ]
         },{
             "trainNumber": 3,
             "trainUnits": [
-                8656
+                8657
             ],
             "trainUnitTypes": [
                 "Normal"
@@ -47,14 +47,14 @@
                     "startLocation": "t-8A",
                     "startTime": 750,
                     "endTime": 1400,
-                    "endLocation": "t-4A",
+                    "endLocation": "t-14A",
                     "stops": {}
                 }
             ]
         },{
             "trainNumber": 2,
             "trainUnits": [
-                8656
+                8658
             ],
             "trainUnitTypes": [
                 "Fast"
@@ -64,24 +64,24 @@
                     "startLocation": "t-1B",
                     "startTime": 1350,
                     "endTime": 1400,
-                    "endLocation": "t-4B",
+                    "endLocation": "t-14A",
                     "stops": {}
                 }
             ]
         },{
             "trainNumber": 1,
             "trainUnits": [
-                8656
+                8659
             ],
             "trainUnitTypes": [
                 "Slow"
             ],
             "movements": [
                 {
-                    "startLocation": "t-1B",
+                    "startLocation": "t-10_1A",
                     "startTime": 100,
                     "endTime": 1400,
-                    "endLocation": "t-4B",
+                    "endLocation": "t-14A",
                     "stops": {}
                 }
             ]

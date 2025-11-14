@@ -1,10 +1,15 @@
 import re
+import json
+import time
 import subprocess
 import math
 import matplotlib.pyplot as plt
 import numpy as np
 from datetime import timedelta
 from logging import getLogger
+
+import os, sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', "generation")))
 
 logger = getLogger('pybook.' + __name__)
 
@@ -181,6 +186,8 @@ class Scenario:
     def __init__(self, l: Layout, scen_file):
         self.l = l
         self.block_intervals, self.moves_per_agent, self.unsafe_computation_time, self.block_routes, self.t_moves_to_block = generate.time_scenario_creation(scen_file, self.l.g, self.l.g_block)
+        self.global_end_time = self.l.g.global_end_time
+        self.train_unit_types = {x["name"]: x for x in json.load(open(scen_file, "r"))["types"]}
 
     def combine_intervals_per_train(self, filter_agents):
         # Combine intervals and merge overlapping intervals, taking into account the current agent
@@ -200,25 +207,37 @@ class Experiment:
         self.s = s
         self.agent = agent
         self.metadata= metadata
+        start_time = time.time()
         self.block_intervals = self.s.combine_intervals_per_train(filter_agents)
 
         self.buffer_times, self.recovery_times, self.time_flexibility_creation = s.get_flexibility(self.block_intervals, max_buffer_time, use_recovery_time)
         self.safe_block_intervals, self.safe_block_edges_intervals, self.atfs, self.indices_to_states, self.safe_computation_time = generate.time_interval_creation(self.block_intervals, self.s.l.g_block, self.buffer_times, self.recovery_times, self.agent.destination, agent.velocity)
+        self.interval_generation_time = time.time() - start_time
+        self.convert_block_interval_time = 0
+        self.search_time = 0
         self.results = None
 
     def run_search(self, timeout, **kwargs):
         file = "output"
+        start_time = time.time()
         generate.write_intervals_to_file(file, self.safe_block_intervals, self.atfs, self.indices_to_states, **kwargs)
+        self.convert_block_interval_time = time.time() - start_time
         try:
-            logger.debug(f'Running: {" ".join(["../search/buildDir/atsipp.exe", "--start", self.agent.origin, "--goal", self.agent.destination, "--edgegraph", file, "--search", "repeat", "--startTime", str(self.agent.start_time)])}')
-            proc = subprocess.run(["../search/buildDir/atsipp.exe", "--start", self.agent.origin, "--goal", self.agent.destination, "--edgegraph", file, "--search", "repeat", "--startTime", str(self.agent.start_time)], timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
-
+            logger.debug(f'Running: {" ".join(["../search/build/atsipp", "--start", self.agent.origin, "--goal", self.agent.destination, "--edgegraph", file, "--search", self.metadata["search"], "--startTime", str(self.agent.start_time)])}')
+            start_time = time.time()
+            proc = subprocess.run(["../search/build/atsipp", "--start", self.agent.origin, "--goal", self.agent.destination, "--edgegraph", file, "--search", "repeat", "--startTime", str(self.agent.start_time)], timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            self.search_time = time.time() - start_time
         except subprocess.TimeoutExpired:
             logger.error(f'Timeout for repeat ({timeout}s) expired')
             return
         if int(proc.returncode) == 0:
-            repeat_output = str(proc.stdout).split("'")[1].rsplit("\\r\\n")
-            logger.debug(f"repeat output: {repeat_output}")
+            full_output = str(proc.stdout).split("'")[1]
+            if "\\r\\n" in full_output:
+                # Windows typed output
+                repeat_output = full_output.rsplit("\\r\\n")
+            else:
+                # MacOS typed output
+                repeat_output = full_output.strip("\\n").split("\\n")
             metadata, catf, paths, eatfs = parse_list_of_outputs(repeat_output, offset=self.agent.start_time)
             logger.info(f"eats: {eatfs}")
             logger.info(f"cats: {catf}")
@@ -280,15 +299,15 @@ def setup_experiment(scenario: Scenario, overwrite_settings, default_direction=0
         max_buffer_time = exp["max_buffer_time"]
         use_recovery_time = exp["use_recovery_time"]
         metadata = exp["metadata"]
-        filter_agents = exp["filter_agents"]
+        id = exp["agent_id"]
 
 
         origin_signal = scenario.l.station_to_block(origin, direction=default_direction)
         destination_signal = scenario.l.station_to_block(destination, direction=default_direction)
-        agent = Agent(filter_agents, origin_signal, destination_signal, velocity, start_time)
+        agent = Agent(id, origin_signal, destination_signal, velocity, start_time)
 
 
-        experiments.append(Experiment(scenario, agent, filter_agents, max_buffer_time, use_recovery_time, metadata))
+        experiments.append(Experiment(scenario, agent, id, max_buffer_time, use_recovery_time, metadata))
     return experiments
 
 default_settings = {
@@ -316,7 +335,7 @@ def _set_default(setting: dict, default: dict):
 def set_default(setting):
     _set_default(setting, default_settings)
 
-def calculate_allowed_nodes(r_start, r_stop, agent, layout):
+def calculated_filtered_nodes(r_start, r_stop, agent, layout):
     i_start = r_start.index[0] + 1
     i_stop = r_stop.index[0]
     stops = agent["stops"][i_start:i_stop]
@@ -334,7 +353,7 @@ def calculate_allowed_nodes(r_start, r_stop, agent, layout):
     def filter_origin(n):
         return n.split("-")[1].split("|")[0]
 
-    allowed_nodes = {filter_origin(block_path[0].from_node.name)}
+    filtered_nodes = {filter_origin(block_path[0].from_node.name)}
     for e in block_path:
-        allowed_nodes.add(filter_origin(e.to_node.name))
-    return allowed_nodes
+        filtered_nodes.add(filter_origin(e.to_node.name))
+    return filtered_nodes
