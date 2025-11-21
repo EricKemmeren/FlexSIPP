@@ -302,37 +302,29 @@ class BlockGraph(Graph):
     def generate_signal_blocks(self, from_signal: Signal, signals: list[Signal]):
         end_tracks = {s.track.get_identifier() for s in signals}
         start_track = from_signal.track
-
         result = []
-
         queue = Queue()
         queue.put(([start_track], {start_track}, 0, sys.maxsize))
-
         while not queue.empty():
             route, visited, length, max_velocity = queue.get()
-
             if len(route[-1].outgoing) == 0:
                 #No outgoing edges, what to do?
                 # Should only happen when at the end of a track, and it's not allowed to turn around
                 logger.debug(f"No outgoing edges at {route[-1]}")
                 continue
-
             for e in route[-1].outgoing:
                 next_track = e.to_node
-
                 if next_track.get_identifier() in end_tracks:
                     route = copy(route)
                     route.append(next_track)
                     result.append((route[1:], length + e.length, min(max_velocity, e.max_speed)))
-
                 elif next_track not in visited:
                     route = copy(route)
                     visited = copy(visited)
-
                     visited.add(next_track)
                     route.append(next_track)
                     queue.put((route, visited, length + e.length, min(max_velocity, e.max_speed)))
-
+        logger.info(f"Found {len(result)} routes {result} for signal block from signal {from_signal}")
         return result
 
 

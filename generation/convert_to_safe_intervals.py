@@ -16,6 +16,8 @@ def create_safe_intervals(intervals, g, buffer_times, recovery_times, destinatio
     indices_to_states = {}
     index = 0
 
+    print(g, destination)
+
     heuristic = calculate_heuristic(g, g.nodes[destination], agent_speed)
     # Create safe intervals from the unsafe node intervals
     # Also store the state indices

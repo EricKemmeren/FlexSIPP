@@ -5445,7 +5445,7 @@
             "deceleration": 1.1,
             "length": 138,
             "minimum_station_time": 120,
-            "name": "EUROSTAR",
+            "name": "EUROCITY",
             "speed": 200
         },
         {
@@ -5453,7 +5453,7 @@
             "deceleration": 1.1,
             "length": 138,
             "minimum_station_time": 120,
-            "name": "EUROCITY",
+            "name": "EUROSTAR",
             "speed": 200
         },  
         {
@@ -5501,15 +5501,7 @@
             "deceleration": 1.1,
             "length": 138,
             "minimum_station_time": 54,
-            "name": "Flirt",
-            "speed": 140
-        },
-        {
-            "acceleration": 0.7,
-            "deceleration": 1.1,
-            "length": 138,
-            "minimum_station_time": 54,
-            "name": "GTW",
+            "name": "ICD",
             "speed": 140
         },
         {

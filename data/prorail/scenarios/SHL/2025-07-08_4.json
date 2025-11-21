@@ -4643,7 +4643,7 @@
             "deceleration": 1.1,
             "length": 138,
             "minimum_station_time": 120,
-            "name": "EUROSTAR",
+            "name": "EUROCITY",
             "speed": 200
         },
         {
@@ -4651,7 +4651,7 @@
             "deceleration": 1.1,
             "length": 138,
             "minimum_station_time": 120,
-            "name": "EUROCITY",
+            "name": "EUROSTAR",
             "speed": 200
         },         
         {

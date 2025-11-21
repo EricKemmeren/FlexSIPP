@@ -17,7 +17,6 @@ def get_single_buffer_time(intervals, agent):
     return float("inf"), recovery_time
 
 def flexibility(block_intervals, block_routes, max_buffer=float("inf"), use_recovery_time=True):
-
     buffer_times = {}
     recovery_times = {}
     for agent in block_routes:

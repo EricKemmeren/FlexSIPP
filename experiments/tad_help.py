@@ -91,7 +91,34 @@ class Runner:
         self.r_start = stops_df.loc[stops_df["location"].str.contains(f, na=False)]
         self.r_stop = stops_df.loc[stops_df["location"].str.contains(t, na=False)]
         return calculated_filtered_nodes(self.r_start, self.r_stop, agent, self.scenario.l)
-
+    
+    def add_new_agent(self, agent_id, start_time, origin, destination, trainTypes, stops):
+        endTime = self.scenario.global_end_time
+        # Add the required train to the dataframe
+        if len(trainTypes) > 0 and trainTypes[0] in self.scenario.train_unit_types:
+            self.agent_df.loc[-1] = Agent(agent_id, origin, destination, self.scenario.train_unit_types[trainTypes[0]]["speed"], start_time,
+                                        startTimeHuman=str(timedelta(seconds=start_time)),
+                                        endTimeHuman=str(timedelta(seconds=endTime)),
+                                        trainUnitTypes=trainTypes,
+                                        stops=stops
+                                    )
+            logger.info("Not filtering any tracks from the safe intervals.")
+        else:
+            logger.error(f"Could not find train type {trainTypes[0]} in train types {self.scenario.train_unit_types.keys()}")
+        # Set up the data frame of the stops for the new train
+        stops.insert(0, {
+            "expected_arrival": start_time,
+            "time": start_time,
+            "location": origin
+        })
+        stops.append({
+            "expected_arrival": endTime,
+            "time": endTime,
+            "location": destination
+        })
+        stops_df = pd.DataFrame(stops)
+        self.r_start = stops_df.loc[stops_df["location"].str.contains(origin, na=False)]
+        self.r_stop = stops_df.loc[stops_df["location"].str.contains(destination, na=False)]
 
 class TadRunner(Runner):
     """The parameters startTime, endTime, trainTypes, and stop are only given for planning a new train, not replanning a delayed train"""
@@ -101,22 +128,11 @@ class TadRunner(Runner):
             filter_nodes = self.filter_nodes(f, t, agent)
             agent_id = agent["id"]
         else:
-            agent_id = trainseries + direction
-            filter_nodes = []
-            endTime = self.scenario.global_end_time
-            # Add the required train to the dataframe
-            if len(trainTypes) > 1 and trainTypes[0] in self.scenario.train_unit_types:
-                self.agent_df.loc[-1] = Agent(agent_id, f, t, self.scenario.train_unit_types[trainTypes[0]]["speed"], startTime, endTime,
-                                          startTimeHuman=str(timedelta(seconds=startTime)),
-                                          endTimeHuman=str(timedelta(seconds=endTime)),
-                                          trainUnitTypes=trainTypes,
-                                          stops=stop
-                                        )
-                logger.info("Not filtering any tracks from the safe intervals.")
-            else:
-                logger.error(f"Could not find train type {trainTypes[0]} in train types {self.scenario.train_unit_types.keys()}")
+            agent_id = trainseries
+            filter_nodes = set([])
+            self.add_new_agent(agent_id, startTime, f, t, trainTypes, stop)
+
         # Setup experiment
-        # TODO set self.rstart and rstop if agent is new agent
         experiment_settings = [
             {
                 "start_time": self.r_start["time"].iloc[0],

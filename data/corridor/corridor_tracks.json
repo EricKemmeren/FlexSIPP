@@ -1,0 +1,263 @@
+{
+    "signals": [
+        {
+            "name": "u|B",
+            "side": "B",
+            "track": 1
+        },
+        {
+            "name": "u|A",
+            "side": "A",
+            "track": 1
+        },        
+        {
+            "name": "vHat|A",
+            "side": "A",
+            "track": 3
+        },
+        {
+            "name": "vHat|B",
+            "side": "B",
+            "track": 3
+        },
+        {
+            "name": "v|A",
+            "side": "A",
+            "track": 10
+        },
+        {
+            "name": "v|B",
+            "side": "B",
+            "track": 10
+        },
+        {
+            "name": "uHat|A",
+            "side": "A",
+            "track": 11
+        },
+        {
+            "name": "uHat|B",
+            "side": "B",
+            "track": 11
+        },
+        {
+            "name": "c1|A",
+            "side": "A",
+            "track": 4
+        },
+        {
+            "name": "c1|B",
+            "side": "B",
+            "track": 4
+        },        
+        {
+            "name": "c5|A",
+            "side": "A",
+            "track": 8
+        },
+        {
+            "name": "c5|B",
+            "side": "B",
+            "track": 8
+        }
+    ],
+    "stations": [
+        {
+            "stationName": "u",
+            "platform": "1",
+            "trackId": 1
+        },
+        {
+            "stationName": "v",
+            "platform": "2",
+            "trackId": 10
+        },
+        {
+            "stationName": "uHat",
+            "platform": "1",
+            "trackId": 11
+        },
+        {
+            "stationName": "vHat",
+            "platform": "2",
+            "trackId": 3
+        }
+    ],
+    "trackParts": [
+        {
+            "id": 1,
+            "aSide": [
+            ],
+            "bSide": [
+                2
+            ],
+            "length": 100,
+            "name": "u",
+            "parkingAllowed": true,
+            "sawMovementAllowed": true,
+            "stationPlatform": true,
+            "type": "RailRoad",
+            "wisselhoek": null
+        },
+        {
+            "id": 2,
+            "aSide": [
+                1,
+                3
+            ],
+            "bSide": [
+                4
+            ],
+            "length": 100,
+            "name": "w",
+            "parkingAllowed": false,
+            "sawMovementAllowed": false,
+            "stationPlatform": false,
+            "type": "Switch",
+            "wisselhoek": null
+        },
+        {
+            "id": 3,
+            "aSide": [
+            ],
+            "bSide": [
+                2
+            ],
+            "length": 100,
+            "name": "vHat",
+            "parkingAllowed": true,
+            "sawMovementAllowed": true,
+            "stationPlatform": true,
+            "type": "RailRoad",
+            "wisselhoek": null
+        },
+        {
+            "id": 4,
+            "aSide": [
+                2
+            ],
+            "bSide": [
+                5
+            ],
+            "length": 100,
+            "name": "c1",
+            "parkingAllowed": false,
+            "sawMovementAllowed": false,
+            "stationPlatform": false,
+            "type": "RailRoad",
+            "wisselhoek": null
+        },
+        {
+            "id": 5,
+            "aSide": [
+                4
+            ],
+            "bSide": [
+                6
+            ],
+            "length": 100,
+            "name": "c2",
+            "parkingAllowed": false,
+            "sawMovementAllowed": false,
+            "stationPlatform": false,
+            "type": "RailRoad",
+            "wisselhoek": null
+        },
+        {
+            "id": 6,
+            "aSide": [
+                5
+            ],
+            "bSide": [
+                7
+            ],
+            "length": 100,
+            "name": "c3",
+            "parkingAllowed": false,
+            "sawMovementAllowed": false,
+            "stationPlatform": false,
+            "type": "RailRoad",
+            "wisselhoek": null
+        },
+        {
+            "id": 7,
+            "aSide": [
+                6
+            ],
+            "bSide": [
+                8
+            ],
+            "length": 100,
+            "name": "c4",
+            "parkingAllowed": false,
+            "sawMovementAllowed": false,
+            "stationPlatform": false,
+            "type": "RailRoad",
+            "wisselhoek": null
+        },
+        {
+            "id": 8,
+            "aSide": [
+                7
+            ],
+            "bSide": [
+                9
+            ],
+            "length": 100,
+            "name": "c5",
+            "parkingAllowed": false,
+            "sawMovementAllowed": false,
+            "stationPlatform": false,
+            "type": "RailRoad",
+            "wisselhoek": null
+        },
+        {
+            "id": 9,
+            "aSide": [
+                8
+            ],
+            "bSide": [
+                10,
+                11
+            ],
+            "length": 100,
+            "name": "s",
+            "parkingAllowed": false,
+            "sawMovementAllowed": false,
+            "stationPlatform": false,
+            "type": "Switch",
+            "wisselhoek": null
+        },
+
+        {
+            "id": 10,
+            "aSide": [
+                9
+            ],
+            "bSide": [
+            ],
+            "length": 100,
+            "name": "v",
+            "parkingAllowed": true,
+            "sawMovementAllowed": true,
+            "stationPlatform": true,
+            "type": "RailRoad",
+            "wisselhoek": null
+        },
+        {
+            "id": 11,
+            "aSide": [
+                9
+            ],
+            "bSide": [
+            ],
+            "length": 100,
+            "name": "uHat",
+            "parkingAllowed": true,
+            "sawMovementAllowed": true,
+            "stationPlatform": true,
+            "type": "RailRoad",
+            "wisselhoek": null
+        }
+    ]
+}

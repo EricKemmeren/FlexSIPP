@@ -102,8 +102,6 @@ def read_graph(file) -> TrackGraph:
                 toNode = nodes_per_id_A[track["id"]][i]
                 length = track_lengths[track["id"]]
                 g.add_edge(TrackEdge(g.nodes[toNode], g.nodes[fromNode], length))
-
-
         if track["type"] == "SideSwitch":
             fromNode = None
             toNodeL = None
@@ -124,15 +122,11 @@ def read_graph(file) -> TrackGraph:
                 else:
                     toNodeL = g.nodes[toNodeName + "L"]
                     toNodeR = g.nodes[toNodeName + "R"]
-
             if fromNode is None:
                 raise ValueError("A and B side populated somehow " + track)
-
             g.add_edge(TrackEdge(fromNode, toNodeL, 0))
             if toNodeR is not None:
                 g.add_edge(TrackEdge(fromNode, toNodeR, 0))
-
-
         # If it is a double-ended (not dead-end) track where parking is allowed, then we can go from A->B and B->A
         if track["type"] == "RailRoad" and track["sawMovementAllowed"] and not bumperAside and not bumperBside:
             g.add_edge(TrackEdge(g.nodes[nodes_per_id_A[track["id"]][i]], g.nodes[nodes_per_id_B[track["id"]][i]], 0))

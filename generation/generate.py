@@ -16,6 +16,10 @@ import argparse
 import statistics
 from pathlib import Path
 
+
+import sys
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(os.path.abspath("__file__")))))
+
 from generation.buffer_time import flexibility
 from generation.graph import block_graph_constructor
 from generation.safe_interval_graph import plot_blocking_staircase
@@ -127,7 +131,7 @@ def plot_route(plot_agent, moves_per_agent, block_routes, block_intervals, g_blo
 def main():
     args = parser.parse_args()
     g, g_block, _, _ = time_graph_creation(args.location)
-    block_intervals, moves_per_agent, computation_time = read_scenario(args.scenario, g, g_block, args.agent_id)
+    block_intervals, moves_per_agent, computation_time = read_scenario(args.scenario, g, g_block)
     block_routes = convertMovesToBlock(moves_per_agent, g)
     buffer_times, recovery_times = flexibility(block_intervals, block_routes, float(args.buffer), args.recovery.strip().lower() == "true")
     agent_route = 2
