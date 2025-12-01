@@ -322,9 +322,9 @@ class AgentRunner(Runner):
         total_paths = 0
         acc_length = 0
         if experiment.results:
-            for path, occurences in experiment.results[2].items():
-                total_paths += occurences
-                length = len(path.split(";")) * occurences
+            for path, occurrences in experiment.results[2].items():
+                total_paths += occurrences
+                length = len(path.split(";")) * occurrences
                 acc_length += length
-            path_data = {"Average path length": acc_length / total_paths, "Total paths": total_paths} | experiment.get_complexity() | experiment.get_metadata() | experiment.get_running_time() | exp.get_atfs()
+            path_data = {"Average path length": acc_length / total_paths, "Total paths": total_paths} | experiment.get_complexity() | experiment.get_metadata() | experiment.get_running_time() | experiment.get_atfs()
         return path_data
