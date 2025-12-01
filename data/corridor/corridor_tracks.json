@@ -1,64 +1,110 @@
 {
+    "distanceEntries": [],
+    "distanceMarkers": {},
+    "facilities": [],
+    "movementConstant": 0,
+    "movementSwitchCoefficient": 0,
+    "movementTrackCoefficient": 0,
     "signals": [
-        {
-            "name": "u|B",
-            "side": "B",
-            "track": 1
-        },
         {
             "name": "u|A",
             "side": "A",
             "track": 1
-        },        
+        },
         {
-            "name": "vHat|A",
+            "name": "w|A",
             "side": "A",
             "track": 3
-        },
-        {
-            "name": "vHat|B",
-            "side": "B",
-            "track": 3
-        },
-        {
-            "name": "v|A",
-            "side": "A",
-            "track": 10
-        },
-        {
-            "name": "v|B",
-            "side": "B",
-            "track": 10
         },
         {
             "name": "uHat|A",
             "side": "A",
-            "track": 11
+            "track": 4
         },
         {
-            "name": "uHat|B",
-            "side": "B",
-            "track": 11
-        },
-        {
-            "name": "c1|A",
+            "name": "s1|A",
             "side": "A",
-            "track": 4
+            "track": 6
         },
         {
-            "name": "c1|B",
+            "name": "s1|B",
             "side": "B",
-            "track": 4
-        },        
+            "track": 6
+        },
         {
-            "name": "c5|A",
+            "name": "s2|A",
+            "side": "A",
+            "track": 7
+        },
+        {
+            "name": "s2|B",
+            "side": "B",
+            "track": 7
+        },
+        {
+            "name": "s3|A",
             "side": "A",
             "track": 8
         },
         {
-            "name": "c5|B",
+            "name": "s3|B",
             "side": "B",
             "track": 8
+        },
+        {
+            "name": "s4|A",
+            "side": "A",
+            "track": 9
+        },
+        {
+            "name": "s4|B",
+            "side": "B",
+            "track": 9
+        },
+        {
+            "name": "s5|A",
+            "side": "A",
+            "track": 10
+        },
+        {
+            "name": "s5|B",
+            "side": "B",
+            "track": 10
+        },
+        {
+            "name": "s6|B",
+            "side": "B",
+            "track": 11
+        },
+        {
+            "name": "v|B",
+            "side": "B",
+            "track": 2
+        },
+        {
+            "name": "vHat|B",
+            "side": "B",
+            "track": 5
+        },
+        {
+            "name": "su|B",
+            "side": "B",
+            "track": 12
+        },
+        {
+            "name": "suHat|B",
+            "side": "B",
+            "track": 14
+        },
+        {
+            "name": "sv|A",
+            "side": "A",
+            "track": 13
+        },
+        {
+            "name": "svHat|A",
+            "side": "A",
+            "track": 15
         }
     ],
     "stations": [
@@ -69,45 +115,59 @@
         },
         {
             "stationName": "v",
-            "platform": "2",
-            "trackId": 10
+            "platform": "1",
+            "trackId": 2
         },
         {
             "stationName": "uHat",
             "platform": "1",
-            "trackId": 11
+            "trackId": 4
         },
         {
             "stationName": "vHat",
-            "platform": "2",
-            "trackId": 3
+            "platform": "1",
+            "trackId": 5
         }
     ],
+    "taskTypes": [],
     "trackParts": [
         {
-            "id": 1,
             "aSide": [
+                12
             ],
-            "bSide": [
-                2
-            ],
+            "bSide": [],
+            "id": 1,
             "length": 100,
             "name": "u",
-            "parkingAllowed": true,
+            "parkingAllowed": false,
             "sawMovementAllowed": true,
             "stationPlatform": true,
-            "type": "RailRoad",
+            "type": "Bumper",
             "wisselhoek": null
         },
         {
+            "aSide": [],
+            "bSide": [
+                13
+            ],
             "id": 2,
+            "length": 100,
+            "name": "v",
+            "parkingAllowed": false,
+            "sawMovementAllowed": true,
+            "stationPlatform": true,
+            "type": "Bumper",
+            "wisselhoek": null
+        },
+        {
             "aSide": [
-                1,
-                3
+                6
             ],
             "bSide": [
-                4
+                12,
+                14
             ],
+            "id": 3,
             "length": 100,
             "name": "w",
             "parkingAllowed": false,
@@ -117,30 +177,43 @@
             "wisselhoek": null
         },
         {
-            "id": 3,
             "aSide": [
+                14
             ],
-            "bSide": [
-                2
-            ],
+            "bSide": [],
+            "id": 4,
             "length": 100,
-            "name": "vHat",
-            "parkingAllowed": true,
+            "name": "uHat",
+            "parkingAllowed": false,
             "sawMovementAllowed": true,
             "stationPlatform": true,
-            "type": "RailRoad",
+            "type": "Bumper",
             "wisselhoek": null
         },
         {
-            "id": 4,
+            "aSide": [],
+            "bSide": [
+                15
+            ],
+            "id": 5,
+            "length": 100,
+            "name": "vHat",
+            "parkingAllowed": false,
+            "sawMovementAllowed": true,
+            "stationPlatform": true,
+            "type": "Bumper",
+            "wisselhoek": null
+        },
+        {
             "aSide": [
-                2
+                7
             ],
             "bSide": [
-                5
+                3
             ],
+            "id": 6,
             "length": 100,
-            "name": "c1",
+            "name": "s1",
             "parkingAllowed": false,
             "sawMovementAllowed": false,
             "stationPlatform": false,
@@ -148,15 +221,15 @@
             "wisselhoek": null
         },
         {
-            "id": 5,
             "aSide": [
-                4
+                8
             ],
             "bSide": [
                 6
             ],
+            "id": 7,
             "length": 100,
-            "name": "c2",
+            "name": "s2",
             "parkingAllowed": false,
             "sawMovementAllowed": false,
             "stationPlatform": false,
@@ -164,15 +237,15 @@
             "wisselhoek": null
         },
         {
-            "id": 6,
             "aSide": [
-                5
+                9
             ],
             "bSide": [
                 7
             ],
+            "id": 8,
             "length": 100,
-            "name": "c3",
+            "name": "s3",
             "parkingAllowed": false,
             "sawMovementAllowed": false,
             "stationPlatform": false,
@@ -180,15 +253,15 @@
             "wisselhoek": null
         },
         {
-            "id": 7,
             "aSide": [
-                6
+                10
             ],
             "bSide": [
                 8
             ],
+            "id": 9,
             "length": 100,
-            "name": "c4",
+            "name": "s4",
             "parkingAllowed": false,
             "sawMovementAllowed": false,
             "stationPlatform": false,
@@ -196,15 +269,15 @@
             "wisselhoek": null
         },
         {
-            "id": 8,
             "aSide": [
-                7
+                11
             ],
             "bSide": [
                 9
             ],
+            "id": 10,
             "length": 100,
-            "name": "c5",
+            "name": "s5",
             "parkingAllowed": false,
             "sawMovementAllowed": false,
             "stationPlatform": false,
@@ -212,50 +285,83 @@
             "wisselhoek": null
         },
         {
-            "id": 9,
             "aSide": [
-                8
+                13,
+                15
             ],
             "bSide": [
-                10,
-                11
+                10
             ],
+            "id": 11,
             "length": 100,
-            "name": "s",
+            "name": "s6",
             "parkingAllowed": false,
             "sawMovementAllowed": false,
             "stationPlatform": false,
             "type": "Switch",
             "wisselhoek": null
         },
-
         {
-            "id": 10,
             "aSide": [
-                9
+                3
             ],
             "bSide": [
+                1
             ],
-            "length": 100,
-            "name": "v",
-            "parkingAllowed": true,
-            "sawMovementAllowed": true,
-            "stationPlatform": true,
+            "id": 12,
+            "length": 1,
+            "name": "su",
+            "parkingAllowed": false,
+            "sawMovementAllowed": false,
+            "stationPlatform": false,
             "type": "RailRoad",
             "wisselhoek": null
         },
         {
-            "id": 11,
             "aSide": [
-                9
+                2
             ],
             "bSide": [
+                11
             ],
-            "length": 100,
-            "name": "uHat",
-            "parkingAllowed": true,
-            "sawMovementAllowed": true,
-            "stationPlatform": true,
+            "id": 13,
+            "length": 1,
+            "name": "sv",
+            "parkingAllowed": false,
+            "sawMovementAllowed": false,
+            "stationPlatform": false,
+            "type": "RailRoad",
+            "wisselhoek": null
+        },
+        {
+            "aSide": [
+                3
+            ],
+            "bSide": [
+                4
+            ],
+            "id": 14,
+            "length": 1,
+            "name": "suHat",
+            "parkingAllowed": false,
+            "sawMovementAllowed": false,
+            "stationPlatform": false,
+            "type": "RailRoad",
+            "wisselhoek": null
+        },
+        {
+            "aSide": [
+                5
+            ],
+            "bSide": [
+                11
+            ],
+            "id": 15,
+            "length": 1,
+            "name": "svHat",
+            "parkingAllowed": false,
+            "sawMovementAllowed": false,
+            "stationPlatform": false,
             "type": "RailRoad",
             "wisselhoek": null
         }

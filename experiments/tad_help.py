@@ -88,8 +88,8 @@ class Runner:
 
     def filter_nodes(self, f, t, agent):
         stops_df = pd.DataFrame(self.get_inclusive_stops(agent))
-        self.r_start = stops_df.loc[stops_df["location"].str.contains(f, na=False)]
-        self.r_stop = stops_df.loc[stops_df["location"].str.contains(t, na=False)]
+        self.r_start = stops_df.loc[stops_df["location"].str.contains(f, na=False, regex=False)]
+        self.r_stop = stops_df.loc[stops_df["location"].str.contains(t, na=False, regex=False)]
         return calculated_filtered_nodes(self.r_start, self.r_stop, agent, self.scenario.l)
     
     def add_new_agent(self, agent_id, start_time, origin, destination, trainTypes, stops):
@@ -122,7 +122,7 @@ class Runner:
 
 class TadRunner(Runner):
     """The parameters startTime, endTime, trainTypes, and stop are only given for planning a new train, not replanning a delayed train"""
-    def run(self, trainseries, direction, f, t, timeout=300, default_direction=1, max_buffer_time=900, startTime=0, trainTypes=["EUROSTAR"], stop=[]):
+    def run(self, trainseries, direction, f, t, timeout=300, default_direction=0, max_buffer_time=900, startTime=0, trainTypes=["EUROSTAR"], stop=[]):
         agent = self._get_replanning_agent(trainseries, direction, f)
         if agent is not None:
             filter_nodes = self.filter_nodes(f, t, agent)

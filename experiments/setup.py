@@ -129,7 +129,7 @@ def get_path_data(experiments, df, **kwargs):
         if exp.results:
             for path, res in exp.results[3].items():
                 for zeta, alpha, beta, delta, gammas in res:
-                    if gammas == ['0', '0', '0', '', '0']:
+                    # if gammas == ['0', '0', '0', '', '0']:
                         path_data.append({
                             "path": path,
                             "zeta": float(zeta),
@@ -137,24 +137,24 @@ def get_path_data(experiments, df, **kwargs):
                             "beta": float(beta),
                             "delta": float(delta),
                             "label": exp.metadata["label"]
-                        } | df | {"delay_location": "-", "delay_amount": 0.0} | kwargs)
+                        } | {"delay_location": "-", "delay_amount": 0.0} | kwargs)
                         print(f"Exp {exp.metadata['label']} - atf: <{zeta},{alpha},{beta},{delta}>")
-                    else:
-                        for agent_i, agent in enumerate(gammas):
-                            if agent[3] != '':
-                                print(f"Exp {exp.metadata['label']}: Agent_i {agent_i} is delayed and agent {agent} is other agent which has atf: <{zeta},{alpha},{beta},{delta}>")
-                                a = df.loc[df["id"] == agent_i].iloc[0].to_dict() | {
-                                    "delay_location": agent[3],
-                                    "delay_amount": float(agent[4]),
-                                }
-                                path_data.append({
-                                    "path": path,
-                                    "zeta": float(zeta),
-                                    "alpha": float(alpha),
-                                    "beta": float(beta),
-                                    "delta": float(delta),
-                                    "label": exp.metadata["label"]
-                                } | a | kwargs)                                
+                    # else:
+                        # for agent_i, agent in enumerate(gammas):
+                        #     if agent[3] != '':
+                        #         print(f"Exp {exp.metadata['label']}: Agent_i {agent_i} is delayed and agent {agent} is other agent which has atf: <{zeta},{alpha},{beta},{delta}>")
+                        #         a = df.loc[df["id"] == agent_i].iloc[0].to_dict() | {
+                        #             "delay_location": agent[3],
+                        #             "delay_amount": float(agent[4]),
+                        #         }
+                        #         path_data.append({
+                        #             "path": path,
+                        #             "zeta": float(zeta),
+                        #             "alpha": float(alpha),
+                        #             "beta": float(beta),
+                        #             "delta": float(delta),
+                        #             "label": exp.metadata["label"]
+                        #         } | a | kwargs)
     return path_data
 
 class Agent:
@@ -237,7 +237,7 @@ class Experiment:
         try:
             logger.debug(f'Running: {" ".join(["../search/build/atsipp", "--start", self.agent.origin, "--goal", self.agent.destination, "--edgegraph", file, "--search", self.metadata["search"], "--startTime", str(self.agent.start_time)])}')
             start_time = time.time()
-            proc = subprocess.run(["../search/build/atsipp", "--start", self.agent.origin, "--goal", self.agent.destination, "--edgegraph", file, "--search", "repeat", "--startTime", str(self.agent.start_time)], timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            proc = subprocess.run(["../search/build/atsipp", "--start", self.agent.origin, "--goal", self.agent.destination, "--edgegraph", file, "--search", "repeat", "--startTime", str(self.agent.start_time), "--searchDuration", str(10000)], timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
             self.search_time = time.time() - start_time
         except subprocess.TimeoutExpired:
             logger.error(f'Timeout for repeat ({timeout}s) expired')

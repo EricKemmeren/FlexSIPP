@@ -4,7 +4,7 @@ from json import JSONEncoder
 
 class OutputJSONEncoder(JSONEncoder):
     def __init__(self, trackParts, facilities=None, taskTypes=None, movementConstant=0, movementTrackCoefficient=0,
-                 movementSwitchCoefficient=0, distanceEntries=None, signals=None, distanceMarkers=None):
+                 movementSwitchCoefficient=0, distanceEntries=None, signals=None, distanceMarkers=None, stations=None):
         if facilities is None:
             facilities = []
         if taskTypes is None:
@@ -24,6 +24,7 @@ class OutputJSONEncoder(JSONEncoder):
         self.distanceEntries = distanceEntries
         self.distanceMarkers = distanceMarkers
         self.signals = signals
+        self.stations = stations
 
     def default(self, o):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -33,7 +34,7 @@ class TrackPart(JSONEncoder):
     __last_id = 1
 
     def __init__(self, length, name, sawMovementAllowed, parkingAllowed, stationPlatform, type, aSide=None, bSide=None,
-                 id=None):
+                 id=None, wisselhoek=None):
         if bSide is None:
             bSide = []
         if aSide is None:
@@ -50,6 +51,7 @@ class TrackPart(JSONEncoder):
         self.type = type
         self.aSide = aSide
         self.bSide = bSide
+        self.wisselhoek = wisselhoek
 
 
     def __str__(self):
@@ -176,10 +178,14 @@ def add_signals(track_parts):
             name = input("Signal name/id: ")
             if (name.strip() == "q"):
                 return new_signals
-            print("A or B side, B side is in increasing kilometrage")
-            side = input("Side: ").strip()
-            track = input("Signal at end of track part: ").strip()
+            if "|" in name:
+                track, side = name.split("|")
+            else:
+                print("A or B side, B side is in increasing kilometrage")
+                side = input("Side: ").strip()
+                track = input("Signal at end of track part: ").strip()
             new_signals.append(Signal(name, side, track_parts[track].id))
+            print(f"Added new signal {name}, {side}, {track}")
         except Exception as e:
             print(e)
             print("Invalid track name")

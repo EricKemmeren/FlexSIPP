@@ -10,10 +10,10 @@
         {
             "movements": [
                 {
-                    "endLocation": "V|2",
-                    "endTime": 10,
+                    "endLocation": "V|1",
+                    "endTime": 10000,
                     "startLocation": "U|1",
-                    "startTime": 2,
+                    "startTime": 200,
                     "stops": [
                     ]
                 }
@@ -29,10 +29,10 @@
         {
             "movements": [
                 {
-                    "endLocation": "VHAT|2",
-                    "endTime": 10,
-                    "startLocation": "UHAT|1",
-                    "startTime": 18,
+                    "endLocation": "UHAT|1",
+                    "endTime": 10000,
+                    "startLocation": "VHAT|1",
+                    "startTime": 1800,
                     "stops": [
                     ]
                 }
@@ -48,12 +48,12 @@
     ],
     "types": [
         {
-            "acceleration": 0.5,
-            "deceleration": 1.0,
+            "acceleration": 100,
+            "deceleration": 100,
             "length": 1,
             "minimum_station_time": 0,
             "name": "type",
-            "speed": 1
+            "speed": 5
         }
     ]
 }
