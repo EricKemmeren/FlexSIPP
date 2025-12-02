@@ -126,6 +126,7 @@ def plot_experiments(exps, save_path=None, **kwargs):
 def get_path_data(experiments, df, **kwargs):
     path_data = []
     for exp in experiments:
+        logger.info(f"Now parsing experiment {exp.metadata['label']}")
         if exp.results:
             for path, res in exp.results[3].items():
                 for zeta, alpha, beta, delta, gammas in res:
