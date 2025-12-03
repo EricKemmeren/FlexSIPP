@@ -12,6 +12,11 @@
             "track": 1
         },
         {
+            "name": "u|B",
+            "side": "B",
+            "track": 1
+        },
+        {
             "name": "w|A",
             "side": "A",
             "track": 3
@@ -19,6 +24,11 @@
         {
             "name": "uHat|A",
             "side": "A",
+            "track": 4
+        },
+        {
+            "name": "uHat|B",
+            "side": "B",
             "track": 4
         },
         {
@@ -82,8 +92,18 @@
             "track": 2
         },
         {
+            "name": "v|A",
+            "side": "A",
+            "track": 2
+        },
+        {
             "name": "vHat|B",
             "side": "B",
+            "track": 5
+        },
+        {
+            "name": "vHat|A",
+            "side": "A",
             "track": 5
         },
         {
@@ -309,7 +329,7 @@
                 1
             ],
             "id": 12,
-            "length": 1,
+            "length": 0,
             "name": "su",
             "parkingAllowed": false,
             "sawMovementAllowed": false,
@@ -325,7 +345,7 @@
                 11
             ],
             "id": 13,
-            "length": 1,
+            "length": 0,
             "name": "sv",
             "parkingAllowed": false,
             "sawMovementAllowed": false,
@@ -341,7 +361,7 @@
                 4
             ],
             "id": 14,
-            "length": 1,
+            "length": 0,
             "name": "suHat",
             "parkingAllowed": false,
             "sawMovementAllowed": false,
@@ -357,7 +377,7 @@
                 11
             ],
             "id": 15,
-            "length": 1,
+            "length": 0,
             "name": "svHat",
             "parkingAllowed": false,
             "sawMovementAllowed": false,

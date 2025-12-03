@@ -10,10 +10,10 @@ from pathlib import Path
 from setup import *
 
 class Runner:
-    def __init__(self, l: Layout, s_file, save_dir):
+    def __init__(self, l: Layout, s_file, save_dir, **kwargs):
         self.r_stop = None
         self.r_start = None
-        self.scenario = Scenario(l, s_file)
+        self.scenario = Scenario(l, s_file, **kwargs)
         self.save_dir = Path(save_dir) / Path(s_file).stem
         self.agent_df = self._calculate_agent_df(s_file)
 
@@ -122,7 +122,7 @@ class Runner:
 
 class TadRunner(Runner):
     """The parameters startTime, endTime, trainTypes, and stop are only given for planning a new train, not replanning a delayed train"""
-    def run(self, trainseries, direction, f, t, timeout=300, default_direction=0, max_buffer_time=900, startTime=0, trainTypes=["EUROSTAR"], stop=[]):
+    def run(self, trainseries, direction, f, t, timeout=300, default_direction=0, max_buffer_time=900, startTime=0, trainTypes=["EUROSTAR"], stop=[], **kwargs):
         agent = self._get_replanning_agent(trainseries, direction, f)
         if agent is not None:
             filter_nodes = self.filter_nodes(f, t, agent)
@@ -149,7 +149,7 @@ class TadRunner(Runner):
                 "origin": self.r_start["location"].iloc[0],
                 "destination": self.r_stop["location"].iloc[0],
                 "max_buffer_time": max_buffer_time,
-                "use_recovery_time": True,
+                "use_recovery_time": False,
                 "agent_id": agent_id,
                 "metadata": {
                     "color": "Blue",
@@ -171,7 +171,7 @@ class TadRunner(Runner):
         ]
 
         experiments = setup_experiment(self.scenario, experiment_settings, default_direction=default_direction)
-        run_experiments(experiments, timeout, filter_tracks=filter_nodes)
+        run_experiments(experiments, timeout, filter_tracks=filter_nodes, **kwargs)
         return experiments
 
     def plot(self, experiments, save=None, x_offset=900, y_range=900, y_offset=0, include_expected_arrival=True):

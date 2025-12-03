@@ -42,7 +42,7 @@ parser.add_argument('-p', "--printing", help="(optional) whether to print edge i
 parser.add_argument('-b', "--buffer", help="(optional) max buffer time (default=float(\"inf\")", default=float("inf"))
 parser.add_argument('-r', "--recovery", help="(optional) use recovery time (default=True", default="True")
 
-def read_scenario(file, g, g_block):
+def read_scenario(file, g, g_block, **kwargs):
     """Read scenario files in json format."""
     try:
         base_path = Path(__file__).parent
@@ -51,7 +51,7 @@ def read_scenario(file, g, g_block):
     except:
         data = json.load(open(file))
     start_time = time.time()
-    block_intervals, moves_per_agent = process_scenario(data, g, g_block)
+    block_intervals, moves_per_agent = process_scenario(data, g, g_block, **kwargs)
     end_time = time.time()
     logging.info(f"Processing scenario {str(file).split('/')[-1]} with {len(data['trains'])} trains over a time span of {g.global_end_time} with on average {statistics.mean([len(t['movements'][0]['stops']) for t in data['trains']])} stops per train")
     return block_intervals, moves_per_agent, end_time - start_time
@@ -102,8 +102,8 @@ def time_graph_creation(location):
     end_time = time.time()
     return g, g_block, g_time, end_time - start_time
 
-def time_scenario_creation(scenario, g, g_block):
-    block_intervals, moves_per_agent, unsafe_computation_time = read_scenario(scenario, g, g_block)
+def time_scenario_creation(scenario, g, g_block, **kwargs):
+    block_intervals, moves_per_agent, unsafe_computation_time = read_scenario(scenario, g, g_block, **kwargs)
     start_time = time.time()
     block_routes = convertMovesToBlock(moves_per_agent, g)
     end_time = time.time()

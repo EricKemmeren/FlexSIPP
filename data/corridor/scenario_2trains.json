@@ -1,19 +1,19 @@
 {
-    "headwayCrossing": 120,
-    "headwayFollowing": 180,
-    "minimumStopTime": 100,
-    "releaseTime": 20,
-    "setupTime": 20,
-    "sightReactionTime": 10,
-    "walkingSpeed": 1.4,
+    "headwayCrossing": 100,
+    "headwayFollowing": 100,
+    "minimumStopTime": 0,
+    "releaseTime": 0,
+    "setupTime": 0,
+    "sightReactionTime": 0,
+    "walkingSpeed": 100,
     "trains": [
         {
             "movements": [
                 {
                     "endLocation": "V|1",
-                    "endTime": 10000,
+                    "endTime": 10,
                     "startLocation": "U|1",
-                    "startTime": 200,
+                    "startTime": 2,
                     "stops": [
                     ]
                 }
@@ -30,9 +30,9 @@
             "movements": [
                 {
                     "endLocation": "UHAT|1",
-                    "endTime": 10000,
+                    "endTime": 18,
                     "startLocation": "VHAT|1",
-                    "startTime": 1800,
+                    "startTime": 10,
                     "stops": [
                     ]
                 }
@@ -53,7 +53,7 @@
             "length": 1,
             "minimum_station_time": 0,
             "name": "type",
-            "speed": 5
+            "speed": 360
         }
     ]
 }

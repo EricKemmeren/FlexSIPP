@@ -8,7 +8,7 @@ from generation.signal_sections import convertMovesToBlock
 
 logger = getLogger('__main__.' + __name__)
 
-def process_scenario(data, g: TrackGraph, g_block: BlockGraph):
+def process_scenario(data, g: TrackGraph, g_block: BlockGraph, **kwargs):
     """Process the data from the scenario."""
     # Create a global end time (end of the planning horizon)
     g.global_end_time = max([2 * move["endTime"] for entry in data["trains"] for move in entry["movements"]])
@@ -38,11 +38,11 @@ def process_scenario(data, g: TrackGraph, g_block: BlockGraph):
         moves_per_agent[trainNumber] = []
         block_intervals[trainNumber] = {e.get_identifier():[] for e in g_block.edges} | {n: [] for n in g_block.nodes}
         # Each of the planned moves of the train must be converted to intervals
-        process_moves(entry, g, g_block, measures, moves_per_agent, block_intervals, trainNumber)
+        process_moves(entry, g, g_block, measures, moves_per_agent, block_intervals, trainNumber, **kwargs)
     return block_intervals, moves_per_agent
 
 
-def process_moves(entry, g, g_block, measures, moves_per_agent, block_intervals, trainNumber):
+def process_moves(entry, g, g_block, measures, moves_per_agent, block_intervals, trainNumber, **kwargs):
     """Process the data for all moves. A move is defined by a start and end time and a start and end node. First the path is constructed, then the unsafe intervals for each node and edge in the path are generated."""
     for i in range(len(entry["movements"])):
         move = entry["movements"][i]
@@ -50,7 +50,7 @@ def process_moves(entry, g, g_block, measures, moves_per_agent, block_intervals,
         path = construct_path(g, move, current_agent=current_train, agent_velocity=measures["trainSpeed"])
         moves_per_agent[trainNumber].append(path)
         block_routes = convertMovesToBlock(moves_per_agent, g, current_train)[current_train][0]
-        current_block_intervals = generate_unsafe_intervals(g_block, path, block_routes, move, measures, current_train)
+        current_block_intervals = generate_unsafe_intervals(g_block, path, block_routes, move, measures, current_train, **kwargs)
 
         
         # # If train starts at a parking track node, it is unsafe until its start time
@@ -197,7 +197,9 @@ def construct_path(g: Graph, move, print_path_error=True, current_agent=0, agent
 
     return path
 
-def calculate_blocking_time(e: TrackEdge, cur_time, blocking_intervals, measures, current_train, path: list[BlockEdge], initial_velocity: float):
+def calculate_blocking_time(e: TrackEdge, cur_time, blocking_intervals, measures, current_train, path: list[BlockEdge], initial_velocity: float, **kwargs):
+    USE_ACCELERATION = kwargs.get("use_acceleration", True)
+
     station_time = 0
     if current_train in e.stops_at_station:
         station_time = e.stops_at_station[current_train] - cur_time
@@ -218,7 +220,9 @@ def calculate_blocking_time(e: TrackEdge, cur_time, blocking_intervals, measures
             train_speed = e.length / (((max_train_speed - initial_velocity) / acceleration) + ((e.length - l_min) / max_train_speed))
             end_train_speed = max_train_speed
         logger.debug(f"start: {initial_velocity}, avg: {train_speed}, end: {end_train_speed}, max: {max_train_speed}, acceleration: {acceleration}, acceleration_distance: {l_min}, edge: {e.length}")
-
+        if not USE_ACCELERATION:
+            train_speed = max_train_speed
+            end_train_speed = max_train_speed
 
         clearing_time = measures["trainLength"] / train_speed
         end_occupation_time = cur_time + e.length / train_speed + clearing_time + station_time
@@ -243,6 +247,8 @@ def calculate_blocking_time(e: TrackEdge, cur_time, blocking_intervals, measures
 
     else:
         end_train_speed = initial_velocity
+        if not USE_ACCELERATION:
+            end_train_speed = max_train_speed
         logger.debug(f"velocity: {initial_velocity}")
         end_occupation_time = cur_time + station_time
 
@@ -302,7 +308,7 @@ def calculate_blocking_time(e: TrackEdge, cur_time, blocking_intervals, measures
 
     return end_approach_time, end_train_speed
 
-def generate_unsafe_intervals(g_block, path: list[TrackEdge], block_path: list[BlockEdge], move, measures, current_train):
+def generate_unsafe_intervals(g_block, path: list[TrackEdge], block_path: list[BlockEdge], move, measures, current_train, **kwargs):
     cur_time = move["startTime"]
     block_intervals = {e.get_identifier():[] for e in g_block.edges} | {n: [] for n in g_block.nodes}
     agent_velocity = 0.0
@@ -317,7 +323,7 @@ def generate_unsafe_intervals(g_block, path: list[TrackEdge], block_path: list[B
         #     cur_time = end_time
         # In all other cases use train speed
         # else:
-        end_time, agent_velocity = calculate_blocking_time(e, cur_time, block_intervals, measures, current_train, block_path, agent_velocity)
+        end_time, agent_velocity = calculate_blocking_time(e, cur_time, block_intervals, measures, current_train, block_path, agent_velocity, **kwargs)
         # Time train leaves the node
         cur_time = end_time
     return block_intervals

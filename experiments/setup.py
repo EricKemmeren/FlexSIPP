@@ -129,32 +129,33 @@ def get_path_data(experiments, df, **kwargs):
         if exp.results:
             for path, res in exp.results[3].items():
                 for zeta, alpha, beta, delta, gammas in res:
-                    # if gammas == ['0', '0', '0', '', '0']:
-                        path_data.append({
-                            "path": path,
-                            "zeta": float(zeta),
-                            "alpha": float(alpha),
-                            "beta": float(beta),
-                            "delta": float(delta),
-                            "label": exp.metadata["label"]
-                        } | {"delay_location": "-", "delay_amount": 0.0} | kwargs)
-                        print(f"Exp {exp.metadata['label']} - atf: <{zeta},{alpha},{beta},{delta}>")
-                    # else:
-                        # for agent_i, agent in enumerate(gammas):
-                        #     if agent[3] != '':
-                        #         print(f"Exp {exp.metadata['label']}: Agent_i {agent_i} is delayed and agent {agent} is other agent which has atf: <{zeta},{alpha},{beta},{delta}>")
-                        #         a = df.loc[df["id"] == agent_i].iloc[0].to_dict() | {
-                        #             "delay_location": agent[3],
-                        #             "delay_amount": float(agent[4]),
-                        #         }
-                        #         path_data.append({
-                        #             "path": path,
-                        #             "zeta": float(zeta),
-                        #             "alpha": float(alpha),
-                        #             "beta": float(beta),
-                        #             "delta": float(delta),
-                        #             "label": exp.metadata["label"]
-                        #         } | a | kwargs)
+                    for agent_i, agent in enumerate(gammas):
+                        if agent_i < 2:
+                            continue
+                        if agent[3] != '':
+                            print(f"Exp {exp.metadata['label']}: Agent_i {agent_i} is delayed and agent {agent} is other agent which has atf: <{zeta},{alpha},{beta},{delta}>")
+                            a = df.loc[df["id"] == agent_i].iloc[0].to_dict() | {
+                                "delay_location": agent[3],
+                                "delay_amount": float(agent[4]),
+                            }
+                            path_data.append({
+                                "path": path,
+                                "zeta": float(zeta),
+                                "alpha": float(alpha),
+                                "beta": float(beta),
+                                "delta": float(delta),
+                                "label": exp.metadata["label"]
+                            } | a | kwargs)
+                        else:
+                            path_data.append({
+                                "path": path,
+                                "zeta": float(zeta),
+                                "alpha": float(alpha),
+                                "beta": float(beta),
+                                "delta": float(delta),
+                                "label": exp.metadata["label"]
+                            } | {"delay_location": "-", "delay_amount": 0.0} | kwargs)
+                            print(f"Exp {exp.metadata['label']} - atf: <{zeta},{alpha},{beta},{delta}>")
     return path_data
 
 class Agent:
@@ -195,9 +196,9 @@ class Layout:
         return convertMovesToBlock(moves_per_agent, self.g, current_train)[current_train][0]
 
 class Scenario:
-    def __init__(self, l: Layout, scen_file):
+    def __init__(self, l: Layout, scen_file, **kwargs):
         self.l = l
-        self.block_intervals, self.moves_per_agent, self.unsafe_computation_time, self.block_routes, self.t_moves_to_block = generate.time_scenario_creation(scen_file, self.l.g, self.l.g_block)
+        self.block_intervals, self.moves_per_agent, self.unsafe_computation_time, self.block_routes, self.t_moves_to_block = generate.time_scenario_creation(scen_file, self.l.g, self.l.g_block, **kwargs)
         self.global_end_time = self.l.g.global_end_time
         self.train_unit_types = {x["name"]: x for x in json.load(open(scen_file, "r"))["types"]}
 
@@ -250,7 +251,8 @@ class Experiment:
             else:
                 # MacOS typed output
                 repeat_output = full_output.strip("\\n").split("\\n")
-            metadata, catf, paths, eatfs = parse_list_of_outputs(repeat_output, offset=self.agent.start_time)
+            offset = kwargs.get("offset", self.agent.start_time)
+            metadata, catf, paths, eatfs = parse_list_of_outputs(repeat_output, offset=offset)
             logger.info(f"eats: {eatfs}")
             logger.info(f"cats: {catf}")
             self.results = (metadata, catf, paths, eatfs)
@@ -325,7 +327,7 @@ def setup_experiment(scenario: Scenario, overwrite_settings, default_direction=0
 default_settings = {
     "origin": "ASD|13a",
     "destination": "RTD|2",
-    "velocity": 140/3.6,
+    "velocity": 100,
     "max_buffer_time": 0,
     "start_time": 0,
     "use_recovery_time": False,

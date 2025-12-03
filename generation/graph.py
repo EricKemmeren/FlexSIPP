@@ -35,7 +35,7 @@ a_to_s = {
 }
 def angle_to_speed(angle):
     if angle is None:
-        return 200 / 3.6
+        return 360 / 3.6
     return a_to_s[angle] / 3.6
 
 logger = getLogger('__main__.' + __name__)
