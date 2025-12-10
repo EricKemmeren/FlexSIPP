@@ -1,18 +1,11 @@
 from __future__ import annotations
 
-import contextlib
 import re
-import os
-import pickle
 import logging
 import sys
-import time
 from enum import Enum
 
 import tqdm
-from typing import Iterator
-
-import generation.GraphPickler
 
 from queue import Queue
 from copy import copy
@@ -336,21 +329,5 @@ class BlockGraph(Graph):
         return result
 
 
-def block_graph_constructor(g: TrackGraph, use_pickle=False):
-    if not use_pickle:
-        return BlockGraph(g)
-
-    last_modified = os.path.getmtime(g.file_name)
-    filename = f"{g.file_name}-{last_modified}-g_block.pkl"
-    if os.path.exists(filename):
-        logger.info("Using existing track graph")
-        start = time.time()
-        g_block = generation.GraphPickler.unpickleGraph(filename, g)
-        duration = time.time() - start
-        logger.info(f"Unpickling graph took {duration} seconds")
-        return g_block
-    g_block = BlockGraph(g)
-    with open(f"{g.file_name}-{last_modified}-g_block.pkl", "wb") as f:
-        pickler = generation.GraphPickler.GraphPickler(f, pickle.HIGHEST_PROTOCOL)
-        pickler.dump(g_block)
-    return g_block
+def block_graph_constructor(g: TrackGraph):
+    return BlockGraph(g)
