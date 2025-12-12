@@ -4,7 +4,8 @@
             "name": "SNG",
             "length": 60,
             "speed": 10
-        },{
+        },
+        {
             "name": "VIRM",
             "length": 60,
             "speed": 10
@@ -19,15 +20,13 @@
             "trainUnitTypes": [
                 "VIRM"
             ],
-            "movements": [
-                {
-                    "startLocation": "t-n3_1B",
-                    "startTime": 150,
-                    "endTime": 1000,
-                    "endLocation": "t-14B",
-                    "stops": {}
-                }
-            ]
+            "movements": {
+                "startLocation": "t-n3_1B",
+                "startTime": 150,
+                "endTime": 1000,
+                "endLocation": "t-14B",
+                "stops": {}
+            }
         },
         {
             "trainNumber": 2,
@@ -37,15 +36,13 @@
             "trainUnitTypes": [
                 "VIRM"
             ],
-            "movements": [
-                {
-                    "startLocation": "t-n3_1B",
-                    "startTime": 50,
-                    "endTime": 1000,
-                    "endLocation": "t-14B",
-                    "stops": {}
-                }
-            ]
+            "movements": {
+                "startLocation": "t-n3_1B",
+                "startTime": 50,
+                "endTime": 1000,
+                "endLocation": "t-14B",
+                "stops": {}
+            }
         }
     ],
     "headwayFollowing": 180,
