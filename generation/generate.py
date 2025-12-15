@@ -46,7 +46,8 @@ def read_scenario(file, g, g_block):
     except:
         data = json.load(open(file))
     start_time = time.time()
-    block_intervals, moves_per_agent = process_scenario(data, g, g_block)
+    scenario = Scenario(data, g, g_block)
+    block_intervals, moves_per_agent = scenario.process()
     end_time = time.time()
     return block_intervals, moves_per_agent, end_time - start_time
 

@@ -4,7 +4,8 @@
             "name": "SNG",
             "length": 60,
             "speed": 25
-        },{
+        },
+        {
             "name": "VIRM",
             "length": 60,
             "speed": 25
@@ -19,17 +20,15 @@
             "trainUnitTypes": [
                 "VIRM"
             ],
-            "movements": [
-                {
-                    "startLocation": "t-n3_1A",
-                    "startTime": 50,
-                    "endTime": 1500,
-                    "endLocation": "t-14A",
-                    "stops": {
-                        "t-10A": 900
-                    }
+            "movements": {
+                "startLocation": "t-n3_1A",
+                "startTime": 50,
+                "endTime": 1500,
+                "endLocation": "t-14A",
+                "stops": {
+                    "t-10A": 900
                 }
-            ]
+            }
         },
         {
             "trainNumber": 2,
@@ -39,18 +38,16 @@
             "trainUnitTypes": [
                 "SNG"
             ],
-            "movements": [
-                {
-                    "startLocation": "t-n3_1A",
-                    "startTime": 500,
-                    "endTime": 0,
-                    "endLocation": "t-14A",
-                    "stops": {
-                        "t-4A": 1000,
-                        "t-10A": 1600
-                    }
+            "movements": {
+                "startLocation": "t-n3_1A",
+                "startTime": 500,
+                "endTime": 0,
+                "endLocation": "t-14A",
+                "stops": {
+                    "t-4A": 1000,
+                    "t-10A": 1600
                 }
-            ]
+            }
         },
         {
             "trainNumber": 3,
@@ -60,17 +57,15 @@
             "trainUnitTypes": [
                 "VIRM"
             ],
-            "movements": [
-                {
-                    "startLocation": "t-n3_1A",
-                    "startTime": 1200,
-                    "endTime": 0,
-                    "endLocation": "t-14A",
-                    "stops": {
-                        "t-4A": 1800
-                    }
+            "movements": {
+                "startLocation": "t-n3_1A",
+                "startTime": 1200,
+                "endTime": 0,
+                "endLocation": "t-14A",
+                "stops": {
+                    "t-4A": 1800
                 }
-            ]
+            }
         }
     ],
     "headwayFollowing": 180,
