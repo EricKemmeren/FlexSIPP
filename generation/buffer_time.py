@@ -26,30 +26,30 @@ def flexibility(block_intervals, block_routes, max_buffer=float("inf"), use_reco
         compound_recovery_time = 0.0
         last_buffer_time = max_buffer
         # TODO: Need to do this for all blocks the train made unsafe, not only the blocks on the exact route
-        for movement in block_routes[agent][::-1]:
-            for edge in movement[::-1]:
+        for move in block_routes[agent][::-1]:
+            # for edge in movement[::-1]:
                 # Calculate buffer time
-                block = edge.get_identifier()
-                blocks = block_intervals[block]
-                current_buff_time, recovery = get_single_buffer_time(blocks, agent)
+            block = move.get_identifier()
+            blocks = block_intervals[block]
+            current_buff_time, recovery = get_single_buffer_time(blocks, agent)
 
-                # Recovery time cannot be larger than buffer time
-                # compound_recovery_time = min(compound_recovery_time, last_buffer_time)
+            # Recovery time cannot be larger than buffer time
+            # compound_recovery_time = min(compound_recovery_time, last_buffer_time)
 
-                # Buffer time can increase by recovery time if it would fit
-                last_buffer_time = min(last_buffer_time, current_buff_time)
+            # Buffer time can increase by recovery time if it would fit
+            last_buffer_time = min(last_buffer_time, current_buff_time)
 
-                if use_recovery_time:
-                    # Calculate recovery time
-                    compound_recovery_time += recovery
+            if use_recovery_time:
+                # Calculate recovery time
+                compound_recovery_time += recovery
 
-                if use_recovery_time:
-                    last_buffer_time = min(last_buffer_time + recovery, max_buffer)
+            if use_recovery_time:
+                last_buffer_time = min(last_buffer_time + recovery, max_buffer)
 
-                # Store flexibility
-                for affected_block in edge.get_affected_blocks():
-                    buffer_times[agent][affected_block.get_identifier()] = last_buffer_time
-                    recovery_times[agent][affected_block.get_identifier()] = compound_recovery_time
+            # Store flexibility
+            for affected_block in move.get_affected_blocks():
+                buffer_times[agent][affected_block.get_identifier()] = last_buffer_time
+                recovery_times[agent][affected_block.get_identifier()] = compound_recovery_time
 
 
 
