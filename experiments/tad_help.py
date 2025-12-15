@@ -29,7 +29,7 @@ class Runner:
         agents = []
         for trainNumber, entry in enumerate(data["trains"]):
             trainNumber += 1
-            move = entry["movements"][0]
+            move = entry["movements"]
             velocity = types[entry["trainUnitTypes"][0]]["speed"] / 3.6
 
             agent = Agent(trainNumber, move["startLocation"], move["endLocation"], velocity, move["startTime"],

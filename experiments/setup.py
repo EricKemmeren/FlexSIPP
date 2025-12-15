@@ -170,12 +170,9 @@ class Layout:
         return station
 
     def get_path_for_agent(self, move, current_train, velocity):
-        from generation.interval_generation import construct_path
         from generation.signal_sections import convertMovesToBlock
-
-        path = construct_path(self.g, move, current_agent=current_train, agent_velocity=velocity)
-        moves_per_agent = {current_train: [path]}
-        return convertMovesToBlock(moves_per_agent, self.g, current_train)[current_train][0]
+        path = self.g.construct_path(move, current_agent=current_train, agent_velocity=velocity)
+        return convertMovesToBlock(path, self.g, current_train)
 
 class Scenario:
     def __init__(self, l: Layout, scen_file):
