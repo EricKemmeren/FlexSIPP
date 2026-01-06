@@ -8,7 +8,7 @@ from logging import getLogger
 
 logger = getLogger('pybook.' + __name__)
 
-from generation import generate
+from old_generation import generate
 from parseRePEAT import *
 
 linestyles = [
