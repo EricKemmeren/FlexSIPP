@@ -3,8 +3,8 @@ import queue as Q
 import math
 from logging import getLogger
 
-from generation.graph import BlockEdge, Graph, Node, TrackEdge, TrackGraph, BlockGraph, Direction
-from generation.signal_sections import convertMovesToBlock
+from old_generation.graph import BlockEdge, Graph, Node, TrackEdge, TrackGraph, BlockGraph, Direction
+from old_generation.signal_sections import convertMovesToBlock
 
 logger = getLogger('__main__.' + __name__)
 

@@ -15,12 +15,12 @@ import time
 import argparse
 from pathlib import Path
 
-from generation.buffer_time import flexibility
-from generation.graph import block_graph_constructor
-from generation.safe_interval_graph import plot_blocking_staircase
-from generation.interval_generation import *
-from generation.convert_to_safe_intervals import *
-from generation.util import read_graph
+from old_generation.buffer_time import flexibility
+from old_generation.graph import block_graph_constructor
+from old_generation.safe_interval_graph import plot_blocking_staircase
+from old_generation.interval_generation import *
+from old_generation.convert_to_safe_intervals import *
+from old_generation.util import read_graph
 
 # Example:
 # $ python3 generate.py -l ../data/enkhuizen/location_enkhuizen.json -s ../data/enkhuizen/simple_freight+passenger_realistic.json -o output -a 1 -v 20 -p True

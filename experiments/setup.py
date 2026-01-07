@@ -170,7 +170,7 @@ class Layout:
         return station
 
     def get_path_for_agent(self, move, current_train, velocity):
-        from generation.signal_sections import convertMovesToBlock
+        from old_generation.signal_sections import convertMovesToBlock
         path = self.g.construct_path(move, current_agent=current_train, agent_velocity=velocity)
         return convertMovesToBlock(path, self.g, current_train)
 
