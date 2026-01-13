@@ -9,8 +9,8 @@ class ArrivalTimeFunction:
     def __init__(self, from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, delta):
         self.from_id = from_interval.index
         self.to_id   = to_interval.index
-        self.train_before = edge_interval.train_before
-        self.train_after  = edge_interval.train_after
+        self.train_before = edge_interval.agent_before
+        self.train_after  = edge_interval.agent_after
 
         self.zeta = from_interval.start
         self.alpha = max(from_interval.start, edge_interval.start, to_interval.start - delta)
@@ -22,7 +22,7 @@ class FlexibleArrivalTimeFunction(ArrivalTimeFunction):
     def __init__(self, from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, delta):
         super().__init__(from_interval, to_interval, edge_interval, delta)
 
-        # TODO: fix
+        # TODO: fix :)
         self.buffer_after = 0
         self.crt_after = 0
         # if self.train_after != 0 and o.get_identifier() in buffer_times[train_after]:
@@ -45,7 +45,9 @@ class FlexibleArrivalTimeFunction(ArrivalTimeFunction):
 
 
 class FSIPP:
-    def __init__(self, g:Graph, buffer_times):
+    def __init__(self, g:Graph):
+        # TODO: calculate buffer_times
+        buffer_times = {}
         g.invert_unsafe_intervals(buffer_times)
         self.atfs: list[ArrivalTimeFunction] = []
         self.g = g
@@ -71,3 +73,7 @@ class FSIPP:
                 f.write(f"{repr(atf)}\n")
                 num_trains = max(num_trains, atf.train_before, atf.train_after)
             f.write(f"num_trains {num_trains}\n")
+
+    def run_search(self):
+        self.write("perfect_way_to_run_c++_program")
+        # TODO: actually run fsipp

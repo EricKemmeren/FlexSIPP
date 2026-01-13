@@ -1,28 +1,77 @@
 from __future__ import annotations
 
 import sys
-from enum import Enum
-
 import queue as Q
 
+from enum import Enum
 from logging import getLogger
+from typing import Generic, ClassVar
+
+from sortedcontainers import SortedKeyList
 
 from generation.util.intervals import UnsafeInterval, SafeInterval
+from generation.util.types import EdgeType, NodeType
 
 logger = getLogger('__main__.' + __name__)
 
-class Direction(Enum):
-    SAME = 1
-    OPPOSE = 2
-    BOTH = 3
 
-class Node:
-    def __init__(self, name: str):
-        self.name = name
-        self.outgoing:list[Edge] = []
-        self.incoming:list[Edge] = []
-        self.unsafe_intervals: list[UnsafeInterval] = []
+class IntervalStore:
+    def __init__(self):
+        self.unsafe_intervals: SortedKeyList[UnsafeInterval] = SortedKeyList(key=lambda x: x.start)
         self.safe_intervals: list[SafeInterval] = []
+        self.merged = False
+
+    def add_unsafe_interval(self, interval: UnsafeInterval):
+        self.unsafe_intervals.add(interval)
+
+    def merge_unsafe_intervals(self):
+        if len(self.unsafe_intervals) == 0:
+            return
+        start = self.unsafe_intervals[0]
+        for next in self.unsafe_intervals[1:]:
+            # Check for overlap using intersection
+            if start & next:
+                start.merge(next)
+                self.unsafe_intervals.remove(next)
+            else:
+                start = next
+        self.merged = True
+
+    def get_safe_intervals(self, buffer_times, global_end_time):
+        assert self.merged
+        current = 0
+        agent_before = 0
+        # Each tuple is (start, end, duration, train)
+        for start, end, dur, agent in self.unsafe_intervals:
+            if current > start:
+                buffer_after = buffer_times[agent][self] if self in buffer_times[agent] else 0
+                interval = (current, start, agent_before, agent, buffer_after, 0)
+                agent_before = agent
+                logger.error(
+                    f"INTERVAL ERROR safe node interval {interval} on node {self} has later end than start.")
+            elif current == start:
+                # Don't add safe intervals like (0,0), but do update for the next interval
+                logger.error(f"INTERVAL ERROR current == end.")
+                agent_before = agent
+                current = end
+            else:
+                buffer_after = buffer_times[agent][self] if self in buffer_times[agent] else 0
+                interval = SafeInterval(current, start, agent_before, agent, buffer_after)
+                agent_before = agent
+                current = end
+                # Dictionary with node keys, each entry has a dictionary with interval keys and then the index value
+                self.safe_intervals.append(interval)
+        if current < global_end_time:
+            last_interval = SafeInterval(current, global_end_time, agent_before, 0, 0)
+            self.safe_intervals.append(last_interval)
+
+
+class Node(IntervalStore, Generic[EdgeType, NodeType]):
+    def __init__(self, name: str):
+        super().__init__()
+        self.name = name
+        self.outgoing:list[EdgeType] = []
+        self.incoming:list[EdgeType] = []
 
     def get_identifier(self):
         return f"{self.name}"
@@ -44,15 +93,19 @@ class Node:
         # return f"Node {self.name} of type {self.type} coming from {self.incoming} and going to {self.outgoing}\n"
         return f"{self.name}"
 
-    def calculate_path(self, to: Node):
+    def __lt__(self, other):
+        if isinstance(other, Node):
+            return self.name < other.name
+
+    def calculate_path(self, to: NodeType):
         distances = {self.name: 0.0}
-        previous: dict[str, Node] = {}
+        previous: dict[str, NodeType] = {}
 
         found = False
         pq = Q.PriorityQueue()
         pq.put((distances[self.name], self))
         while not pq.empty() and not found:
-            u: Node = pq.get()[1]
+            u: NodeType = pq.get()[1]
             for e in u.outgoing:
                 v = e.to_node
                 distance = distances[u.name] + e.length
@@ -64,7 +117,7 @@ class Node:
                         break
                     pq.put((distances[v.name], v))
 
-        path: list[Edge] = []
+        path: list[EdgeType] = []
         current = previous[to.name]
         if found:
             while current != self:
@@ -75,43 +128,6 @@ class Node:
         else:
             logger.error(f"##### ERROR ### No path was found between {self.name} and {to.name}")
         return path
-
-
-    # TODO: insertion sort on start of interval, and maybe merge overlapping intervals
-    def add_unsafe_interval(self, interval: UnsafeInterval):
-        self.unsafe_intervals.append(interval)
-
-    def get_safe_intervals(self, index, buffer_times, global_end_time):
-        current = 0
-        train_before = 0
-        # Make sure they are ordered in chronological order
-        self.unsafe_intervals.sort()
-        # Each tuple is (start, end, duration, train)
-        for start, end, dur, train, _ in self.unsafe_intervals:
-            if current > start:
-                buffer_after = buffer_times[train][self] if self in buffer_times[train] else 0
-                interval = (current, start, train_before, train, buffer_after, 0)
-                train_before = train
-                logger.error(
-                    f"INTERVAL ERROR safe node interval {interval} on node {self} has later end than start.")
-            elif current == start:
-                # Don't add safe intervals like (0,0), but do update for the next interval
-                logger.error(f"INTERVAL ERROR current == end.")
-                train_before = train
-                current = end
-            else:
-                buffer_after = buffer_times[train][self] if self in buffer_times[train] else 0
-                interval = SafeInterval(current, start, train_before, train, buffer_after, 0)
-                train_before = train
-                current = end
-                # Dictionary with node keys, each entry has a dictionary with interval keys and then the index value
-                self.safe_intervals.append(interval)
-                index += 1
-        if current < global_end_time:
-            last_interval = SafeInterval(current, global_end_time, train_before, 0, 0, 0)
-            self.safe_intervals.append(last_interval)
-            index += 1
-        return index
 
     def apply_to_safe_connections(self, func):
         assert len(self.safe_intervals) > 0
@@ -127,27 +143,17 @@ class Node:
                                 func(from_interval, edge_interval, to_interval, edge.length)
 
 
-class Signal:
-    def __init__(self, id, track: Node):
-        self.id = id
-        self.track = track
-        self.direction = track.direction
+class Edge(IntervalStore, Generic[EdgeType, NodeType]):
+    __last_id: ClassVar[int] = 1
 
-    def __repr__(self) -> str:
-        return f"Signal {self.id} on track {self.track}"
-
-
-class Edge:
-    __last_id = 1
-    def __init__(self, f:Node, t:Node, l:float, mv:float):
+    def __init__(self, f: NodeType, t: NodeType, l: float, mv: float):
+        super().__init__()
         self.id = Edge.__last_id
         Edge.__last_id += 1
         self.from_node = f
         self.to_node = t
         self.length = l
         self.max_speed = mv
-        self.unsafe_intervals: list[UnsafeInterval] = []
-        self.safe_intervals: list[SafeInterval] = []
 
     def get_identifier(self):
         return f"{self.from_node.name}--{self.to_node.name}--{self.id}"
@@ -167,65 +173,32 @@ class Edge:
     def __str__(self):
         return f"{self.from_node.name}--{self.to_node.name}"
 
-    # TODO: insertion sort on start of interval, and maybe merge overlapping intervals
-    def add_unsafe_interval(self, interval: UnsafeInterval):
-        self.unsafe_intervals.append(interval)
+    # TODO: rewrite such that it does not use tracknodes
+    # def get_affected_blocks(self):
+    #     affected_blocks = set()
+    #     for node in self.tracknodes(Direction.BOTH):
+    #         affected_blocks = affected_blocks.union(set(node.blocks(Direction.BOTH)))
+    #     return list(affected_blocks)
+    def get_affected_blocks(self) -> list[EdgeType]: ...
 
-    def get_safe_intervals(self, index, global_end_time):
-        state_indices = {}
 
-        current = 0
-        train_before = 0
-        dur_before = 0
-        # Make sure they are ordered in chronological order
-        self.unsafe_intervals.sort()
-        # Each tuple is (start, end, duration)
-        for start, end, dur, train, _ in self.unsafe_intervals:
-            if current > start:
-                interval = SafeInterval(current, start, train_before, train, dur_before, end - start)
-                train_before = train
-                dur_before = end - start
-                logger.info(
-                    f"INTERVAL ERROR safe edge interval {interval} on edge {self} has later end than start.")
-            elif current == start:
-                # Don't add safe intervals like (0,0), but do update for the next interval
-                logger.error(f"INTERVAL ERROR current == end.")
-                train_before = train
-                dur_before = end - start
-                current = end
-            else:
-                # Create safe interval from the end of the last unsafe interval, to the start of the next unsafe interval
-                interval = SafeInterval(current, start, train_before, train, dur_before, end - start)
-                train_before = train
-                dur_before = end - start
-                self.safe_intervals.append(interval)
-                index += 1
-                current = end
-        if current < global_end_time:
-            # The current timestep is still before the end time of the simulation, thus there is a safe interval from now till the end
-            last_interval = SafeInterval(current, global_end_time, train_before, 0, dur_before, 0)
-            self.safe_intervals.append(last_interval)
-            index += 1
-        return index
-
-class Graph:
+class Graph(Generic[EdgeType, NodeType]):
     def __init__(self):
-        self.edges: list[Edge] = []
-        self.nodes: dict[str, Node] = {}
+        self.edges: list[EdgeType] = []
+        self.nodes: dict[str, NodeType] = {}
         self.global_end_time = -1
-        self.stations: dict[str, (str, str)] = {}
 
-    def add_node(self, n):
+    def add_node(self, n: NodeType) -> NodeType:
         if isinstance(n, Node):
             self.nodes[n.name] = n
-            return n
+        return n
 
-    def add_edge(self, e):
+    def add_edge(self, e: EdgeType) -> EdgeType:
         if isinstance(e, Edge):
             self.edges.append(e)
             e.to_node.incoming.append(e)
             e.from_node.outgoing.append(e)
-            return e
+        return e
 
     def __repr__(self) -> str:
         return f"Graph with {len(self.edges)} edges and {len(self.nodes)} nodes:\n{self.nodes.values()}"
@@ -241,27 +214,13 @@ class Graph:
         """
             Creates safe intervals by inverting the unsafe intervals of all the nodes and edges in the graph.
         """
-        index = 0
-        for name, node in self.nodes:
-            index = node.get_safe_intervals(index, buffer_times, self.global_end_time)
-            index += index
+        for node in self.nodes.values():
+            node.get_safe_intervals(buffer_times, self.global_end_time)
 
         for edge in self.edges:
-            index = edge.get_safe_intervals(index, self.global_end_time)
-            index += index
+            edge.get_safe_intervals(buffer_times, self.global_end_time)
 
-    def get_station(self, station):
-        if station in self.stations:
-            return self.stations[station]
-        if f"{station}a" in self.stations:
-            return self.stations[f"{station}a"]
-        if f"{station}b" in self.stations:
-            return self.stations[f"{station}b"]
-        if station[0:-1] in self.stations:
-            return self.stations[station[0:-1]]
-        raise ValueError(f"{station} is not a station")
-
-    def calculate_heuristic(self, start: Node, agent_velocity):
+    def calculate_heuristic(self, start: NodeType, agent_velocity):
         time_distances = {n: sys.maxsize for n in self.nodes}
         pq = Q.PriorityQueue()
         time_distances[start.name] = 0
@@ -282,7 +241,7 @@ class Graph:
                     logger.debug(f"time-distance to {e.from_node.name}: {tmp}")
         return time_distances
 
-    def distance_between_nodes(self, start: Node, end: Node, agent_velocity):
+    def distance_between_nodes(self, start: NodeType, end: NodeType, agent_velocity):
         time_distances = {n: sys.maxsize for n in self.nodes}
         pq = Q.PriorityQueue()
         time_distances[start.name] = 0
@@ -305,7 +264,7 @@ class Graph:
                     pq_counter += 1
         return sys.maxsize
 
-    def calculate_path(self, start: Node, end: Node):
+    def calculate_path(self, start: NodeType, end: NodeType) -> list[EdgeType]:
         distances = {n: sys.maxsize for n in self.nodes}
         previous = {n: None for n in self.nodes}
         previous_edge = {n: None for n in self.nodes}
@@ -341,7 +300,7 @@ class Graph:
     def get_initial_direction(self, start, end, agent_velocity):
         start_a, start_b = start
         end_a, end_b = end
-        start_a, start_b, end_a, end_b = self.nodes[start_a], self.nodes[start_b], self.nodes[end_a], self.nodes[end_b]
+
         length_aa = self.distance_between_nodes(start_a, end_a, agent_velocity)
         length_ab = self.distance_between_nodes(start_a, end_b, agent_velocity)
         length_ba = self.distance_between_nodes(start_b, end_a, agent_velocity)
@@ -385,3 +344,21 @@ class Graph:
             path.extend(next_path)
 
         return path
+
+if __name__ == '__main__':
+    n = Node("test")
+    n.add_unsafe_interval(UnsafeInterval(2, 5, 1, 0, 1))
+    n.add_unsafe_interval(UnsafeInterval(10, 15, 2, 0, 1))
+    n.add_unsafe_interval(UnsafeInterval(0, 6, 4, 0, 1))
+    n.add_unsafe_interval(UnsafeInterval(12, 20, 8, 0, 1))
+    n.add_unsafe_interval(UnsafeInterval(18, 25, 16, 0, 1))
+    n.add_unsafe_interval(UnsafeInterval(-5, 0, 32, 0, 1))
+
+    for i in n.unsafe_intervals:
+        print(i, i.local_recovery_time)
+
+    print ("MERGING")
+    n.merge_unsafe_intervals()
+
+    for i in n.unsafe_intervals:
+        print(i, i.local_recovery_time)

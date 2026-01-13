@@ -1,7 +1,12 @@
+from typing import Generic
+
+from generation.util.types import AgentT
+
+
 class Interval:
     index = 0
 
-    def __init__(self, start, end):
+    def __init__(self, start: float, end:float):
         self.start = start
         self.end = end
         self.index = Interval.index
@@ -22,7 +27,7 @@ class Interval:
         Check if the current interval is valid
         @return: true iff start < end
         """
-        return self.start < self.end
+        return self.start <= self.end
 
     def __or__(self, other):
         """
@@ -35,44 +40,65 @@ class Interval:
     def __and__(self, other):
         return Interval(max(self.start, other.start), min(self.end, other.end))
 
+    def __eq__(self, other):
+        return self.start == other.start and self.end == other.end
 
-class UnsafeInterval(Interval):
-    def __init__(self, start, end, duration, by_train, local_recovery_time):
+    def __gt__(self, other):
+        return self.start > other.start
+
+    def __lt__(self, other):
+        return not (self > other)
+
+    def merge(self, other):
+        self.start = min(self.start, other.start)
+        self.end = max(self.end, other.end)
+
+class UnsafeInterval(Interval, Generic[AgentT]):
+    def __init__(self, start, end, duration: float, by_agent: AgentT, local_recovery_time: float):
         super().__init__(start, end)
         self.duration = duration
-        self.by_train = by_train
+        self.by_agent = by_agent
         self.local_recovery_time = local_recovery_time
 
     def __iter__(self):
         yield self.start
         yield self.end
         yield self.duration
-        yield self.by_train
+        yield self.by_agent
         yield self.local_recovery_time
 
     def __str__(self):
-        return f'{super().__str__()},{self.duration},{self.by_train}'
+        return f'{super().__str__()},{self.duration},{self.by_agent}'
+
+    def merge(self, other):
+        super().merge(other)
+        self.duration += other.duration
+        self.local_recovery_time += other.local_recovery_time
+        # assert self.by_agent == other.by_agent
 
 class SafeInterval(Interval):
-    def __init__(self, start, end, train_before, train_after, buffer_before, unsafe_interval_after_duration):
+    def __init__(self, start, end, agent_before, agent_after, buffer_after):
         super().__init__(start, end)
-        self.train_before = train_before
-        self.train_after = train_after
-        self.buffer_before = buffer_before
-        self.unsafe_interval_after_duration = unsafe_interval_after_duration
+        self.agent_before = agent_before
+        self.agent_after = agent_after
+        self.buffer_after = buffer_after
 
     def __iter__(self):
         yield self.start
         yield self.end
-        yield self.train_before
-        yield self.train_after
-        yield self.buffer_before
-        yield self.unsafe_interval_after_duration
+        yield self.agent_before
+        yield self.agent_after
+        yield self.buffer_after
 
     def __str__(self):
-        return f'{super().__str__()},{self.train_before},{self.train_after},{self.buffer_before},{self.unsafe_interval_after_duration}'
+        return f'{super().__str__()},{self.agent_before},{self.agent_after},{self.buffer_after}'
 
-    # TODO: should be buffer_after i think, but original code used buffer_before
     def __repr__(self):
-        return f'{super().__repr__()} {self.train_before} {self.train_after} {self.buffer_before}'
+        return f'{super().__repr__()} {self.agent_before} {self.agent_after} {self.buffer_after}'
 
+
+if __name__ == '__main__':
+    a = Interval(8, 10)
+    b = Interval(6, 10)
+
+    print(a < b, a > b, a == b)
