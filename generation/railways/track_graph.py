@@ -161,7 +161,7 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
                     bumperAside = False
                     # Connect the aSide node(s) to the respective edges
                     for aSideToTrack in nodes_per_id_A[aSideId]:
-                        length = track_lengths[aSideId]
+                        length = track_lengths[track["id"]]
                         e = g.add_edge(TrackEdge(g.nodes[fromNode], g.nodes[aSideToTrack], length, wisselhoek))
                         aEdges.append(e)
                 # This side is a bumper, it attaches to the other side
@@ -175,7 +175,7 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
                     bumperBside = False
                     # Connect the bSide node(s) to the respective neighbors
                     for bSideToTrack in nodes_per_id_B[bSideId]:
-                        length = track_lengths[bSideId]
+                        length = track_lengths[track["id"]]
                         e = g.add_edge(TrackEdge(g.nodes[fromNode], g.nodes[bSideToTrack], length, wisselhoek))
                         bEdges.append(e)
                 # This side is a bumper, it attaches to the other side
