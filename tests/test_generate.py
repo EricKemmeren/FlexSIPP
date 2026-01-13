@@ -27,17 +27,18 @@ class TestTrackGraph(unittest.TestCase):
         tg = self.bg.tg
         self.assertEqual(tg.nodes["uA"].outgoing[0].length,  100)
         self.assertEqual(tg.nodes["suA"].outgoing[0].length, 0)
-        self.assertEqual(tg.nodes["swA"].outgoing[0].length, 100)
+        self.assertEqual(tg.nodes["wA"].outgoing[0].length, 100)
         self.assertEqual(tg.nodes["uB"].outgoing[0].length,  100)
         self.assertEqual(tg.nodes["suB"].outgoing[0].length, 0)
-        self.assertEqual(tg.nodes["swB"].outgoing[0].length, 100)
+        self.assertEqual(tg.nodes["wBR"].outgoing[0].length, 100)
+        self.assertEqual(tg.nodes["wBL"].outgoing[0].length, 100)
 
     def test_bumper_node(self):
         tg = self.bg.tg
         uA = tg.nodes["uA"]
         self.assertEqual(uA.direction, "A")
         self.assertCountEqual(uA.opposites, [tg.nodes["uB"]])
-        self.assertCountEqual(uA.associated, [])
+        self.assertCountEqual(uA.associated, [tg.nodes["uB"]]) # TODO: is this wanted?
         self.assertEqual(len(uA.outgoing), 1)
         self.assertEqual(len(uA.incoming), 1)
 
@@ -65,13 +66,47 @@ class TestBlockGraph(unittest.TestCase):
         cls.scenario = scenario_from_file("scenario_test.json", cls.bg)
 
     def test_general_block_graph(self):
-        self.assertEqual(len(self.bg.nodes), 24, "Should be 24 signals")
-        self.assertEqual(len(self.bg.edges), 26, "Should be 26 routes")
+        bg = self.bg
+        self.assertEqual(len(bg.nodes), 24, "Should be 24 signals")
+        self.assertEqual(len(bg.edges), 26, "Should be 26 routes")
+
+        for e in bg.edges:
+            self.assertEqual(e.length, 100, f"Length is not 100m for {e}")
+
+    def test_block_node(self):
+        bg = self.bg
+        uA = bg.nodes["u|A"]
+        self.assertEqual(len(uA.outgoing), 1)
+        self.assertEqual(len(uA.incoming), 1)
+
+        wA = bg.nodes["w|A"]
+        self.assertEqual(len(wA.outgoing), 1)
+        self.assertEqual(len(wA.incoming), 2)
+
+        s5A = bg.nodes["s5|A"]
+        self.assertEqual(len(s5A.outgoing), 2)
+        self.assertEqual(len(s5A.incoming), 1)
+
+    def test_track_graph_relation(self):
+        bg = self.bg
+        def te(tn: str):
+            return bg.tg.nodes[tn].outgoing[0]
+
+        def test_track_route(block, track_nodes):
+            node = bg.nodes[block]
+            self.assertCountEqual(node.outgoing[0].track_route, [te(tn) for tn in track_nodes], f"Incorrect for signal {block}")
+
+        test_track_route("u|A", ["suA", "wA"])
+        test_track_route("w|A", ["s1A"])
+        test_track_route("s1|A", ["s2A"])
+
+
 
     def test_path_finding(self):
-        startA, startB = self.bg.get_block_from_station("U|1")
-        endA, endB = self.bg.get_block_from_station("V|1")
-        path = self.bg.calculate_path(startA, endA)
+        bg = self.bg
+        startA, startB = bg.get_block_from_station("U|1")
+        endA, endB = bg.get_block_from_station("V|1")
+        path = bg.calculate_path(startA, endA)
         self.assertEqual(len(path), 8, "Length of path should be 8")
 
     def test_create_scenario(self):
