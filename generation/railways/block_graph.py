@@ -13,11 +13,11 @@ from generation.util.types import Direction
 
 logger = getLogger('__main__.' + __name__)
 
-class BlockNode(Node):
+class BlockNode(Node["BlockEdge", "BlockNode"]):
     def __init__(self, name):
         super().__init__(name)
 
-class BlockEdge(Edge):
+class BlockEdge(Edge["BlockEdge", "BlockNode"]):
     def __init__(self, f, t, l, tracknodes_on_route:list[TrackNode], track_route: list[TrackEdge], direction, mv):
         super().__init__(f, t, l, mv)
         # List over the edges in the TrackGraph that this block takes
@@ -63,7 +63,7 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
         logger.info("Creating initial signals")
         track_to_signal = {signal.track: signal for signal in g.signals}
         for signal in g.signals:
-            block = g_block.add_node(BlockNode(f"r-{signal.id}"))
+            block = g_block.add_node(BlockNode(f"{signal.id}"))
             signal.track.blk.append(block)
         for signal in tqdm(g.signals, file=TqdmLogger(logger), mininterval=1, ascii=False):
             logger.debug(f"Expanding blocks of {signal}")
@@ -71,11 +71,11 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
             for idx, (block, route, length, max_velocity) in enumerate(blocks):
 
                 # Create edges in g_block
-                from_signal_node = g_block.nodes[f"r-{signal.id}"]
+                from_signal_node = g_block.nodes[f"{signal.id}"]
 
                 # Only add edge if a signal is found at the end of the route
                 to_signal = track_to_signal[block[-1]]
-                to_signal_node = g_block.nodes[f"r-{to_signal.id}"]
+                to_signal_node = g_block.nodes[f"{to_signal.id}"]
                 direction = "".join(set(signal.direction + to_signal.direction))
                 e = g_block.add_edge(BlockEdge(from_signal_node, to_signal_node, length, block, route, direction, max_velocity))
                 logger.debug(f"Found block {e} with length {length} and max velocity {max_velocity}")
