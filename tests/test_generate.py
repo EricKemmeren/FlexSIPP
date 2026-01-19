@@ -226,12 +226,13 @@ class TestSafeIntervals(unittest.TestCase):
             agent.calculate_flexibility()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         new_agent = deepcopy(scenario.agents[0])
-        cls.fsipp = FSIPP(scenario.fsipp(0, new_agent), heuristic)
+        new_agent.id = 0
+        cls.fsipp = FSIPP(scenario.fsipp(new_agent), heuristic)
 
 
     def test_safe_intervals(self):
         node = self.fsipp.g.nodes["w|A"]
-        pass
+        self.assertCountEqual(node.safe_intervals, [Interval(a, b) for a,b in [(0, 2), (3, 16), (17, 36)]])
 
 
 if __name__ == '__main__':

@@ -1,4 +1,5 @@
 from copy import deepcopy
+from typing import Union
 
 from generation.graphs.graph import IntervalStore
 from generation.railways.block_graph import BlockGraph, BlockNode
@@ -66,17 +67,17 @@ class Scenario:
             node.merge_unsafe_intervals()
 
     @timing
-    def fsipp(self, for_agent: int, new_agent:TrainAgent=None) -> BlockGraph:
+    def fsipp(self, agent: Union[TrainAgent, int] =None) -> BlockGraph:
         """
         Create a BlockGraph that can be used by FSIPP.
         First filter out the unsafe intervals for the agent that we want to run flexSIPP on.
         Then convert the edge length to be time instead of distance.
-        @param for_agent: Agent to filter out
-        @param new_agent: Optional parameter if we want to add a new agent to the simulation, only used if for_agent is not a valid ID
-        @return: Copy of the BlockGraph that is updated
+        @param agent: Agent_id to filter out, or a new agent in the simulation.
+        @return: Copy of the BlockGraph that is updated to filter out agent
         """
         g = deepcopy(self.g)
-        agent = next((agent for agent in self.agents if agent.id is for_agent), new_agent)
+        if isinstance(agent, int):
+            agent = next((agent for agent in self.agents if agent.id is agent))
         assert agent is not None
         uis: list[IntervalStore] = list(g.nodes.values()) + g.edges
         for ui in uis:

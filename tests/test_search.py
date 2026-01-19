@@ -19,7 +19,8 @@ class TestSearch(unittest.TestCase):
             agent.calculate_flexibility()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         self.new_agent = deepcopy(scenario.agents[0])
-        self.flexSIPP = FSIPP(scenario.fsipp(0, self.new_agent), heuristic)
+        self.new_agent.id = -1
+        self.flexSIPP = FSIPP(scenario.fsipp(self.new_agent), heuristic)
         self.scenario = scenario
 
     def test_no_flexibility(self):
