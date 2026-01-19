@@ -3,12 +3,12 @@ from __future__ import annotations
 import sys
 import queue as Q
 
-from enum import Enum
 from logging import getLogger
-from typing import Generic, ClassVar
+from typing import Generic, ClassVar, Tuple
 
 from sortedcontainers import SortedKeyList
 
+from generation.agent import Agent
 from generation.util.intervals import UnsafeInterval, SafeInterval
 from generation.util.types import EdgeType, NodeType
 
@@ -19,12 +19,15 @@ class IntervalStore:
     def __init__(self):
         self.unsafe_intervals: SortedKeyList[UnsafeInterval] = SortedKeyList(key=lambda x: x.start)
         self.safe_intervals: list[SafeInterval] = []
+        self.bt: dict[Agent, float] = {}
+        self.crt: dict[Agent, float] = {}
         self.merged = False
 
     def add_unsafe_interval(self, interval: UnsafeInterval):
         self.unsafe_intervals.add(interval)
 
     def merge_unsafe_intervals(self):
+        self.merged = True
         if len(self.unsafe_intervals) == 0:
             return
         start = self.unsafe_intervals[0]
@@ -35,17 +38,36 @@ class IntervalStore:
                 self.unsafe_intervals.remove(next)
             else:
                 start = next
-        self.merged = True
 
-    def get_safe_intervals(self, buffer_times, global_end_time):
+    def filter_out_agent(self, agent: Agent):
+        self.unsafe_intervals = [ui for ui in self.unsafe_intervals if ui.by_agent != agent]
+
+
+    def add_flexibility(self, agent: Agent, bt: float, crt:float):
+        """
+        Add the flexibility parameters to this node/edge
+        @param agent: Agent for which the bt and crt are defined
+        @param bt: Buffer Time at this node/edge
+        @param crt: Compound Recovery Time at this node/edge
+        """
+        self.bt[agent] = bt
+        self.crt[agent] = crt
+
+    def get_flexibility(self, agent: Agent) -> Tuple[float, float]:
+        bt = self.bt[agent] if agent in self.bt else 0
+        crt = self.crt[agent] if agent in self.crt else 0
+        return bt, crt
+
+    def get_safe_intervals(self, global_end_time):
         assert self.merged
         current = 0
         agent_before = 0
-        # Each tuple is (start, end, duration, train)
-        for start, end, dur, agent in self.unsafe_intervals:
+        # Each tuple is (start, end, duration, train, recovery_time)
+        for start, end, dur, agent, recovery in self.unsafe_intervals:
             if current > start:
-                buffer_after = buffer_times[agent][self] if self in buffer_times[agent] else 0
-                interval = (current, start, agent_before, agent, buffer_after, 0)
+                bt_b, crt_b = self.get_flexibility(agent_before)
+                bt_a, crt_a = self.get_flexibility(agent)
+                interval = SafeInterval(current, start, agent_before, crt_b, agent, bt_a, crt_a)
                 agent_before = agent
                 logger.error(
                     f"INTERVAL ERROR safe node interval {interval} on node {self} has later end than start.")
@@ -55,14 +77,16 @@ class IntervalStore:
                 agent_before = agent
                 current = end
             else:
-                buffer_after = buffer_times[agent][self] if self in buffer_times[agent] else 0
-                interval = SafeInterval(current, start, agent_before, agent, buffer_after)
+                bt_b, crt_b = self.get_flexibility(agent_before)
+                bt_a, crt_a = self.get_flexibility(agent)
+                interval = SafeInterval(current, start, agent_before, crt_b, agent, bt_a, crt_a)
                 agent_before = agent
                 current = end
                 # Dictionary with node keys, each entry has a dictionary with interval keys and then the index value
                 self.safe_intervals.append(interval)
         if current < global_end_time:
-            last_interval = SafeInterval(current, global_end_time, agent_before, 0, 0)
+            bt_b, crt_b = self.get_flexibility(agent_before)
+            last_interval = SafeInterval(current, global_end_time, agent_before, crt_b, 0, 0, 0)
             self.safe_intervals.append(last_interval)
 
 
@@ -129,8 +153,9 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
             logger.error(f"##### ERROR ### No path was found between {self.name} and {to.name}")
         return path
 
-    def apply_to_safe_connections(self, func):
+    def get_safe_connections(self) -> list[Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
         assert len(self.safe_intervals) > 0
+        safe_connections = []
         for from_interval in self.safe_intervals:
             for edge in self.outgoing:
                 for edge_interval in edge.safe_intervals:
@@ -140,7 +165,8 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
                             # Check for overlap with the edge en to node
                             # TODO: figure out if overlap with from and to node is needed
                             if edge_interval & to_interval:
-                                func(from_interval, edge_interval, to_interval, edge.length)
+                                safe_connections.append((from_interval, edge_interval, to_interval, edge.length))
+        return safe_connections
 
 
 class Edge(IntervalStore, Generic[EdgeType, NodeType]):
@@ -174,11 +200,6 @@ class Edge(IntervalStore, Generic[EdgeType, NodeType]):
         return f"{self.from_node.name}--{self.to_node.name}"
 
     # TODO: rewrite such that it does not use tracknodes
-    # def get_affected_blocks(self):
-    #     affected_blocks = set()
-    #     for node in self.tracknodes(Direction.BOTH):
-    #         affected_blocks = affected_blocks.union(set(node.blocks(Direction.BOTH)))
-    #     return list(affected_blocks)
     def get_affected_blocks(self) -> list[EdgeType]: ...
 
 
@@ -210,27 +231,25 @@ class Graph(Generic[EdgeType, NodeType]):
                     self.global_end_time == other.global_end_time)
         return NotImplemented
 
-    def invert_unsafe_intervals(self, buffer_times):
+    def invert_unsafe_intervals(self):
         """
             Creates safe intervals by inverting the unsafe intervals of all the nodes and edges in the graph.
         """
-        for node in self.nodes.values():
-            node.get_safe_intervals(buffer_times, self.global_end_time)
+        uis: list[IntervalStore] = list(self.nodes.values()) + self.edges
+        for ui in uis:
+            ui.get_safe_intervals(self.global_end_time)
 
-        for edge in self.edges:
-            edge.get_safe_intervals(buffer_times, self.global_end_time)
-
-    def calculate_heuristic(self, start: NodeType, agent_velocity):
-        time_distances = {n: sys.maxsize for n in self.nodes}
+    def calculate_heuristic(self, start: NodeType, agent_velocity) -> dict[str, float]:
+        time_distances = {n: float("inf") for n in self.nodes}
         pq = Q.PriorityQueue()
-        time_distances[start.name] = 0
+        time_distances[start.name] = 0.0
         pq_counter = 0
         # Use a counter so it doesn't have to compare nodes
         pq.put((time_distances[start.name], pq_counter, start))
         pq_counter += 1
         # This does not include the other node intervals: this will have to be updated with propagating SIPP searches
         while not pq.empty():
-            v = pq.get()[2]
+            v: NodeType = pq.get()[2]
             for e in v.incoming:
                 velocity = min(e.max_speed, agent_velocity)
                 tmp = time_distances[v.name] + (e.length / velocity)

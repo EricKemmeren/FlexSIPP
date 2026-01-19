@@ -1,11 +1,10 @@
-import logging
 import queue as Q
 import sys
 from typing import Tuple
+from logging import getLogger, Logger
+from copy import copy
 
 from tqdm import tqdm
-from copy import copy
-from logging import getLogger
 
 from generation.graphs.graph import Graph, Node, Edge
 from generation.railways.track_graph import TrackEdge, TrackNode, TrackGraph, Signal
@@ -43,8 +42,8 @@ class BlockEdge(Edge["BlockEdge", "BlockNode"]):
 
 class TqdmLogger:
     """File-like class redirecting tqdm progress bar to given logging logger."""
-    def __init__(self, logger: logging.Logger):
-        self.logger = logger
+    def __init__(self, l: Logger):
+        self.logger = l
 
     def write(self, msg: str) -> None:
         self.logger.info(msg.lstrip("\r"))
@@ -60,13 +59,13 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
     @classmethod
     def from_track_graph(cls, g: TrackGraph):
         g_block = cls(g)
-        logger.info("Creating initial signals")
         track_to_signal = {signal.track: signal for signal in g.signals}
         for signal in g.signals:
             block = g_block.add_node(BlockNode(f"{signal.id}"))
             signal.track.blk.append(block)
+            for track in signal.track.opposites:
+                track.blocksOpp.append(block)
         for signal in tqdm(g.signals, file=TqdmLogger(logger), mininterval=1, ascii=False):
-            logger.debug(f"Expanding blocks of {signal}")
             blocks = g_block.generate_signal_blocks(signal, g.signals)
             for idx, (block, route, length, max_velocity) in enumerate(blocks):
 
@@ -86,10 +85,10 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
 
     def get_block_from_station(self, station: str) -> Tuple[BlockNode, BlockNode]:
         # TODO check if correct
-        trackA, trackB = self.tg.stations[station]
-        return trackA.blocks(Direction.SAME)[0], trackB.blocks(Direction.SAME)[0]
+        track_a, track_b = self.tg.stations[station]
+        return track_a.blocks(Direction.SAME)[0], track_b.blocks(Direction.SAME)[0]
 
-    def add_edge(self, e):
+    def add_edge(self, e: BlockEdge) -> BlockEdge:
         super().add_edge(e)
 
         for node in e.tracknodes(Direction.SAME):
@@ -102,12 +101,13 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
     def generate_signal_blocks(self, from_signal: Signal, signals: list[Signal]) \
             -> list[Tuple[list[TrackNode], list[TrackEdge], float, float]]:
         end_tracks = {s.track.get_identifier() for s in signals}
-        start_track = from_signal.track
+        start_tracks = [track.to_node for track in from_signal.track.outgoing]
 
         result = []
 
         queue = Q.Queue()
-        queue.put(([start_track], [], {start_track}, 0.0, sys.maxsize))
+        for start_track in start_tracks:
+            queue.put(([start_track], [], set(), 0.0, sys.maxsize))
 
         while not queue.empty():
             route, edge_route, visited, length, max_velocity = queue.get()
@@ -121,23 +121,23 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
             for e in route[-1].outgoing:
                 next_track = e.to_node
 
-                if next_track.get_identifier() in end_tracks:
-                    route = copy(route)
-                    route.append(next_track)
-                    edge_route = copy(edge_route)
-                    edge_route.append(e)
-                    result.append((route[1:], edge_route, length + e.length, min(max_velocity, e.max_speed)))
+                if route[-1].get_identifier() in end_tracks:
+                    croute = copy(route)
+                    # route.append(next_track)
+                    cedge_route = copy(edge_route)
+                    cedge_route.append(e)
+                    result.append((croute, cedge_route, length + e.length, min(max_velocity, e.max_speed)))
 
-                elif next_track not in visited:
-                    route = copy(route)
-                    route.append(next_track)
+                elif route[-1] not in visited:
+                    croute = copy(route)
+                    croute.append(next_track)
 
-                    visited = copy(visited)
-                    visited.add(next_track)
+                    cvisited = copy(visited)
+                    cvisited.add(next_track)
 
-                    edge_route = copy(edge_route)
-                    edge_route.append(e)
+                    cedge_route = copy(edge_route)
+                    cedge_route.append(e)
 
-                    queue.put((route, edge_route, visited, length + e.length, min(max_velocity, e.max_speed)))
+                    queue.put((croute, cedge_route, cvisited, length + e.length, min(max_velocity, e.max_speed)))
 
         return result

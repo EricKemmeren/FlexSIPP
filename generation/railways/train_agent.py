@@ -32,7 +32,7 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
         super().__init__(route)
         self.measures = train
 
-    def _occupation_time(self, e: TrackEdge, velocity: float, cur_time: float, station_time: float) -> Tuple[UnsafeInterval["TrainAgent"], float, float]:
+    def _occupation_time(self, e: TrackEdge, velocity: float, cur_time: float, station_time: float) -> Tuple[UnsafeInterval, float, float]:
         if e.length > 0:
             max_train_v = min(e.max_speed, self.measures.train_speed)
             clearing_time = self.measures.train_length / max_train_v
@@ -44,7 +44,7 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
                 # TODO: create variable from the 1.08
                 recovery_time = (e.length / max_train_v) - e.length / (max_train_v * 1.08)
 
-            return UnsafeInterval[TrainAgent](
+            return UnsafeInterval(
                 cur_time,
                 end_occupation_time + self.measures.release_time,
                 e.length / max_train_v + station_time,
@@ -62,7 +62,7 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
             else:
                 recovery_time = 0
 
-            return UnsafeInterval[TrainAgent](
+            return UnsafeInterval(
                 cur_time,
                 end_occupation_time + self.measures.release_time,
                 station_time,
@@ -70,14 +70,14 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
                 recovery_time
             ), velocity, end_train_v
 
-    def _approach_time(self, e: TrackEdge, avg_v: float, cur_time: float, station_time: float) -> Tuple[UnsafeInterval["TrainAgent"], set[BlockEdge]]:
+    def _approach_time(self, e: TrackEdge, avg_v: float, cur_time: float, station_time: float) -> Tuple[UnsafeInterval, set[BlockEdge]]:
         start_approach_time = cur_time + station_time - self.measures.setup_time - self.measures.sight_reaction_time
 
         end_approach_time = cur_time + station_time
         if avg_v > 0:
             end_approach_time += (e.length / avg_v)
 
-        interval = UnsafeInterval[TrainAgent](
+        interval = UnsafeInterval(
             start_approach_time,
             end_approach_time,
             0,
@@ -90,7 +90,7 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
         current_path_index = bools.index(True) if True in bools else None
 
         approach_blocks: set[BlockEdge] = set()
-        # TODO make variable and fix values > 2 in regards to station time
+        # TODO make variable and fix values > 2 in regards to station time, or even better: change it to actually use the breaking distance of the train at the current time.
         N_BLOCKS = 0
 
         if current_path_index is not None:
@@ -102,7 +102,7 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
         return interval, approach_blocks
 
 
-    # Make this overwrite a function of Agent
+    # TODO: Maybe make this overwrite a function of Agent
     def calculate_blocking_times(self):
         cur_time = self.measures.start_time
         velocity = 0.0

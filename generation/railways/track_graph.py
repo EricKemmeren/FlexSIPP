@@ -1,10 +1,9 @@
 import json
 import re
-from pathlib import Path
 from logging import getLogger
 from typing import Tuple
 
-from generation.graphs.graph import Graph, Node, Edge
+from generation.graphs.graph import Graph, Node, Edge, IntervalStore
 from generation.util.types import Direction
 from generation.util.util import angle_to_speed
 
@@ -50,13 +49,16 @@ class TrackEdge(Edge["TrackEdge", "TrackNode"]):
             "block": block_edge,
         }
 
-    def get_affected_blocks(self) -> set:
+    def get_affected_blocks(self) -> set[IntervalStore]:
         '''Return all blocks that are unsafe when this track is used/reserved for a train'''
-        affected_blocks = set()
+        affected_blocks:set[IntervalStore] = set()
+
+
+
         for blk in self.from_node.blocks(Direction.BOTH):
             affected_blocks.add(blk)
-        for blk in self.to_node.blocks(Direction.BOTH):
-            affected_blocks.add(blk)
+        # for blk in self.to_node.blocks(Direction.BOTH):
+        #     affected_blocks.add(blk)
         return affected_blocks
 
 class Signal:
@@ -94,45 +96,37 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
             if track["type"] in {"RailRoad", "Bumper"} or side_switch_track_side:
                 a = g.add_node(TrackNode(track["name"] + "A", track["type"]))
                 b = g.add_node(TrackNode(track["name"] + "B", track["type"]))
+                a.opposites.append(b)
+                b.opposites.append(a)
+                nodes_per_id_A[track["id"]] = [track["name"] + "A"]
+                nodes_per_id_B[track["id"]] = [track["name"] + "B"]
                 if track["stationPlatform"]:
                     a.stationPlatform = True
                     b.stationPlatform = True
-                # A/B nodes are associated because the have the same interval on the node if train can reverse
                 if track["sawMovementAllowed"]:
+                    # A/B nodes are associated because they have the same interval on the node if train can reverse
                     a.associated.append(b)
                     b.associated.append(a)
                     a.canReverse = True
                     b.canReverse = True
                 # A/B nodes are opposite because they have opposite edges attaches
-                a.opposites.append(b)
-                b.opposites.append(a)
-                nodes_per_id_A[track["id"]] = [track["name"] + "A"]
-                nodes_per_id_B[track["id"]] = [track["name"] + "B"]
             # Nodes on the same side of a switch are not associated -> they do not have same intervals, but the edges do
             elif track["type"] == "Switch" or side_switch_switch_side:
                 if len(track["aSide"]) > len(track["bSide"]):
-                    a = g.add_node(TrackNode(track["name"] + "AR", track["type"]))
-                    b = g.add_node(TrackNode(track["name"] + "AL", track["type"]))
-                    c = g.add_node(TrackNode(track["name"] + "B", track["type"]))
-                    a.opposites.extend([c])
-                    b.opposites.extend([c])
-                    c.opposites.extend([a, b])
-                    a.associated.append(b)
-                    b.associated.append(a)
-                    nodes_per_id_A[track["id"]] = [track["name"] + "AR", track["name"] + "AL"]
+                    a = g.add_node(TrackNode(track["name"] + "A", track["type"]))
+                    b = g.add_node(TrackNode(track["name"] + "B", track["type"]))
+                    a.opposites.extend([b])
+                    b.opposites.extend([a])
+                    nodes_per_id_A[track["id"]] = [track["name"] + "A"]
                     nodes_per_id_B[track["id"]] = [track["name"] + "B"]
                 else:
                     a = g.add_node(TrackNode(track["name"] + "A", track["type"]))
-                    b = g.add_node(TrackNode(track["name"] + "BR", track["type"]))
-                    c = g.add_node(TrackNode(track["name"] + "BL", track["type"]))
-                    a.opposites.extend([b, c])
+                    b = g.add_node(TrackNode(track["name"] + "B", track["type"]))
+                    a.opposites.extend([b])
                     b.opposites.extend([a])
-                    c.opposites.extend([a])
-                    b.associated.append(c)
-                    c.associated.append(b)
                     nodes_per_id_A[track["id"]] = [track["name"] + "A"]
-                    nodes_per_id_B[track["id"]] = [track["name"] + "BR", track["name"] + "BL"]
-            elif track["type"] == "EnglishSwitch":
+                    nodes_per_id_B[track["id"]] = [track["name"] + "B"]
+            elif track["type"] == "EnglishSwitch": #TODO: check how this is represented in prorail data (it's weird)
                 a = g.add_node(TrackNode(track["name"] + "AR", track["type"]))
                 b = g.add_node(TrackNode(track["name"] + "AL", track["type"]))
                 c = g.add_node(TrackNode(track["name"] + "BR", track["type"]))
@@ -156,6 +150,7 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
             bEdges = []
             bumperAside, bumperBside = True, True
             for i, aSideId in enumerate(track["aSide"]):
+                i=0
                 fromNode = nodes_per_id_A[track["id"]][i]
                 if aSideId in nodes_per_id_A:
                     bumperAside = False
@@ -170,6 +165,7 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
                     length = track_lengths[track["id"]]
                     g.add_edge(TrackEdge(g.nodes[toNode], g.nodes[fromNode], length))
             for i, bSideId in enumerate(track["bSide"]):
+                i=0
                 fromNode = nodes_per_id_B[track["id"]][i]
                 if bSideId in nodes_per_id_B:
                     bumperBside = False

@@ -2,17 +2,14 @@ from typing import Generic
 
 from generation.util.types import EdgeType, NodeType
 
-
 class Agent(Generic[EdgeType, NodeType]):
-    id = 0
+    id = 1
 
     def __init__(self, route: list[EdgeType]):
         self.id = Agent.id
         Agent.id += 1
 
         self.route: list[EdgeType] = route
-        self.buffer_time: dict[EdgeType, float] = {}
-        self.compound_recovery_time: dict[EdgeType, float] = {}
 
     @staticmethod
     def calculate_route(start: NodeType, stops: list[NodeType], **kwargs):
@@ -25,8 +22,17 @@ class Agent(Generic[EdgeType, NodeType]):
 
         return route
 
+    @property
+    def origin(self) -> NodeType:
+        return self.route[0].from_node
+
+    @property
+    def destination(self) -> NodeType:
+        return self.route[-1].to_node
+
     def _get_local_flexibility(self, move: EdgeType):
-        for a, b in zip(move.unsafe_intervals, move.safe_intervals[1:]):
+        zlist = list(zip(move.unsafe_intervals, move.unsafe_intervals[1:]))
+        for a, b in zlist:
             if a.by_agent == self:
                 return b.start - a.end, a.local_recovery_time
 
@@ -54,5 +60,14 @@ class Agent(Generic[EdgeType, NodeType]):
             last_buffer_time = min(last_buffer_time, max_buffer)
 
             # Store the buffer and crt
-            self.buffer_time[move] = last_buffer_time
-            self.compound_recovery_time[move] = compound_recovery_time
+            move.add_flexibility(self, last_buffer_time, compound_recovery_time)
+
+    def __repr__(self):
+        return f"{self.id}"
+
+    def __eq__(self, other):
+        if isinstance(other, Agent):
+            return self.id == other.id
+
+    def __hash__(self):
+        return hash(self.id)

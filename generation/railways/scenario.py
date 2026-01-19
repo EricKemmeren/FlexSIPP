@@ -1,11 +1,14 @@
+from copy import deepcopy
+
 from generation.graphs.graph import IntervalStore
 from generation.railways.block_graph import BlockGraph, BlockNode
 from generation.railways.train_agent import TrainItem, TrainAgent
+from generation.util.timing import timing
 
 
 class Scenario:
-    def __init__(self, data, g_block: BlockGraph):
-        # self.trains = data["trains"]
+    @timing
+    def __init__(self, data, g_block: BlockGraph, agent_cls):
         self.types = {x["name"]: x for x in data["types"]}
         self.g = g_block
 
@@ -51,13 +54,33 @@ class Scenario:
             else:
                 direction = 1
             stops.append(end[direction])
-
-            agent = TrainAgent(TrainAgent.calculate_route(stops[0], stops[1:]), measures)
+            agent = agent_cls(agent_cls.calculate_route(stops[0], stops[1:]), measures)
             self.agents.append(agent)
 
+    @timing
     def process(self):
         for agent in self.agents:
             agent.calculate_blocking_times()
         merge_list: list[IntervalStore] = list(self.g.nodes.values()) + self.g.edges
         for node in merge_list:
             node.merge_unsafe_intervals()
+
+    @timing
+    def fsipp(self, for_agent: int, new_agent:TrainAgent=None) -> BlockGraph:
+        """
+        Create a BlockGraph that can be used by FSIPP.
+        First filter out the unsafe intervals for the agent that we want to run flexSIPP on.
+        Then convert the edge length to be time instead of distance.
+        @param for_agent: Agent to filter out
+        @param new_agent: Optional parameter if we want to add a new agent to the simulation, only used if for_agent is not a valid ID
+        @return: Copy of the BlockGraph that is updated
+        """
+        g = deepcopy(self.g)
+        agent = next((agent for agent in self.agents if agent.id is for_agent), new_agent)
+        assert agent is not None
+        uis: list[IntervalStore] = list(g.nodes.values()) + g.edges
+        for ui in uis:
+            ui.filter_out_agent(agent)
+        for e in g.edges:
+            e.length = e.length / agent.measures.train_speed
+        return g
