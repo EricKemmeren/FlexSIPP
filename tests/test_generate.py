@@ -5,7 +5,6 @@ from typing import Tuple
 from generation.generate import graph_from_file, scenario_from_file
 from generation.graphs.fsipp import FSIPP
 from generation.graphs.graph import IntervalStore
-from generation.railways.train_agent import TrainAgent, TrainItem
 from generation.util.intervals import Interval
 
 
@@ -219,11 +218,6 @@ class TestSafeIntervals(unittest.TestCase):
         bg = graph_from_file("location_test.json")
         scenario = scenario_from_file("scenario_test.json", bg)
         scenario.process()
-        uis: list[IntervalStore] = list(scenario.g.nodes.values()) + scenario.g.edges
-        for ui in uis:
-            ui.merge_unsafe_intervals()
-        for agent in scenario.agents:
-            agent.calculate_flexibility()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         new_agent = deepcopy(scenario.agents[0])
         new_agent.id = 0

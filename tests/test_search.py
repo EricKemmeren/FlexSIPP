@@ -12,11 +12,6 @@ class TestSearch(unittest.TestCase):
         bg = graph_from_file("location_test.json")
         scenario = scenario_from_file("scenario_test.json", bg, train_agent_limited_flexibility_generator(max_buffer, max_crt))
         scenario.process()
-        uis: list[IntervalStore] = list(scenario.g.nodes.values()) + scenario.g.edges
-        for ui in uis:
-            ui.merge_unsafe_intervals()
-        for agent in scenario.agents:
-            agent.calculate_flexibility()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         self.new_agent = deepcopy(scenario.agents[0])
         self.new_agent.id = -1

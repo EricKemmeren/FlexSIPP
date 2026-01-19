@@ -15,7 +15,7 @@ class Scenario:
 
         self.g.global_end_time = max([2 * entry["movements"]["endTime"] for entry in data["trains"]])
         self.g.tg.global_end_time = self.g.global_end_time
-        self.agents: list[TrainAgent] = list()
+        self.agents: list[TrainAgent] = []
 
         # Calculate routes for all trains
         for train in data["trains"]:
@@ -33,9 +33,9 @@ class Scenario:
                 data["releaseTime"],
                 movements["startTime"]
             )
-            start = g_block.get_block_from_station(movements["startLocation"])
             # TODO: check if its from from_node or from to_node
-            stops: list[BlockNode] = list()
+            start = g_block.get_block_from_station(movements["startLocation"])
+            stops: list[BlockNode] = []
 
             for stop, time in movements["stops"].items():
                 next = g_block.get_block_from_station(stop)
@@ -65,6 +65,8 @@ class Scenario:
         merge_list: list[IntervalStore] = list(self.g.nodes.values()) + self.g.edges
         for node in merge_list:
             node.merge_unsafe_intervals()
+        for agent in self.agents:
+            agent.calculate_flexibility()
 
     @timing
     def fsipp(self, agent: Union[TrainAgent, int] =None) -> BlockGraph:
