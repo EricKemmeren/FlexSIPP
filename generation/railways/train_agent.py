@@ -112,8 +112,7 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
         for block_e in self.route:
             block_e.add_start_time(self, cur_time)
             for e in block_e.track_route:
-                e.add_start_time(self, cur_time)
-                for e_opp in e.opposites:
+                for e_opp in e.opposites + e.associated + [e]:
                     e_opp.add_start_time(self, cur_time)
                 station_time = 0
                 if self.id in e.stops_at_station:
@@ -131,8 +130,7 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
                     block.add_unsafe_interval(approach_interval)
 
                 cur_time = approach_interval.end
-                e.add_end_time(self, cur_time)
-                for e_opp in e.opposites:
+                for e_opp in e.opposites + e.associated + [e]:
                     e_opp.add_end_time(self, cur_time)
             block_e.add_end_time(self, cur_time)
 
