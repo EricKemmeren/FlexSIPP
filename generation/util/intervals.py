@@ -44,6 +44,7 @@ class Interval:
     def __eq__(self, other):
         if isinstance(other, Interval):
             return self.start == other.start and self.end == other.end
+        return False
 
     def __gt__(self, other):
         return self.start > other.start

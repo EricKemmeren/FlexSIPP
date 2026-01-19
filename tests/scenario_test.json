@@ -25,9 +25,9 @@
         },
         {
             "movements": {
-                "startLocation": "UHAT|1",
+                "startLocation": "VHAT|1",
                 "startTime": 10,
-                "endLocation": "VHAT|1",
+                "endLocation": "UHAT|1",
                 "endTime": 18,
                 "stops": {}
             },
@@ -44,7 +44,7 @@
         {
             "acceleration": 100,
             "deceleration": 100,
-            "length": 1,
+            "length": 0,
             "minimum_station_time": 0,
             "name": "type",
             "speed": 360
