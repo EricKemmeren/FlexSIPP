@@ -2,6 +2,7 @@ import math
 from typing import Tuple
 
 from attr import dataclass
+from matplotlib.axis import Axis
 
 from generation.agent import Agent
 from generation.railways.block_graph import BlockEdge, BlockNode
@@ -90,11 +91,12 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
         current_path_index = bools.index(True) if True in bools else None
 
         approach_blocks: set[BlockEdge] = set()
-        # TODO make variable and fix values > 2 in regards to station time, or even better: change it to actually use the breaking distance of the train at the current time.
-        N_BLOCKS = 0
+        # TODO make variable and fix values > 2 in regards to station time, or even better:
+        #  change it to actually use the breaking distance of the train at the current time.
+        n_blocks = 0
 
         if current_path_index is not None:
-            for path_block in self.route[current_path_index:current_path_index + N_BLOCKS]:
+            for path_block in self.route[current_path_index:current_path_index + n_blocks]:
                 for tn in path_block.tracknodes(Direction.BOTH):
                     for block in tn.blocks(Direction.BOTH):
                         approach_blocks.add(block)
@@ -108,7 +110,11 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
         velocity = 0.0
 
         for block_e in self.route:
+            block_e.add_start_time(self, cur_time)
             for e in block_e.track_route:
+                e.add_start_time(self, cur_time)
+                for e_opp in e.opposites:
+                    e_opp.add_start_time(self, cur_time)
                 station_time = 0
                 if self.id in e.stops_at_station:
                     station_time = e.stops_at_station[self.id] - cur_time
@@ -125,3 +131,15 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
                     block.add_unsafe_interval(approach_interval)
 
                 cur_time = approach_interval.end
+                e.add_end_time(self, cur_time)
+                for e_opp in e.opposites:
+                    e_opp.add_end_time(self, cur_time)
+            block_e.add_end_time(self, cur_time)
+
+    def plot_route(self, ax: Axis, edges_to_plot: dict[TrackEdge, Tuple[float, float]], color):
+        for block in self.route:
+            for edge in block.track_route:
+                if edge in edges_to_plot:
+                    from_x, to_x = edges_to_plot[edge]
+                    pi = edge.plotting_info[self]
+                    ax.plot([from_x, to_x], [pi.start_time, pi.end_time], color=color)

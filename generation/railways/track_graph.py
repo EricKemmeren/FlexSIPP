@@ -4,6 +4,7 @@ from logging import getLogger
 from typing import Tuple
 
 from generation.graphs.graph import Graph, Node, Edge, IntervalStore
+from generation.util.plotting_info import PlottingStore
 from generation.util.types import Direction
 from generation.util.util import angle_to_speed
 
@@ -30,7 +31,7 @@ class TrackNode(Node["TrackEdge", "TrackNode"]):
             return self.blocksOpp
         return self.blk + self.blocksOpp
 
-class TrackEdge(Edge["TrackEdge", "TrackNode"]):
+class TrackEdge(Edge["TrackEdge", "TrackNode"], PlottingStore):
     def __init__(self, f, t, l, switch_angle=None):
         super().__init__(f, t, l, angle_to_speed(switch_angle))
         self.plotting_info = {}
@@ -233,11 +234,11 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
                     for other_edge in g.nodes[opposite_node.name].incoming:
                         if other_edge.from_node in e.to_node.opposites:
                             e.opposites.append(other_edge)
-            for e in g.nodes[node].incoming:
-                for opposite_node in g.nodes[node].opposites:
-                    for other_edge in g.nodes[opposite_node.name].outgoing:
-                        if other_edge.to_node in e.from_node.opposites:
-                            e.opposites.append(other_edge)
+            # for e in g.nodes[node].incoming:
+            #     for opposite_node in g.nodes[node].opposites:
+            #         for other_edge in g.nodes[opposite_node.name].outgoing:
+            #             if other_edge.to_node in e.from_node.opposites:
+            #                 e.opposites.append(other_edge)
 
         g.distance_markers = data["distanceMarkers"] if "distanceMarkers" in data and data["distanceMarkers"] else {"Start": 0}
         min_distance = min(g.distance_markers.values())

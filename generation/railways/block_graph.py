@@ -8,6 +8,7 @@ from tqdm import tqdm
 
 from generation.graphs.graph import Graph, Node, Edge
 from generation.railways.track_graph import TrackEdge, TrackNode, TrackGraph, Signal
+from generation.util.plotting_info import PlottingStore
 from generation.util.types import Direction
 
 logger = getLogger('__main__.' + __name__)
@@ -16,7 +17,7 @@ class BlockNode(Node["BlockEdge", "BlockNode"]):
     def __init__(self, name):
         super().__init__(name)
 
-class BlockEdge(Edge["BlockEdge", "BlockNode"]):
+class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
     def __init__(self, f, t, l, tracknodes_on_route:list[TrackNode], track_route: list[TrackEdge], direction, mv):
         super().__init__(f, t, l, mv)
         # List over the edges in the TrackGraph that this block takes

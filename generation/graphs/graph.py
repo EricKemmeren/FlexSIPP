@@ -15,8 +15,9 @@ from generation.util.types import EdgeType, NodeType
 logger = getLogger('__main__.' + __name__)
 
 
-class IntervalStore:
+class IntervalStore(object):
     def __init__(self):
+        super().__init__()
         self.unsafe_intervals: SortedKeyList[UnsafeInterval] = SortedKeyList(key=lambda x: x.start)
         self.safe_intervals: list[SafeInterval] = []
         self.bt: dict[Agent, float] = {}
