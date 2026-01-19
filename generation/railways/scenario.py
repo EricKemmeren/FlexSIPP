@@ -68,6 +68,9 @@ class Scenario:
         for agent in self.agents:
             agent.calculate_flexibility()
 
+    def get_replanning_agent(self, a: int) -> TrainAgent:
+        return self.agents[a - 1]
+
     @timing
     def fsipp(self, agent: Union[TrainAgent, int] =None) -> BlockGraph:
         """
@@ -79,7 +82,7 @@ class Scenario:
         """
         g = deepcopy(self.g)
         if isinstance(agent, int):
-            agent = next((agent for agent in self.agents if agent.id is agent))
+            agent = self.get_replanning_agent(agent)
         assert agent is not None
         uis: list[IntervalStore] = list(g.nodes.values()) + g.edges
         for ui in uis:
@@ -87,3 +90,4 @@ class Scenario:
         for e in g.edges:
             e.length = e.length / agent.measures.train_speed
         return g
+
