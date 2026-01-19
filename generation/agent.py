@@ -43,7 +43,6 @@ class Agent(Generic[EdgeType, NodeType]):
     def calculate_flexibility(self):
         compound_recovery_time = 0.0
 
-        # TODO: create max_buffer argument
         max_buffer = float("inf")
         last_buffer_time = max_buffer
         for move in self.route[::-1]:
