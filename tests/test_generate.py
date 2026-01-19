@@ -61,10 +61,10 @@ class TestTrackGraph(unittest.TestCase):
         self.assertCountEqual(wB.associated, [])
 
     def test_stations(self):
-        def test_station(station_name, expectedA, expectedB):
-            stationA, stationB = self.tg.stations[station_name.upper()]
-            self.assertEqual(stationA, self.tg.nodes[expectedA])
-            self.assertEqual(stationB, self.tg.nodes[expectedB])
+        def test_station(station_name, expected_a, expected_b):
+            station_a, station_b = self.tg.stations[station_name.upper()]
+            self.assertEqual(station_a, self.tg.nodes[expected_a])
+            self.assertEqual(station_b, self.tg.nodes[expected_b])
 
         test_station("u|1", "uA", "uB")
         test_station("v|1", "vA", "vB")

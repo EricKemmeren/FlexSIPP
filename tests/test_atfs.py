@@ -12,7 +12,8 @@ class TestFSIPP(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         bg = graph_from_file("location_test.json")
-        scenario = scenario_from_file("scenario_test.json", bg, train_agent_limited_flexibility_generator(0, 0))
+        scenario = scenario_from_file("scenario_test.json", bg,
+                                      train_agent_limited_flexibility_generator(0, 0))
         scenario.process()
         uis: list[IntervalStore] = list(scenario.g.nodes.values()) + scenario.g.edges
         for ui in uis:
@@ -35,7 +36,8 @@ class TestLimitedFlexibilityGenerator(unittest.TestCase):
     @staticmethod
     def setUpScenario(max_buffer, max_crt):
         bg = graph_from_file("location_test.json")
-        scenario = scenario_from_file("scenario_test.json", bg, train_agent_limited_flexibility_generator(max_buffer, max_crt))
+        scenario = scenario_from_file("scenario_test.json", bg,
+                                      train_agent_limited_flexibility_generator(max_buffer, max_crt))
         scenario.process()
         uis: list[IntervalStore] = list(scenario.g.nodes.values()) + scenario.g.edges
         for ui in uis:
