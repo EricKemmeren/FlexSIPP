@@ -4,6 +4,7 @@ from typing import Generic
 
 from generation.graphs.graph import Graph
 from generation.util.intervals import SafeInterval, FlexibleArrivalTimeFunction
+from generation.util.results import Results
 from generation.util.types import EdgeType, NodeType
 
 logger = getLogger('__main__.' + __name__)
@@ -46,15 +47,22 @@ class FSIPP(Generic[EdgeType, NodeType]):
                 num_trains = max(num_trains, atf.train_before.id, atf.train_after.id)
             f.write(f"num_trains {num_trains}\n")
 
-    def run_search(self, timeout, origin, destination, start_time):
+    def run_search(self, timeout, origin, destination, start_time) -> Results:
         file = "fsipp.txt"
         self.write(file)
         try:
-            proc = subprocess.run(["fsipp.exe", "--start", origin, "--goal", destination, "--edgegraph", file, "--search", "repeat", "--startTime", str(start_time)], timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL)
+            proc = subprocess.run(["fsipp.exe",
+                                   "--start", origin,
+                                   "--goal", destination,
+                                   "--edgegraph", file,
+                                   "--search", "repeat",
+                                   "--startTime", str(start_time)
+                                   ], timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                                  encoding='utf-8')
         except subprocess.TimeoutExpired:
             logger.error(f'Timeout for repeat ({timeout}s) expired')
             raise RuntimeError
         if int(proc.returncode) != 0:
             logger.error(f'Search failed for repeat, ec: {proc.returncode}')
             raise RuntimeError
-        return str(proc.stdout).split("'")[1].rsplit("\\r\\n")
+        return Results(str(proc.stdout))

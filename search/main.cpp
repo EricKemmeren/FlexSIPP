@@ -65,9 +65,9 @@ int main(int argc, char* argv[]) {
                         search_time - search_start_time);
 
                 std::flush(std::cerr);
-                std::cout << m << "\n";
+                std::cout << m << std::endl;
                 std::cout << res;
-                std::cout << "Search time: " << search_duration.count() << " milliseconds\n";
+                std::cout << "Search time: " << search_duration.count() << " milliseconds" << std::endl;
                 std::flush(std::cout);
 
 //                auto c = res.time_lookup(vm["lookups"].as<long>());
