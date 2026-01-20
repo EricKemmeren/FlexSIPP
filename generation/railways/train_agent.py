@@ -5,6 +5,7 @@ from attr import dataclass
 from matplotlib.axis import Axis
 
 from generation.agent import Agent
+from generation.graphs.graph import IntervalStore
 from generation.railways.block_graph import BlockEdge, BlockNode
 from generation.railways.track_graph import TrackEdge
 from generation.util.intervals import UnsafeInterval
@@ -71,7 +72,7 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
                 recovery_time
             ), velocity, end_train_v
 
-    def _approach_time(self, e: TrackEdge, avg_v: float, cur_time: float, station_time: float) -> Tuple[UnsafeInterval, set[BlockEdge]]:
+    def _approach_time(self, e: TrackEdge, avg_v: float, cur_time: float, station_time: float) -> Tuple[UnsafeInterval, set[IntervalStore]]:
         start_approach_time = cur_time + station_time - self.measures.setup_time - self.measures.sight_reaction_time
 
         end_approach_time = cur_time + station_time
@@ -90,16 +91,15 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
         bools = [e in block.track_route for block in self.route]
         current_path_index = bools.index(True) if True in bools else None
 
-        approach_blocks: set[BlockEdge] = set()
+        approach_blocks: set[IntervalStore] = set()
         # TODO make variable and fix values > 2 in regards to station time, or even better:
         #  change it to actually use the breaking distance of the train at the current time.
         n_blocks = 0
 
         if current_path_index is not None:
             for path_block in self.route[current_path_index:current_path_index + n_blocks]:
-                for tn in path_block.tracknodes(Direction.BOTH):
-                    for block in tn.blocks(Direction.BOTH):
-                        approach_blocks.add(block)
+                for path_edge in path_block.track_route:
+                    approach_blocks.union(path_edge.blocks)
 
         return interval, approach_blocks
 
@@ -121,7 +121,7 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
 
                 occupation_time, avg_v, velocity = self._occupation_time(e, velocity, cur_time, station_time)
 
-                for block in e.get_affected_blocks():
+                for block in e.blocks.union(e.from_node.blocks):
                     block.add_unsafe_interval(occupation_time)
 
                 approach_interval, approach_blocks = self._approach_time(e, avg_v, cur_time, station_time)

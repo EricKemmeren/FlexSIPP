@@ -1,10 +1,16 @@
 from copy import deepcopy
-from typing import Union
+from typing import Union, Tuple
+
+import numpy as np
+from matplotlib import cm, patches
+from matplotlib.axis import Axis
 
 from generation.graphs.graph import IntervalStore
 from generation.railways.block_graph import BlockGraph, BlockNode
+from generation.railways.track_graph import TrackEdge
 from generation.railways.train_agent import TrainItem, TrainAgent
 from generation.util.timing import timing
+from old_generation.graph import BlockEdge
 
 
 class Scenario:
@@ -68,11 +74,13 @@ class Scenario:
         for agent in self.agents:
             agent.calculate_flexibility()
 
-    def get_replanning_agent(self, a: int) -> TrainAgent:
-        return self.agents[a - 1]
+    def get_replanning_agent(self, a: Union[TrainAgent, int]) -> TrainAgent:
+        if isinstance(a, int):
+            return self.agents[a - 1]
+        return a
 
     @timing
-    def fsipp(self, agent: Union[TrainAgent, int] =None) -> BlockGraph:
+    def fsipp(self, agent: Union[TrainAgent, int]) -> BlockGraph:
         """
         Create a BlockGraph that can be used by FSIPP.
         First filter out the unsafe intervals for the agent that we want to run flexSIPP on.
@@ -81,8 +89,7 @@ class Scenario:
         @return: Copy of the BlockGraph that is updated to filter out agent
         """
         g = deepcopy(self.g)
-        if isinstance(agent, int):
-            agent = self.get_replanning_agent(agent)
+        agent = self.get_replanning_agent(agent)
         assert agent is not None
         uis: list[IntervalStore] = list(g.nodes.values()) + g.edges
         for ui in uis:
@@ -90,4 +97,39 @@ class Scenario:
         for e in g.edges:
             e.length = e.length / agent.measures.train_speed
         return g
+
+    def plot_blocking_staircase(self, ax: Axis, agent: Union[TrainAgent, int]):
+        agent = self.get_replanning_agent(agent)
+        track_edges_to_plot: dict[TrackEdge, Tuple[float, float]] = {}
+        block_edges_to_plot: dict[BlockEdge, Tuple[float, float]] = {}
+        x = 0
+        x_b = 0
+        x_ticks: Tuple[list[float], list[str]] = ([], [])
+        for block in agent.route:
+            x_ticks[0].append(x)
+            x_ticks[1].append(block.from_node.name)
+            for e in block.track_route:
+                track_edges_to_plot[e] = (x, x + e.length)
+                for opp_e in e.opposites:
+                    track_edges_to_plot[opp_e] = (x + e.length, x)
+                x += e.length
+            block_edges_to_plot[block] = (x_b, x)
+            assert x - x_b == block.length
+            x_b = x
+
+        x_ticks[0].append(x)
+        x_ticks[1].append(agent.route[-1].to_node.name)
+        ax.set_xticks(x_ticks[0], labels=x_ticks[1])
+        ax.grid()
+
+        for block, (x1, x2) in block_edges_to_plot.items():
+            for ui in block.unsafe_intervals:
+                blocking_time = patches.Rectangle((x1, ui.start), x2 - x1, ui.end - ui.start,
+                                                  linewidth=1, edgecolor="red", facecolor="none")
+                ax.add_patch(blocking_time)
+
+
+        color = iter(cm.rainbow(np.linspace(0, 1, len(self.agents))))
+        for a in self.agents:
+            a.plot_route(ax, track_edges_to_plot, next(color))
 

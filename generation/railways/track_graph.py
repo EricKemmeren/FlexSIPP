@@ -1,11 +1,11 @@
 import json
 import re
+from copy import deepcopy
 from logging import getLogger
 from typing import Tuple
 
 from generation.graphs.graph import Graph, Node, Edge, IntervalStore
 from generation.util.plotting_info import PlottingStore
-from generation.util.types import Direction
 from generation.util.util import angle_to_speed
 
 logger = getLogger('__main__.' + __name__)
@@ -15,8 +15,7 @@ class TrackNode(Node["TrackEdge", "TrackNode"]):
         super().__init__(name)
         self.opposites: list[TrackNode] = []
         self.associated:list[TrackNode] = []
-        self.blk:list = [] #TODO define as type BlockNode/BlockEdge
-        self.blocksOpp:list = [] #TODO define as type BlockNode/BlockEdge
+        self.blocks:set[IntervalStore] = set() #TODO define as type BlockNode/BlockEdge
         self.canReverse = False
         self.stationPlatform = False
         self.type = type
@@ -24,12 +23,19 @@ class TrackNode(Node["TrackEdge", "TrackNode"]):
         if self.direction != "A" and self.direction != "B":
             raise ValueError("Direction must be either A or B")
 
-    def blocks(self, dir=Direction.SAME):
-        if dir == Direction.SAME:
-            return self.blk
-        if dir == Direction.OPPOSE:
-            return self.blocksOpp
-        return self.blk + self.blocksOpp
+    def __deepcopy__(self, memodict={}):
+        parent = super().__deepcopy__(memodict)
+        tn = TrackNode(self.name, self.type)
+        for a,b in parent.__dict__.items():
+            setattr(tn, a, b)
+        tn.opposites = deepcopy(self.opposites, memodict)
+        tn.associated = deepcopy(self.associated, memodict)
+        tn.blocks = deepcopy(self.blocks, memodict)
+        tn.canReverse = self.canReverse
+        tn.stationPlatform = self.stationPlatform
+        tn.direction = self.direction
+        return tn
+
 
 class TrackEdge(Edge["TrackEdge", "TrackNode"], PlottingStore):
     def __init__(self, f, t, l, switch_angle=None):
@@ -38,9 +44,23 @@ class TrackEdge(Edge["TrackEdge", "TrackNode"], PlottingStore):
         self.opposites:  list[TrackEdge] = []
         self.associated: list[TrackEdge] = []
         self.stops_at_station = {}
+        self.blocks:set[IntervalStore] = set()
         self.direction = ''.join(set(re.findall("[AB]", f"{str(f)[-2:]} {str(t)[-2:]}")))
         # if self.direction != "A" and self.direction != "B":
         #     raise ValueError("Direction must be either A or B")
+
+    def __deepcopy__(self, memodict={}):
+        parent = super().__deepcopy__(memodict)
+        te = TrackEdge(parent.from_node, parent.to_node, parent.length)
+        for a,b in parent.__dict__.items():
+            setattr(te, a, b)
+        te.plotting_info = deepcopy(self.plotting_info, memodict)
+        te.opposites = deepcopy(self.opposites, memodict)
+        te.associated = deepcopy(self.associated, memodict)
+        te.stops_at_station = deepcopy(self.stops_at_station, memodict)
+        te.blocks = deepcopy(self.blocks, memodict)
+        te.direction = self.direction
+        return te
 
 
     def set_plotting_info(self, agent, cur_time, end_time, block_edge):
@@ -50,17 +70,6 @@ class TrackEdge(Edge["TrackEdge", "TrackNode"], PlottingStore):
             "block": block_edge,
         }
 
-    def get_affected_blocks(self) -> set[IntervalStore]:
-        '''Return all blocks that are unsafe when this track is used/reserved for a train'''
-        affected_blocks:set[IntervalStore] = set()
-
-
-
-        for blk in self.from_node.blocks(Direction.BOTH):
-            affected_blocks.add(blk)
-        # for blk in self.to_node.blocks(Direction.BOTH):
-        #     affected_blocks.add(blk)
-        return affected_blocks
 
 class Signal:
     def __init__(self, id, track: TrackNode):

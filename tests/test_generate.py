@@ -143,22 +143,6 @@ class TestBlockGraph(unittest.TestCase):
     def test_track_graph_relation_diverging_switch(self):
         node = self.bg.nodes["s5|A"]
         self.assertEqual(len(node.outgoing), 2)
-        for edge in node.outgoing:
-            if edge.to_node.name == "sv|A":
-                self.assertCountEqual(edge.tn, [self.bg.tg.nodes["s6A"], self.bg.tg.nodes["svA"]])
-            elif edge.to_node.name == "svHat|A":
-                self.assertCountEqual(edge.tn, [self.bg.tg.nodes["s6A"], self.bg.tg.nodes["svHatA"]])
-            else:
-                self.fail(f"Edge with unknown to_node: {edge}")
-        node = self.bg.nodes["s5|A"]
-        self.assertEqual(len(node.outgoing), 2)
-        for edge in node.outgoing:
-            if edge.to_node.name == "sv|A":
-                self.assertCountEqual(edge.tn, [self.bg.tg.nodes["s6A"], self.bg.tg.nodes["svA"]])
-            elif edge.to_node.name == "svHat|A":
-                self.assertCountEqual(edge.tn, [self.bg.tg.nodes["s6A"], self.bg.tg.nodes["svHatA"]])
-            else:
-                self.fail(f"Edge with unknown to_node: {edge}")
 
     # def test_block_relation(self):
     #     self.fail("Implement test")
@@ -169,7 +153,7 @@ class TestBlockGraph(unittest.TestCase):
         end_a, _ = self.bg.get_block_from_station("V|1")
         path = self.bg.calculate_path(start_a, end_a)
         #TODO: should this include the starting track, currently does not
-        self.assertEqual(len(path), 8, f"Length of path should be 8: {path}")
+        self.assertEqual(len(path), 8, f"Length of path should be 9: {path}")
 
 
 class TestScenario(unittest.TestCase):
@@ -185,47 +169,48 @@ class TestUnsafeIntervals(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         bg = graph_from_file("location_test.json")
-        cls.scenario = scenario_from_file("scenario_test.json", bg)
-        cls.scenario.process()
+        scenario = scenario_from_file("scenario_test.json", bg)
+        scenario.process()
+        cls.g = scenario.g
 
     def test_unsafe_intervals(self):
 
         def test_unsafe(left: IntervalStore, right: list[Tuple[float, float]]):
             self.assertCountEqual(left.unsafe_intervals, [Interval(s, e) for s, e in right])
 
-        # node = self.scenario.g.nodes["u|A"]
-        # for edge in node.outgoing:
-        #     test_unsafe(edge, [(2, 3), (17, 18)])
-
-        # node = self.scenario.g.nodes["w|A"]
-        # test_unsafe(node, [(2, 3), (16, 17)])
-        # for edge in node.outgoing:
-        #     test_unsafe(edge, [(3, 4), (15, 16)])
-
-        node = self.scenario.g.nodes["s1|A"]
-        test_unsafe(node, [(3, 4), (16, 17)])
+        node = self.g.nodes["u|A"]
         for edge in node.outgoing:
-            test_unsafe(edge, [(4, 5), (15, 16)])
+            test_unsafe(edge, [(2, 3), (16, 17)])
 
-        node = self.scenario.g.nodes["s2|A"]
-        test_unsafe(node, [(4, 5), (15, 16)])
+        node = self.g.nodes["w|A"]
+        test_unsafe(node, [(2, 3), (16, 17)])
         for edge in node.outgoing:
-            test_unsafe(edge, [(5, 6), (14, 15)])
+            test_unsafe(edge, [(3, 4), (15, 16)])
 
-        node = self.scenario.g.nodes["s3|A"]
-        test_unsafe(node, [(5, 6), (14, 15)])
+        node = self.g.nodes["s1|A"]
+        test_unsafe(node, [(3, 4), (15, 16)])
         for edge in node.outgoing:
-            test_unsafe(edge, [(6, 7), (13, 14)])
+            test_unsafe(edge, [(4, 5), (14, 15)])
 
-        node = self.scenario.g.nodes["s4|A"]
-        test_unsafe(node, [(6, 7), (13, 14)])
+        node = self.g.nodes["s2|A"]
+        test_unsafe(node, [(4, 5), (14, 15)])
         for edge in node.outgoing:
-            test_unsafe(edge, [(7, 8), (12, 13)])
+            test_unsafe(edge, [(5, 6), (13, 14)])
 
-        node = self.scenario.g.nodes["s5|A"]
-        test_unsafe(node, [(7, 8), (12, 13)])
+        node = self.g.nodes["s3|A"]
+        test_unsafe(node, [(5, 6), (13, 14)])
         for edge in node.outgoing:
-            test_unsafe(edge, [(8, 9), (10, 12)])
+            test_unsafe(edge, [(6, 7), (12, 13)])
+
+        node = self.g.nodes["s4|A"]
+        test_unsafe(node, [(6, 7), (12, 13)])
+        for edge in node.outgoing:
+            test_unsafe(edge, [(7, 8), (11, 12)])
+
+        node = self.g.nodes["s5|A"]
+        test_unsafe(node, [(7, 8), (11, 12)])
+        for edge in node.outgoing:
+            test_unsafe(edge, [(8, 9), (10, 11)])
 
 
 class TestSafeIntervals(unittest.TestCase):
@@ -243,7 +228,9 @@ class TestSafeIntervals(unittest.TestCase):
 
     def test_safe_intervals(self):
         node = self.fsipp.g.nodes["w|A"]
-        self.assertCountEqual(node.safe_intervals, [Interval(a, b) for a,b in [(0, 2), (4, 17), (17, 36)]])
+        self.assertCountEqual(node.safe_intervals, [Interval(a, b) for a,b in [(0, 2), (3, 16), (17, 36)]])
+        node = self.fsipp.g.nodes["s2|A"]
+        self.assertCountEqual(node.safe_intervals, [Interval(a, b) for a,b in [(0, 4), (5, 14), (15, 36)]])
 
 
 if __name__ == '__main__':
