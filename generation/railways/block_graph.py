@@ -18,7 +18,7 @@ class BlockNode(Node["BlockEdge", "BlockNode"]):
         super().__init__(name)
 
 class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
-    def __init__(self, f, t, l, tracknodes_on_route:list[TrackNode], track_route: list[TrackEdge], direction, mv):
+    def __init__(self, f, t, l, track_route: list[TrackEdge], direction, mv):
         super().__init__(f, t, l, mv)
 
         if direction == "BA":
@@ -79,7 +79,7 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
                 to_signal = track_to_signal[block[-1]]
                 to_signal_node = g_block.nodes[f"{to_signal.id}"]
                 direction = "".join(set(signal.direction + to_signal.direction))
-                e = g_block.add_edge(BlockEdge(from_signal_node, to_signal_node, length, block, route, direction, max_velocity))
+                e = g_block.add_edge(BlockEdge(from_signal_node, to_signal_node, length, route, direction, max_velocity))
                 logger.debug(f"Found block {e} with length {length} and max velocity {max_velocity}")
         return g_block
 
