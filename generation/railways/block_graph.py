@@ -42,9 +42,6 @@ class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
                 super(type(block), block).add_flexibility(agent, bt, crt)
 
 
-
-
-
 class TqdmLogger:
     """File-like class redirecting tqdm progress bar to given logging logger."""
     def __init__(self, l: Logger):
