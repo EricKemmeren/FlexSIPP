@@ -20,7 +20,6 @@ def train_agent_limited_flexibility_generator(max_buffer=float("inf"), max_compo
                 compound_recovery_time = min(compound_recovery_time, max_compound_recovery_time)
                 last_buffer_time = min(last_buffer_time, max_buffer)
 
-                # Store the buffer and crt
                 move.add_flexibility(self, last_buffer_time, compound_recovery_time)
 
     return TrainAgentLimitedFlexibility

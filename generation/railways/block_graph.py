@@ -6,6 +6,7 @@ from copy import copy
 
 from tqdm import tqdm
 
+from generation.agent import Agent
 from generation.graphs.graph import Graph, Node, Edge
 from generation.railways.track_graph import TrackEdge, TrackNode, TrackGraph, Signal
 from generation.util.plotting_info import PlottingStore
@@ -32,6 +33,16 @@ class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
                 interval_store.blocks.add(self)
             for interval_store in track.opposites:
                 interval_store.blocks.add(self)
+
+    def add_flexibility(self, agent: Agent, bt: float, crt:float):
+        # Store the buffer and crt
+        for tr in self.track_route:
+            blocks = tr.blocks.union(tr.from_node.blocks)
+            for block in blocks:
+                super(type(block), block).add_flexibility(agent, bt, crt)
+
+
+
 
 
 class TqdmLogger:

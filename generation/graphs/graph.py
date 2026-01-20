@@ -21,8 +21,8 @@ class IntervalStore(object):
         super().__init__()
         self.unsafe_intervals: SortedKeyList[UnsafeInterval] = SortedKeyList(key=lambda x: x.start)
         self.safe_intervals: list[SafeInterval] = []
-        self.bt: dict[Agent, float] = {}
-        self.crt: dict[Agent, float] = {}
+        self.bt: dict[int, float] = {}
+        self.crt: dict[int, float] = {}
         self.merged = False
 
     def __deepcopy__(self, memodict={}):
@@ -53,7 +53,7 @@ class IntervalStore(object):
                 start = next
 
     def filter_out_agent(self, agent: Agent):
-        self.unsafe_intervals = [ui for ui in self.unsafe_intervals if ui.by_agent != agent]
+        self.unsafe_intervals = [ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id]
 
 
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
@@ -63,12 +63,20 @@ class IntervalStore(object):
         @param bt: Buffer Time at this node/edge
         @param crt: Compound Recovery Time at this node/edge
         """
-        self.bt[agent] = bt
-        self.crt[agent] = crt
+        if agent.id in self.bt:
+            self.bt[agent.id] = min(self.bt[agent.id], bt)
+        else:
+            self.bt[agent.id] = bt
+        if agent.id in self.crt:
+            self.crt[agent.id] = min(self.crt[agent.id], crt)
+        else:
+            self.crt[agent.id] = crt
 
     def get_flexibility(self, agent: Agent) -> Tuple[float, float]:
-        bt = self.bt[agent] if agent in self.bt else 0
-        crt = self.crt[agent] if agent in self.crt else 0
+        if isinstance(agent, int):
+            return 0, 0
+        bt = self.bt[agent.id] if agent.id in self.bt else 0
+        crt = self.crt[agent.id] if agent.id in self.crt else 0
         return bt, crt
 
     def get_safe_intervals(self, global_end_time):
