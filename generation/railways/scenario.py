@@ -1,5 +1,5 @@
 from copy import deepcopy
-from typing import Union, Tuple
+from typing import Union, Tuple, Any
 
 import numpy as np
 from matplotlib import cm, patches
@@ -122,14 +122,20 @@ class Scenario:
         ax.set_xticks(x_ticks[0], labels=x_ticks[1])
         ax.grid()
 
+        color = iter(cm.rainbow(np.linspace(0, 1, len(self.agents))))
+        agent_to_color:dict[int, Any] = {}
+        for a in self.agents:
+            c = next(color)
+            a.plot_route(ax, track_edges_to_plot, c)
+            agent_to_color[a.id] = c
+
         for block, (x1, x2) in block_edges_to_plot.items():
             for ui in block.unsafe_intervals:
+                c = agent_to_color.get(ui.by_agent.id, None)
                 blocking_time = patches.Rectangle((x1, ui.start), x2 - x1, ui.end - ui.start,
                                                   linewidth=1, edgecolor="red", facecolor="none")
                 ax.add_patch(blocking_time)
-
-
-        color = iter(cm.rainbow(np.linspace(0, 1, len(self.agents))))
-        for a in self.agents:
-            a.plot_route(ax, track_edges_to_plot, next(color))
-
+                bt, _ = block.get_flexibility(ui.by_agent)
+                buffer_time = patches.Rectangle((x1, ui.end), x2 - x1, bt,
+                                                  linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
+                ax.add_patch(buffer_time)
