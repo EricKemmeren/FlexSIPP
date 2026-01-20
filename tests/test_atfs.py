@@ -1,5 +1,5 @@
 import unittest
-from copy import deepcopy
+from copy import copy
 
 from generation.generate import graph_from_file, scenario_from_file
 from generation.graphs.fsipp import FSIPP
@@ -15,7 +15,7 @@ class TestFSIPP(unittest.TestCase):
                                       train_agent_limited_flexibility_generator(0, 0))
         scenario.process()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
-        new_agent = deepcopy(scenario.agents[0])
+        new_agent = copy(scenario.agents[0])
         new_agent.id = -1
         cls.flexSIPP = FSIPP(scenario.fsipp(new_agent), heuristic)
 
@@ -34,7 +34,7 @@ class TestLimitedFlexibilityGenerator(unittest.TestCase):
                                       train_agent_limited_flexibility_generator(max_buffer, max_crt))
         scenario.process()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
-        new_agent = deepcopy(scenario.agents[0])
+        new_agent = copy(scenario.agents[0])
         new_agent.id = -1
         return FSIPP(scenario.fsipp(new_agent), heuristic)
 

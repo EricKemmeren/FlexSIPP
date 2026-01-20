@@ -1,5 +1,5 @@
 import unittest
-from copy import deepcopy
+from copy import copy
 from typing import Tuple
 
 from generation.generate import graph_from_file, scenario_from_file
@@ -221,7 +221,7 @@ class TestSafeIntervals(unittest.TestCase):
         scenario = scenario_from_file("scenario_test.json", bg)
         scenario.process()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
-        new_agent = deepcopy(scenario.agents[0])
+        new_agent = copy(scenario.agents[0])
         new_agent.id = -1
         cls.fsipp = FSIPP(scenario.fsipp(new_agent), heuristic)
 
