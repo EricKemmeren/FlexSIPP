@@ -30,8 +30,8 @@ class TrainItem:
 
 
 class TrainAgent(Agent[BlockEdge, BlockNode]):
-    def __init__(self, route: list[BlockEdge], train: TrainItem):
-        super().__init__(route)
+    def __init__(self, id:int, route: list[BlockEdge], train: TrainItem):
+        super().__init__(id, route)
         self.measures = train
 
     def _occupation_time(self, e: TrackEdge, velocity: float, cur_time: float, station_time: float) -> Tuple[UnsafeInterval, float, float]:

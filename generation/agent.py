@@ -3,12 +3,9 @@ from typing import Generic
 from generation.util.types import EdgeType, NodeType
 
 class Agent(Generic[EdgeType, NodeType]):
-    id = 1
 
-    def __init__(self, route: list[EdgeType]):
-        self.id = Agent.id
-        Agent.id += 1
-
+    def __init__(self, id:int, route: list[EdgeType]):
+        self.id = id
         self.route: list[EdgeType] = route
 
     @staticmethod

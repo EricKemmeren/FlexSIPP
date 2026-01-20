@@ -24,7 +24,7 @@ class Scenario:
         self.agents: list[TrainAgent] = []
 
         # Calculate routes for all trains
-        for train in data["trains"]:
+        for id, train in enumerate(data["trains"], start=1):
             train_type = self.types[train["trainUnitTypes"][0]]
             movements = train["movements"]
             measures = TrainItem(
@@ -61,7 +61,7 @@ class Scenario:
             else:
                 direction = 1
             stops.append(end[direction])
-            agent = agent_cls(agent_cls.calculate_route(stops[0], stops[1:]), measures)
+            agent = agent_cls(id, agent_cls.calculate_route(stops[0], stops[1:]), measures)
             self.agents.append(agent)
 
     @timing

@@ -109,6 +109,7 @@ class SafeInterval(Interval):
     def __repr__(self):
         return f'{super().__repr__()} {self.agent_before} {self.crt_before} {self.agent_after} {self.buffer_after} {self.crt_after}'
 
+
 class ArrivalTimeFunction:
     def __init__(self, from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, delta: float):
         self.from_id = from_interval.index
@@ -126,9 +127,7 @@ class ArrivalTimeFunction:
         if isinstance(agent, Agent):
             return agent
         if agent == 0:
-            agent = Agent([])
-            agent.id = 0
-            return agent
+            return Agent(0, [])
 
     def __bool__(self) -> bool:
         return self.zeta <= self.alpha < self.beta

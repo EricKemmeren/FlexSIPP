@@ -40,8 +40,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
 
             num_trains = 0
             for atf in self.atfs:
-                # TODO: recreate atfs such that from_id and to_id start at 0 (or 1?)
-                # TODO: Can also switch over to pybind
+                # TODO: recreate atfs such that from_id and to_id start at 0 (or 1?), also for agents
                 atf = atf.replace_index(interval_index_map)
                 f.write(f"{repr(atf)}\n")
                 num_trains = max(num_trains, atf.train_before.id, atf.train_after.id)
