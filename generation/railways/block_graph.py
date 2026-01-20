@@ -87,9 +87,10 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
         return super().__eq__(other)
 
     def get_block_from_station(self, station: str) -> Tuple[BlockNode, BlockNode]:
-        # TODO check if correct
         track_a, track_b = self.tg.stations[station]
-        return list(track_a.blocks)[0], list(track_b.blocks)[0]
+        block_a = next(iter([block for block in track_a.blocks if block.name[-1] == "A"]))
+        block_b = next(iter([block for block in track_b.blocks if block.name[-1] == "B"]))
+        return block_a, block_b
 
     def generate_signal_blocks(self, from_signal: Signal, signals: list[Signal]) \
             -> list[Tuple[list[TrackNode], list[TrackEdge], float, float]]:
