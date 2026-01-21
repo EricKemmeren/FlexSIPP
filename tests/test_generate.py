@@ -2,10 +2,10 @@ import unittest
 from copy import copy
 from typing import Tuple
 
-from generation.generate import graph_from_file, scenario_from_file
-from generation.graphs.fsipp import FSIPP
-from generation.graphs.graph import IntervalStore
-from generation.util.intervals import Interval
+from flexsipp.generate import graph_from_file, scenario_from_file
+from flexsipp.graphs.fsipp import FSIPP
+from flexsipp.graphs.graph import IntervalStore
+from flexsipp.util.intervals import Interval
 
 
 class TestTrackGraph(unittest.TestCase):

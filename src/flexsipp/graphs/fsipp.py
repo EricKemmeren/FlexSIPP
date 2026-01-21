@@ -2,10 +2,10 @@ import subprocess
 from logging import getLogger
 from typing import Generic
 
-from generation.graphs.graph import Graph
-from generation.util.intervals import SafeInterval, FlexibleArrivalTimeFunction
-from generation.util.results import Results
-from generation.util.types import EdgeType, NodeType
+from .graph import Graph
+from ..util.intervals import SafeInterval, FlexibleArrivalTimeFunction
+from ..util.results import Results
+from ..util.types import EdgeType, NodeType
 
 logger = getLogger('__main__.' + __name__)
 

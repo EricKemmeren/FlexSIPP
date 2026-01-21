@@ -1,15 +1,13 @@
-import math
 from typing import Tuple
 
 from attr import dataclass
 from matplotlib.axis import Axis
 
-from generation.agent import Agent
-from generation.graphs.graph import IntervalStore
-from generation.railways.block_graph import BlockEdge, BlockNode
-from generation.railways.track_graph import TrackEdge
-from generation.util.intervals import UnsafeInterval
-from generation.util.types import Direction
+from ..agent import Agent
+from ..graphs.graph import IntervalStore
+from ..railways.block_graph import BlockEdge, BlockNode
+from ..railways.track_graph import TrackEdge
+from ..util.intervals import UnsafeInterval
 
 
 @dataclass
