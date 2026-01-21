@@ -2,7 +2,7 @@ import json
 from logging import getLogger
 from pathlib import Path
 
-from generation.graph import TrackGraph, Signal, TrackNode, TrackEdge
+from old_generation.graph import TrackGraph, Signal, TrackNode, TrackEdge
 
 logger = getLogger('__main__.' + __name__)
 
@@ -13,7 +13,7 @@ def read_graph(file) -> TrackGraph:
         data = json.load(open(file_path))
     except:
         data = json.load(open(file))
-    g = TrackGraph(file)
+    g = TrackGraph()
     nodes_per_id_A = {}
     nodes_per_id_B = {}
     track_lengths = {}

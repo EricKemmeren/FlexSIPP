@@ -1,0 +1,53 @@
+{
+    "headwayCrossing": 100,
+    "headwayFollowing": 100,
+    "minimumStopTime": 0,
+    "releaseTime": 0,
+    "setupTime": 0,
+    "sightReactionTime": 0,
+    "walkingSpeed": 100,
+    "trains": [
+        {
+            "movements": {
+                "startLocation": "U|1",
+                "startTime": 2,
+                "endLocation": "V|1",
+                "endTime": 10,
+                "stops": {}
+            },
+            "trainNumber": "1",
+            "trainUnitTypes": [
+                "type"
+            ],
+            "trainUnits": [
+                "10"
+            ]
+        },
+        {
+            "movements": {
+                "startLocation": "VHAT|1",
+                "startTime": 10,
+                "endLocation": "UHAT|1",
+                "endTime": 18,
+                "stops": {}
+            },
+            "trainNumber": "2",
+            "trainUnitTypes": [
+                "type"
+            ],
+            "trainUnits": [
+                "11"
+            ]
+        }
+    ],
+    "types": [
+        {
+            "acceleration": 100,
+            "deceleration": 100,
+            "length": 0,
+            "minimum_station_time": 0,
+            "name": "type",
+            "speed": 360
+        }
+    ]
+}

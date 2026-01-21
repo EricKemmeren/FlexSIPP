@@ -37,6 +37,7 @@ double update_reference_time(const EdgeATF& path, rePEAT::Open& open_list){
     double upper_bound = path.beta;
     double lower_bound = path.alpha;
     std::cerr << "Starting update tref with alpha " << lower_bound << " beta " << upper_bound << " delta " << path.delta << std::endl;
+    return upper_bound;
     while(lower_bound < upper_bound){
         if(open_list.empty()){
             return std::numeric_limits<double>::infinity();
@@ -48,7 +49,7 @@ double update_reference_time(const EdgeATF& path, rePEAT::Open& open_list){
         std::cerr << ", new lb " << lower_bound << std::endl;
         if (n.g.alpha > (lower_bound + epsilon())){
             std::cerr << "Result from lb ";
-            return std::max(path.alpha, lower_bound) + epsilon();
+            return std::max(std::min(path.alpha, upper_bound), lower_bound) + epsilon();
         }
     }
     std::cerr << "Result from ub ";

@@ -40,24 +40,24 @@ namespace asipp{
         intervalTime_t beta  = std::min(cur.g.beta,  edge.beta  - cur.g.delta);
         intervalTime_t delta = cur.g.delta + edge.delta;
 
-        intervalTime_t beta_reduction = cur.g.beta - beta;
-        if (beta_reduction > 0.0) {
-            std::cerr << "Reducing every gamma by " << beta_reduction << std::endl;
-            int index = 0;
-//            Departure time at origin changed, update every max_gamma.
-            for (gam_item_t x: gamma) {
-                if (index != edge.agent_after.id && x.second > 0) {
-                    std::cerr << "Reducing " << gamma[index] << std::endl;
-                    gamma[index] = gam_item_t(x.first, std::max(x.first, x.second - beta_reduction), x.last_recovery, x.location, x.initial_delay);
-
-                    if (x.first > x.second - beta_reduction) {
-                        std::cerr << "ERROR at " << gamma[index] << std::endl;
-                        return;
-                    }
-                }
-                index++;
-            }
-        }
+//         intervalTime_t beta_reduction = cur.g.beta - beta;
+//         if (beta_reduction > 0.0) {
+//             std::cerr << "Reducing every gamma by " << beta_reduction << std::endl;
+//             int index = 0;
+// //            Departure time at origin changed, update every max_gamma.
+//             for (gam_item_t x: gamma) {
+//                 if (index != edge.agent_after.id && x.second > 0) {
+//                     std::cerr << "Reducing " << gamma[index] << std::endl;
+//                     gamma[index] = gam_item_t(x.first, std::max(x.first, x.second - beta_reduction), x.last_recovery, x.location, x.initial_delay);
+//
+//                     if (x.first > x.second - beta_reduction) {
+//                         std::cerr << "ERROR at " << gamma[index] << std::endl;
+//                         return;
+//                     }
+//                 }
+//                 index++;
+//             }
+//         }
 
         gam_item_t gam_after = gamma[edge.agent_after.id];
 
@@ -105,6 +105,8 @@ namespace asipp{
                     double h = edge.heuristic;
                     Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source);
                     std::cerr << "Decreased with better longer available path: " << new_node << std::endl;
+                } else {
+                std::cerr << "Already found destination, but is worse " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
                 }
             } else {
                 std::cerr << "Already found destination, but is (maybe) worse? " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;

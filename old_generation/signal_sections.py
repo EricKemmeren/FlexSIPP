@@ -1,8 +1,8 @@
 from logging import getLogger
 from typing import Union
 
-from generation.graph import Edge, TrackGraph, BlockEdge, Direction
-import generation
+from old_generation.graph import Edge, TrackGraph, BlockEdge, Direction
+import old_generation as generation
 
 logger = getLogger('__main__.' + __name__)
 
