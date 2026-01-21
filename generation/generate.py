@@ -120,7 +120,6 @@ def plot_route(plot_agent, moves_per_agent, block_routes, block_intervals, g_blo
         plottings = (moves_per_agent[plot_agent][0], block_routes[plot_agent][0]) if plot_agent in block_routes else None
     plot_blocking_staircase(block_intervals, block_routes, moves_per_agent, g_block, buffer_times, recovery_times, plot_routes=plottings, exclude_agent=exclude_agent, **kwargs)
 
-
 def main():
     args = parser.parse_args()
     g, g_block, _, _ = time_graph_creation(args.location)

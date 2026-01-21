@@ -83,8 +83,24 @@ class Node:
         return f"{self.name}"
 
 class BlockNode(Node):
-    def __init__(self, name):
+    def __init__(self, name, readable_name=None):
         super().__init__(name)
+        self.readable_name = readable_name
+
+    def get_identifier(self):
+        if self.readable_name is None:
+            return super().get_identifier()
+        return self.readable_name
+    
+    def __repr__(self):
+        if self.readable_name is None:
+            return super().__repr__()
+        return self.readable_name
+    
+    def __str__(self):
+        if self.readable_name is None:
+            return super().__str__()
+        return self.readable_name
 
 class TrackNode(Node):
     def __init__(self, name, type):
@@ -131,7 +147,7 @@ class Edge:
         return f"{self.from_node.name}--{self.to_node.name}--{self.id}"
 
     def __repr__(self) -> str:
-        return f"Edge from {self.from_node.name} to {self.to_node.name} with length {self.length}"
+        return f"Edge from {self.from_node} to {self.to_node} with length {self.length}"
 
     def __eq__(self, other):
         if isinstance(other, Edge):
@@ -234,7 +250,7 @@ class Graph:
         raise ValueError(f"{station} is not a station")
 
 class TrackGraph(Graph):
-    def __init__(self, file_name):
+    def __init__(self, file_name=None):
         super().__init__()
         self.signals: list[Signal] = []
         self.distance_markers = {}
@@ -246,8 +262,10 @@ class TrackGraph(Graph):
 
 
 class BlockGraph(Graph):
-    def __init__(self, g: TrackGraph):
+    def __init__(self, g: TrackGraph = None):
         super().__init__()
+        if g == None:
+            return
         logger.info("Creating initial signals")
         track_to_signal = {signal.track: signal for signal in g.signals}
         for signal in g.signals:
