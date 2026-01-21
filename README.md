@@ -24,7 +24,6 @@ Compiling:
 
 To create a package that can be installed from the flexsipp source code, run the following commands:
 ```bash
-    python -m build
     pip install -e .
 ```
 Flexsipp can now be imported in python with `import flexsipp`.
