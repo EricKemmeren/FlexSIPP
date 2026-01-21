@@ -11,7 +11,7 @@ Dependencies (version tested):
 - boost (1.83)
 - meson (1.2.3)
 
-Additionally, the Python `generation` module requires the `numpy` package to be installed, we tested using version 1.25.1.
+Additionally, the Python `src/flexsipp` module requires the `numpy` package to be installed, we tested using version 1.25.1.
 
 Compiling:
 ```bash
@@ -21,6 +21,13 @@ Compiling:
     meson setup --buildtype debug build_debug
     meson compile -C build_debug
 ```
+
+To create a package that can be installed from the flexsipp source code, run the following commands:
+```bash
+    python -m build
+    pip install -e .
+```
+Flexsipp can now be imported in python with `import flexsipp`.
 
 To run a specific scenario (in this case scenario `data/enkhuizen/scenario_small_custom.json` on location `data/enkhuizen/location_enkhuizen.json` for agent 1):
 ```
