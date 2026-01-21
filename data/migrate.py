@@ -14,4 +14,4 @@ def migrate(path):
                 json.dump(data, f, indent=4)
 
 if __name__ == '__main__':
-    migrate(".")
+    migrate("../tests")

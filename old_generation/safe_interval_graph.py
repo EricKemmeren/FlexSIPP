@@ -9,7 +9,7 @@ import numpy as np
 from matplotlib import cm
 from matplotlib.lines import Line2D
 
-from generation.graph import BlockEdge, TrackEdge, Direction, BlockGraph
+from old_generation.graph import BlockEdge, TrackEdge, Direction, BlockGraph
 
 logger = getLogger('__main__.' + __name__)
 

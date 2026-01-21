@@ -1,9 +1,76 @@
 {
     "types": [
         {
-            "name": "SNG-3",
-            "length": 60,
-            "speed": 10
+            "acceleration": 0.5,
+            "deceleration": 1.1,
+            "length": 138,
+            "minimum_station_time": 120,
+            "name": "ICNG",
+            "speed": 200
+        },
+        {
+            "acceleration": 0.5,
+            "deceleration": 1.1,
+            "length": 138,
+            "minimum_station_time": 120,
+            "name": "EUROSTAR",
+            "speed": 200
+        },
+        {
+            "acceleration": 1.1,
+            "deceleration": 1.1,
+            "length": 169,
+            "minimum_station_time": 42,
+            "name": "SNG",
+            "speed": 140
+        },
+        {
+            "acceleration": 0.9,
+            "deceleration": 1.1,
+            "length": 169,
+            "minimum_station_time": 42,
+            "name": "SLT",
+            "speed": 140
+        },
+        {
+            "acceleration": 0.7,
+            "deceleration": 1.1,
+            "length": 138,
+            "minimum_station_time": 54,
+            "name": "VIRM",
+            "speed": 140
+        },
+        {
+            "acceleration": 0.9,
+            "deceleration": 1.1,
+            "length": 138,
+            "minimum_station_time": 54,
+            "name": "DDZ",
+            "speed": 140
+        },
+        {
+            "acceleration": 0.7,
+            "deceleration": 1.1,
+            "length": 138,
+            "minimum_station_time": 54,
+            "name": "ICM",
+            "speed": 140
+        },
+        {
+            "acceleration": 0.7,
+            "deceleration": 1.1,
+            "length": 138,
+            "minimum_station_time": 54,
+            "name": "ICD",
+            "speed": 140
+        },
+        {
+            "acceleration": 1,
+            "deceleration": 1.1,
+            "length": 138,
+            "minimum_station_time": 120,
+            "name": "UNKNOWN",
+            "speed": 140
         }
     ],
     "trains": [
@@ -13,7 +80,7 @@
                 8656
             ],
             "trainUnitTypes": [
-                "SNG-3"
+                "SNG"
             ],
             "movements": {
                 "startLocation": "t-1B",
@@ -29,7 +96,7 @@
                 8656
             ],
             "trainUnitTypes": [
-                "SNG-3"
+                "SNG"
             ],
             "movements": {
                 "startLocation": "t-1B",

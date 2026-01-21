@@ -1,6 +1,6 @@
 from logging import getLogger
 
-from generation.graph import Graph
+from old_generation.graph import Graph
 
 logger = getLogger('__main__.' + __name__)
 
