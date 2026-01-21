@@ -17,28 +17,26 @@ void read_ATF(std::istream& i, std::vector<inATF>& res){
     std::string s;
     if(!(i >> x)){return;}
     i >> y;
-    intervalTime_t zeta, alpha, beta, delta, crt_b, max_buf_a, crt_a, h;
-    int id_b, id_a;
     i >> s;
-    zeta = stod(s);
+    intervalTime_t zeta = stod(s);
     i >> s;
-    alpha = stod(s);
+    intervalTime_t alpha = stod(s);
     i >> s;
-    beta = stod(s);
+    intervalTime_t beta = stod(s);
     i >> s;
-    delta = stod(s);
+    intervalTime_t delta = stod(s);
     i >> s;
-    id_b = stoi(s);
+    int id_b = stoi(s);
     i >> s;
-    crt_b = stod(s);
+    intervalTime_t crt_b = stod(s);
     i >> s;
-    id_a = stoi(s);
+    int id_a = stoi(s);
     i >> s;
-    max_buf_a = stod(s);
+    intervalTime_t max_buf_a = stod(s);
     i >> s;
-    crt_a = stod(s);
+    intervalTime_t crt_a = stod(s);
     i >> s;
-    h = stod(s);
+    intervalTime_t h = stod(s);
     EdgeATF edge(zeta, alpha, beta, delta, id_b, crt_b, id_a, max_buf_a, crt_a, h);
     res.emplace_back(x, y, edge);
 }
@@ -70,6 +68,7 @@ Graph read_graph(std::string filename){
     std::flush(std::cerr);
     for (long i = 0; i < n_nodes; i++){
         double st, en, buf_a;
+        double crt_b, crt_a;
         int id_b, id_a;
         instream >> name;
         instream >> s;
@@ -79,9 +78,13 @@ Graph read_graph(std::string filename){
         instream >> s;
         id_b = stoi(s);
         instream >> s;
+        crt_b = stod(s);
+        instream >> s;
         id_a = stoi(s);
         instream >> s;
         buf_a = stod(s);
+        instream >> s;
+        crt_a = stod(s);
         State state(name, st, en, id_b, id_a, buf_a);
         g.node_array.emplace_back(state);
         g.nodes.emplace(state, &g.node_array.back());
@@ -92,7 +95,11 @@ Graph read_graph(std::string filename){
     for (long i = 0; i < n_edges; i++){
         read_ATF(instream, res);
     }
+    std::cerr << "atfs read\n";
+    std::flush(std::cerr);
     instream >> s >> n_agents;
+    std::cerr << "num_agents:" << n_agents << std::endl;
+    std::flush(std::cerr);
     g.n_agents = n_agents;
     g.edges.reserve(2*res.size());
     for (const auto & entry: res){

@@ -9,7 +9,6 @@ This project has the following directories:
 Dependencies (version tested):
 - gcc (13.2.1)
 - boost (1.83)
-- zlib (1.3.1)
 - meson (1.2.3)
 
 Additionally, the Python `generation` module requires the `numpy` package to be installed, we tested using version 1.25.1.
@@ -33,3 +32,4 @@ To cite, please use:
 
     Issa Hanou, Devin W. Thomas, Wheeler Ruml, and Mathijs de Weerdt. Replanning in Advance for Instant Delay Recovery in Multi-Agent Applications: Rerouting Trains in a Railway Hub. (2024). In Proceedings: International Conference on Automated Planning and Scheduling.
 
+To run the tests directory, make sure atstipp.exe is added to the PATH
