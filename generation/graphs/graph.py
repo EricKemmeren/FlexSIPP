@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import sys
 import queue as Q
-from copy import deepcopy
 
 from logging import getLogger
 from typing import Generic, ClassVar, Tuple
@@ -25,17 +24,6 @@ class IntervalStore(object):
         self.crt: dict[int, float] = {}
         self.merged = False
 
-    def __deepcopy__(self, memodict={}):
-        n = IntervalStore()
-        n.unsafe_intervals = deepcopy(self.unsafe_intervals, memodict)
-        n.safe_intervals = deepcopy(self.safe_intervals, memodict)
-        for a, bt in self.bt.items():
-            n.bt[deepcopy(a, memodict)] = bt
-        for a, crt in self.crt.items():
-            n.crt[deepcopy(a, memodict)] = crt
-        n.merged = self.merged
-        return n
-
     def add_unsafe_interval(self, interval: UnsafeInterval):
         self.unsafe_intervals.add(interval)
 
@@ -53,7 +41,7 @@ class IntervalStore(object):
                 start = next
 
     def filter_out_agent(self, agent: Agent):
-        self.unsafe_intervals = [ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id]
+        return [ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id]
 
 
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
@@ -117,15 +105,6 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
         self.name = name
         self.outgoing:list[EdgeType] = []
         self.incoming:list[EdgeType] = []
-
-    def __deepcopy__(self, memodict={}):
-        parent = super().__deepcopy__(memodict)
-        n = Node(self.name)
-        for a,b in parent.__dict__.items():
-            setattr(n, a, b)
-        n.outgoing = deepcopy(self.outgoing, memodict)
-        n.incoming = deepcopy(self.incoming, memodict)
-        return n
 
     def get_identifier(self):
         return f"{self.name}"
@@ -210,16 +189,6 @@ class Edge(IntervalStore, Generic[EdgeType, NodeType]):
         self.to_node = t
         self.length = l
         self.max_speed = mv
-
-    def __deepcopy__(self, memodict={}):
-        parent = super().__deepcopy__(memodict)
-        f = deepcopy(self.from_node, memodict)
-        t = deepcopy(self.to_node, memodict)
-        e = Edge(f, t, self.length, self.max_speed)
-        e.id = self.id
-        for a,b in parent.__dict__.items():
-            setattr(e, a, b)
-        return e
 
     def get_identifier(self):
         return f"{self.from_node.name}--{self.to_node.name}--{self.id}"

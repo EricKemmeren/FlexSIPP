@@ -1,3 +1,6 @@
+from matplotlib.axis import Axis
+
+
 class Results:
     def __init__(self, s:str):
         #s is a string with the text output of a repeat search this parses it into the compount atf, and the individual augmentded SIPP plans for each segment
@@ -54,6 +57,27 @@ class Results:
                 self.unique_paths[path_string] = 1
                 self.unique_path_eatfs[path_string] = [eatfs[i]]
 
+    linestyles = [
+        (0, (5, 10)),
+        (5, (5, 10)),
+        (10, (5, 10)),
+        (0, (5, 0))
+    ]
+
+    def plot(self, ax: Axis, **kwargs):
+        color = kwargs.get('color', None)
+        label = kwargs.get('label', None)
+        linestyle = Results.linestyles[kwargs.get('linestyle', 0)]
+
+        y_offset = kwargs.get('y_offset', 0)
+
+        line = None
+        for (x0, x1, y0, y1) in self.catf:
+            if x0 == "-inf" and x1 != "inf" and y1 != "inf":
+                ax.hlines(float(y1) + y_offset, 0, float(x1), colors=color, linestyle=linestyle)
+            line, = ax.plot([float(x0), float(x1)], [float(y0) + y_offset, float(y1) + y_offset], color=color,
+                            linestyle=linestyle)
+        line.set_label(label) if line is not None else None
 
 def test():
     Results(

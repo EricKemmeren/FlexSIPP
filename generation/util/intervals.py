@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import copy
 
 from generation.agent import Agent
 
@@ -80,11 +80,6 @@ class UnsafeInterval(Interval):
         self.local_recovery_time += other.local_recovery_time
         assert self.by_agent == other.by_agent
 
-    def __deepcopy__(self, memodict={}):
-        agent = deepcopy(self.by_agent, memodict)
-        return UnsafeInterval(self.start, self.end, self.duration, agent, self.local_recovery_time)
-
-
 class SafeInterval(Interval):
     def __init__(self, start, end, agent_before: Agent, crt_before: float, agent_after: Agent, buffer_after: float, crt_after: float):
         super().__init__(start, end)
@@ -148,7 +143,7 @@ class FlexibleArrivalTimeFunction(ArrivalTimeFunction):
         return f"{self.from_id} {self.to_id} {self.zeta} {self.alpha} {self.beta} {self.delta} {self.train_before} {self.crt_before} {self.train_after} {self.buffer_after} {self.crt_after} {self.heuristic}"
 
     def replace_index(self, interval_index_map: dict[int, int]) -> "FlexibleArrivalTimeFunction":
-        new_atf = deepcopy(self)
+        new_atf = copy(self)
         new_atf.from_id = interval_index_map[self.from_id]
         new_atf.to_id = interval_index_map[self.to_id]
         return new_atf

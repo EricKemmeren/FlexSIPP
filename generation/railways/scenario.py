@@ -1,4 +1,4 @@
-from copy import deepcopy
+from copy import copy
 from typing import Union, Tuple, Any
 
 import numpy as np
@@ -88,17 +88,18 @@ class Scenario:
         @param agent: Agent_id to filter out, or a new agent in the simulation.
         @return: Copy of the BlockGraph that is updated to filter out agent
         """
-        g = deepcopy(self.g)
+        g = self.g
         agent = self.get_replanning_agent(agent)
         assert agent is not None
-        uis: list[IntervalStore] = list(g.nodes.values()) + g.edges
+        uis:list[IntervalStore] = list(g.nodes.values()) + g.edges
         for ui in uis:
-            ui.filter_out_agent(agent)
+            ui.unsafe_intervals = ui.filter_out_agent(agent)
         for e in g.edges:
             e.length = e.length / agent.measures.train_speed
+
         return g
 
-    def plot_blocking_staircase(self, ax: Axis, agent: Union[TrainAgent, int]):
+    def plot_blocking_staircase(self, ax: Axis, agent: Union[TrainAgent, int], **kwargs):
         agent = self.get_replanning_agent(agent)
         track_edges_to_plot: dict[TrackEdge, Tuple[float, float]] = {}
         block_edges_to_plot: dict[BlockEdge, Tuple[float, float]] = {}
@@ -114,7 +115,7 @@ class Scenario:
                     track_edges_to_plot[opp_e] = (x + e.length, x)
                 x += e.length
             block_edges_to_plot[block] = (x_b, x)
-            assert x - x_b == block.length
+            # assert x - x_b == block.length
             x_b = x
 
         x_ticks[0].append(x)

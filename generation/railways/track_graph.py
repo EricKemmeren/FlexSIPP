@@ -1,6 +1,5 @@
 import json
 import re
-from copy import deepcopy
 from logging import getLogger
 from typing import Tuple
 
@@ -23,20 +22,6 @@ class TrackNode(Node["TrackEdge", "TrackNode"]):
         if self.direction != "A" and self.direction != "B":
             raise ValueError("Direction must be either A or B")
 
-    def __deepcopy__(self, memodict={}):
-        parent = super().__deepcopy__(memodict)
-        tn = TrackNode(self.name, self.type)
-        for a,b in parent.__dict__.items():
-            setattr(tn, a, b)
-        tn.opposites = deepcopy(self.opposites, memodict)
-        tn.associated = deepcopy(self.associated, memodict)
-        tn.blocks = deepcopy(self.blocks, memodict)
-        tn.canReverse = self.canReverse
-        tn.stationPlatform = self.stationPlatform
-        tn.direction = self.direction
-        return tn
-
-
 class TrackEdge(Edge["TrackEdge", "TrackNode"], PlottingStore):
     def __init__(self, f, t, l, switch_angle=None):
         super().__init__(f, t, l, angle_to_speed(switch_angle))
@@ -49,18 +34,6 @@ class TrackEdge(Edge["TrackEdge", "TrackNode"], PlottingStore):
         # if self.direction != "A" and self.direction != "B":
         #     raise ValueError("Direction must be either A or B")
 
-    def __deepcopy__(self, memodict={}):
-        parent = super().__deepcopy__(memodict)
-        te = TrackEdge(parent.from_node, parent.to_node, parent.length)
-        for a,b in parent.__dict__.items():
-            setattr(te, a, b)
-        te.plotting_info = deepcopy(self.plotting_info, memodict)
-        te.opposites = deepcopy(self.opposites, memodict)
-        te.associated = deepcopy(self.associated, memodict)
-        te.stops_at_station = deepcopy(self.stops_at_station, memodict)
-        te.blocks = deepcopy(self.blocks, memodict)
-        te.direction = self.direction
-        return te
 
 
     def set_plotting_info(self, agent, cur_time, end_time, block_edge):
