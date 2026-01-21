@@ -47,10 +47,10 @@ class FSIPP(Generic[EdgeType, NodeType]):
             f.write(f"num_trains {num_trains}\n")
 
     def run_search(self, timeout, origin, destination, start_time) -> Results:
-        file = "fsipp.txt"
+        file = "flexsipp.txt"
         self.write(file)
         try:
-            proc = subprocess.run(["fsipp.exe",
+            proc = subprocess.run(["flexsipp.exe",
                                    "--start", origin,
                                    "--goal", destination,
                                    "--edgegraph", file,
