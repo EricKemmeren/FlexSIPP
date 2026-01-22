@@ -1,16 +1,14 @@
-from copy import copy
 from typing import Union, Tuple, Any
 
 import numpy as np
 from matplotlib import cm, patches
 from matplotlib.axis import Axis
 
-from generation.graphs.graph import IntervalStore
-from generation.railways.block_graph import BlockGraph, BlockNode
-from generation.railways.track_graph import TrackEdge
-from generation.railways.train_agent import TrainItem, TrainAgent
-from generation.util.timing import timing
-from old_generation.graph import BlockEdge
+from ..graphs.graph import IntervalStore
+from ..railways.block_graph import BlockGraph, BlockNode, BlockEdge
+from ..railways.track_graph import TrackEdge
+from ..railways.train_agent import TrainItem, TrainAgent
+from ..util.timing import timing
 
 
 class Scenario:

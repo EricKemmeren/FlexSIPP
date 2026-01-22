@@ -3,7 +3,6 @@ from queue import PriorityQueue
 from dataclasses import dataclass, field
 from typing import Any
 
-from data.check_location_scenario_files import check_json_files
 from donna_parsing.parsedjson import JsonStation
 from parsedjson import JsonTrackPart, JsonOutput, JsonSignal
 

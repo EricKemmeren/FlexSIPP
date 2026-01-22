@@ -1,6 +1,6 @@
 import unittest
 
-from generation.util.intervals import Interval
+from flexsipp.util.intervals import Interval
 
 
 class TestInterval(unittest.TestCase):
