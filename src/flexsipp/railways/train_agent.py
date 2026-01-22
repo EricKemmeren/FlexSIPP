@@ -1,6 +1,6 @@
 from typing import Tuple
 
-from attr import dataclass
+from dataclasses import dataclass
 from matplotlib.axis import Axis
 
 from ..agent import Agent
