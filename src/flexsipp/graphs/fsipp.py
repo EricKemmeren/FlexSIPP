@@ -18,7 +18,8 @@ class FSIPP(Generic[EdgeType, NodeType]):
 
         for node in g.nodes.values():
             def create_atf(from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, delta):
-                flex_atf = FlexibleArrivalTimeFunction(from_interval, edge_interval, to_interval, delta, heuristic[node.name])
+                h = heuristic[node.name] if node.name in heuristic else 0
+                flex_atf = FlexibleArrivalTimeFunction(from_interval, edge_interval, to_interval, delta, h)
                 if flex_atf:
                     self.atfs.append(flex_atf)
             [create_atf(*c) for c in node.get_safe_connections()]
@@ -46,14 +47,13 @@ class FSIPP(Generic[EdgeType, NodeType]):
                 num_trains = max(num_trains, atf.train_before.id, atf.train_after.id)
             f.write(f"num_trains {num_trains}\n")
 
-    def run_search(self, timeout, origin, destination, start_time) -> Results:
-        file = "flexsipp.txt"
+    def run_search(self, timeout, origin, destination, start_time, file="flexsipp.txt") -> Results:
         self.write(file)
         try:
             proc = subprocess.run(["flexsipp.exe",
-                                   "--start", origin,
-                                   "--goal", destination,
-                                   "--edgegraph", file,
+                                   "--start", str(origin),
+                                   "--goal", str(destination),
+                                   "--edgegraph", str(file),
                                    "--search", "repeat",
                                    "--startTime", str(start_time)
                                    ], timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
