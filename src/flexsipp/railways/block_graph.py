@@ -6,10 +6,10 @@ from copy import copy
 
 from tqdm import tqdm
 
-from generation.agent import Agent
-from generation.graphs.graph import Graph, Node, Edge
-from generation.railways.track_graph import TrackEdge, TrackNode, TrackGraph, Signal
-from generation.util.plotting_info import PlottingStore
+from ..agent import Agent
+from ..graphs.graph import Graph, Node, Edge
+from ..railways.track_graph import TrackEdge, TrackNode, TrackGraph, Signal
+from ..util.plotting_info import PlottingStore
 
 logger = getLogger('__main__.' + __name__)
 

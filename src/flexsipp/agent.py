@@ -1,6 +1,6 @@
 from typing import Generic
 
-from generation.util.types import EdgeType, NodeType
+from .util.types import EdgeType, NodeType
 
 class Agent(Generic[EdgeType, NodeType]):
 

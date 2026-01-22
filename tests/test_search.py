@@ -1,9 +1,9 @@
 import unittest
 from copy import copy
 
-from generation.generate import graph_from_file, scenario_from_file
-from generation.graphs.fsipp import FSIPP
-from generation.railways.train_agents.train_agent_limited_flexiblity import train_agent_limited_flexibility_generator
+from flexsipp.generate import graph_from_file, scenario_from_file
+from flexsipp.graphs.fsipp import FSIPP
+from flexsipp.railways.train_agents.train_agent_limited_flexiblity import train_agent_limited_flexibility_generator
 
 class TestSearch(unittest.TestCase):
 

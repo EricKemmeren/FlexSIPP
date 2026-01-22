@@ -3,9 +3,9 @@ import re
 from logging import getLogger
 from typing import Tuple
 
-from generation.graphs.graph import Graph, Node, Edge, IntervalStore
-from generation.util.plotting_info import PlottingStore
-from generation.util.util import angle_to_speed
+from ..graphs.graph import Graph, Node, Edge, IntervalStore
+from ..util.plotting_info import PlottingStore
+from ..util.util import angle_to_speed
 
 logger = getLogger('__main__.' + __name__)
 
