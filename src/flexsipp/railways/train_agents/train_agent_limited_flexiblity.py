@@ -1,4 +1,4 @@
-from generation.railways.train_agent import TrainAgent
+from ...railways.train_agent import TrainAgent
 
 def train_agent_limited_flexibility_generator(max_buffer=float("inf"), max_compound_recovery_time=float("inf")):
     class TrainAgentLimitedFlexibility(TrainAgent):

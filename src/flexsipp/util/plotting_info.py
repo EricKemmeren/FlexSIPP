@@ -1,6 +1,6 @@
-from attr import dataclass
+from dataclasses import dataclass
 
-from generation.agent import Agent
+from ..agent import Agent
 
 
 @dataclass

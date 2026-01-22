@@ -8,9 +8,9 @@ from typing import Generic, ClassVar, Tuple
 
 from sortedcontainers import SortedKeyList
 
-from generation.agent import Agent
-from generation.util.intervals import UnsafeInterval, SafeInterval
-from generation.util.types import EdgeType, NodeType
+from ..agent import Agent
+from ..util.intervals import UnsafeInterval, SafeInterval
+from ..util.types import EdgeType, NodeType
 
 logger = getLogger('__main__.' + __name__)
 

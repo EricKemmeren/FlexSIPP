@@ -1,6 +1,6 @@
 from copy import copy
 
-from generation.agent import Agent
+from ..agent import Agent
 
 class Interval:
     index = 0

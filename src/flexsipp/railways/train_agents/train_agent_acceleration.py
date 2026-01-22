@@ -2,9 +2,9 @@ import math
 from typing import Tuple
 
 
-from generation.railways.track_graph import TrackEdge
-from generation.railways.train_agent import TrainAgent
-from generation.util.intervals import UnsafeInterval
+from ...railways.track_graph import TrackEdge
+from ...railways.train_agent import TrainAgent
+from ...util.intervals import UnsafeInterval
 
 
 class TrainAgentAcceleration(TrainAgent):

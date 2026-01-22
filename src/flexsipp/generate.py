@@ -1,10 +1,10 @@
 import json
 
-from generation.railways.block_graph import BlockGraph
-from generation.railways.scenario import Scenario
-from generation.railways.track_graph import TrackGraph
-from generation.railways.train_agent import TrainAgent
-from generation.util.types import GraphType
+from .railways.block_graph import BlockGraph
+from .railways.scenario import Scenario
+from .railways.track_graph import TrackGraph
+from .railways.train_agent import TrainAgent
+from .util.types import GraphType
 
 # TODO: discuss if we want this file, or keep TrackGraph and BlockGraph (railway specific classes) to the experiment files
 
