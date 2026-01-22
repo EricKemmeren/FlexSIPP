@@ -1,4 +1,3 @@
-from copy import copy
 from typing import Union, Tuple, Any
 
 import numpy as np
