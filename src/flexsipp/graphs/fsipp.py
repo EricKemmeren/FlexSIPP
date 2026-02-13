@@ -13,19 +13,12 @@ logger = getLogger('__main__.' + __name__)
 
 class FSIPP(Generic[EdgeType, NodeType]):
     @timing
-    def __init__(self, g:Graph[EdgeType, NodeType], heuristic, filter_nodes=None):
+    def __init__(self, g:Graph[EdgeType, NodeType], heuristic):
         g.invert_unsafe_intervals()
         self.atfs: list[FlexibleArrivalTimeFunction] = []
         self.g = g
-        if filter_nodes:
-            self._init_atfs(filter_nodes, heuristic)
-        else:
-            self._init_atfs(g.nodes.values(), heuristic)
 
-
-
-    def _init_atfs(self, nodes: list[NodeType], heuristic):
-        for node in nodes:
+        for node in g.nodes.values():
             def create_atf(from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, delta):
                 h = heuristic[node.name] if node.name in heuristic else 0
                 flex_atf = FlexibleArrivalTimeFunction(from_interval, edge_interval, to_interval, delta, h)
