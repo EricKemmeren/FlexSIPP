@@ -1,16 +1,17 @@
 from matplotlib.axis import Axis
-
+import pickle
 
 class Results:
-    def __init__(self, s:str):
-        #s is a string with the text output of a repeat search this parses it into the compount atf, and the individual augmentded SIPP plans for each segment
+    def __init__(self):
         self.metadata= {}
         self.unique_paths = {}
         self.unique_path_eatfs = {}
-        s = s.splitlines() # avoid empty element in list
-        self.parse_list_of_outputs(s)
 
-    def parse_list_of_outputs(self, s, offset=0):
+    @classmethod
+    def parse_list_of_outputs(cls, s, offset=0):
+        #s is a string with the text output of a repeat search this parses it into the compount atf, and the individual augmentded SIPP plans for each segment
+        self = cls()
+        s = s.splitlines() # avoid empty element in list
         # s is the output split on newline characters
         i = 0
         while "Nodes generated" not in s[i]:
@@ -56,6 +57,8 @@ class Results:
             else:
                 self.unique_paths[path_string] = 1
                 self.unique_path_eatfs[path_string] = [eatfs[i]]
+        
+        return self
 
     linestyles = [
         (0, (5, 10)),
@@ -79,30 +82,43 @@ class Results:
                             linestyle=linestyle)
         line.set_label(label) if line is not None else None
 
-def test():
-    Results(
-        "\n".join(['Arrival time: 130.667',
-                   'Nodes generated: 10 Nodes decreased: 0 Nodes expanded: 8',
-                   '<-inf,20,130.667,130.667>, '
-                   '<20,50,130.667,160.667>, '
-                   '<50,inf,inf,inf>, '
-                   '',
-                   't-EHB <0,50> ns:1',
-                   's-123BL <0,150> ns:2',
-                   's-125BR <93,160> ns:2',
-                   's-131B <88,170> ns:2',
-                   't-401B <115,2000> ns:1',
-                   't-401A <115,2000> ns:2',
-                   '<-inf,20,50,110.667>',
-                   't-EHB <0,50> ns:1',
-                   's-123BL <0,150> ns:2',
-                   's-125BR <93,160> ns:2',
-                   's-131B <88,170> ns:2',
-                   't-401B <115,2000> ns:1',
-                   't-401A <115,2000> ns:2',
-                   '<-inf,20,50,110.667>',
-                   '<0,0,inf,inf>',
-                   'Search time: 1141791 nanoseconds',
-                   'Total (n=100) Lookup time: 10917 nanoseconds'])
-)
-        # run $ python3 -c 'from parseRePEAT import *; test()'
+    def save(self, file):
+        with open(file, "wb") as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+
+    def compare_paths(self, f, original_path:list[str]):
+        paths:list[str] = [key.split(";") for key in self.unique_paths.keys()]
+        def split_list_on_gaps(path: list[int]) -> list[list[int]]:
+            if not path:
+                return [path]
+            result = []
+            result.append([path[0]])
+            for p in path[1:]:
+                if p - 1 == result[-1][-1]:
+                    result[-1].append(p)
+                else:
+                    result.append([p])
+            return result
+        
+        for path in paths:
+            # Find differences in the paths between original and new
+            differences = list(set(path) - set(original_path))
+            diff_index = [path.index(i) for i in differences]
+            diff_index.sort()
+
+            largest_beta = max([b for z,a,b,d,g in self.unique_path_eatfs[";".join(path)]])
+
+            f.write(f"Path differences when departing before {largest_beta}\n")
+            for diffs in split_list_on_gaps(diff_index):
+                differences = [path[i] for i in diffs]
+                f.write(", ".join(differences))
+                f.write("\n")
+            f.write("\n")
+
+
+if __name__ == "__main__":
+    with open(r"C:\Users\eoss3\Documents\FlexSIPP\FlexSIPP\data\friso\demo_backup\update-00\results.pkl", "rb") as f:
+        data = pickle.load(f)
+
+    with open(r"C:\Users\eoss3\Documents\FlexSIPP\FlexSIPP\data\friso\demo_backup\update-00\results2.txt", "w") as f:
+        data.compare_paths(f, ['LPE-1284', 'LPE-1264', 'BTL_LPE-1236', 'BTL-1194', 'BTL-1124', 'BTL_TB-1542', 'BTL_TB-1536', 'BTL_TB-1532', 'BTL_TB-1528', 'BTL_TB-1522', 'BTL_TB-528', 'BTL_TB-524', 'BTL_TB-518', 'BTL_TB-512', 'BTL_TB-506', 'TB-168', 'TB-892', 'TB-130', 'TB-116', 'TBU-96', 'TBU-72', 'BD_TBU-874', 'BD_TBU-870', 'BD_TBU-866', 'BD_TBU-862', 'BD_TBU-858', 'BD_TBU-852', 'BD_TBU-846', 'BD_TBU-836', 'BD_TBU-830', 'BD_TBU-826', 'BD_TBU-822', 'BD_TBU-818', 'BD_TBU-812', 'BD-1150', 'BD-1136', 'BD-1080', 'BD-1044', 'BD-1028', 'BD_ZHA-703', 'BD_ZHA-709', 'BD_ZHA-715', 'ZHA-526', 'ZHA-508', 'ZHA-2376', 'RTDBD-2356', 'RTDBD-2346', 'RTDBD-2336', 'RTDBD-2326', 'RTDBD-2316', 'RTDBD-2306', 'RTDBD-2296', 'RTDBD-2286', 'RTDBD-2276', 'RTDBD-2266', 'RTDBD-2256', 'KFHAZ_RTDBD-710'])
