@@ -1,7 +1,7 @@
 from typing import Union, Tuple, Any
 
 import numpy as np
-from matplotlib import cm, patches
+from matplotlib import cm
 from matplotlib.axis import Axis
 
 from ..graphs.graph import IntervalStore
@@ -129,12 +129,5 @@ class Scenario:
             agent_to_color[a.id] = c
 
         for block, (x1, x2) in block_edges_to_plot.items():
-            for ui in block.unsafe_intervals:
-                c = agent_to_color.get(ui.by_agent.id, None)
-                blocking_time = patches.Rectangle((x1, ui.start), x2 - x1, ui.end - ui.start,
-                                                  linewidth=1, edgecolor="red", facecolor="none")
-                ax.add_patch(blocking_time)
-                bt, _ = block.get_flexibility(ui.by_agent)
-                buffer_time = patches.Rectangle((x1, ui.end), x2 - x1, bt,
-                                                  linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
-                ax.add_patch(buffer_time)
+            block.plot_unsafe_interval(ax, x1, x2, agent_to_color)
+            
