@@ -13,42 +13,43 @@ logger = getLogger('__main__.' + __name__)
 
 class FSIPP(Generic[EdgeType, NodeType]):
     @timing
-    def __init__(self, g:Graph[EdgeType, NodeType], heuristic):
+    def __init__(self, g:Graph[EdgeType, NodeType], heuristic, num_agents, filter_nodes=None):
         g.invert_unsafe_intervals()
         self.atfs: list[FlexibleArrivalTimeFunction] = []
-        self.g = g
+        self.num_agents = num_agents
 
-        for node in g.nodes.values():
+        if filter_nodes:
+            self.nodes = filter_nodes
+        else:
+            self.nodes = g.nodes.values()
+
+        for node in self.nodes:
             def create_atf(from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, delta):
                 h = heuristic[node.name] if node.name in heuristic else 0
                 flex_atf = FlexibleArrivalTimeFunction(from_interval, edge_interval, to_interval, delta, h)
                 if flex_atf:
                     self.atfs.append(flex_atf)
-            [create_atf(*c) for c in node.get_safe_connections()]
+            [create_atf(*c) for c in node.get_safe_connections(self.nodes)]
 
     def write(self, file):
         with open(file, 'wt') as f:
-            f.write(f"vertex count: {str(len([x for node in self.g.nodes.values() for x in node.safe_intervals]))}\n")
+            f.write(f"vertex count: {str(len([x for node in self.nodes for x in node.safe_intervals]))}\n")
             f.write(f"edge count: {str(len(self.atfs))}\n")
 
             # Create an index map that maps the safe interval index (in any arbitrary range) to an index starting from 0.
             interval_index_map: dict[int, int] = {}
             last_index = 0
 
-            for node in self.g.nodes.values():
+            for node in self.nodes:
                 for interval in node.safe_intervals:
                     f.write(f"{node.name} {repr(interval)}\n")
                     interval_index_map[interval.index] = last_index
                     last_index += 1
 
-            unique_trains = set()
             for atf in self.atfs:
-                # TODO: recreate atfs such that from_id and to_id start at 0 (or 1?), also for agents
                 atf = atf.replace_index(interval_index_map)
                 f.write(f"{repr(atf)}\n")
-                unique_trains.add(atf.train_before.id)
-                unique_trains.add(atf.train_after.id)
-            f.write(f"num_trains {len(unique_trains)}\n")
+            f.write(f"num_trains {self.num_agents}\n")
 
     @timing
     def run_search(self, timeout, origin, destination, start_time, file="flexsipp.txt", err_file="stderr.txt") -> Results:
