@@ -1,6 +1,6 @@
 import subprocess
 from logging import getLogger
-from typing import Generic
+from typing import Generic, Iterable
 
 from .graph import Graph
 from ..util.intervals import SafeInterval, FlexibleArrivalTimeFunction
@@ -13,7 +13,15 @@ logger = getLogger('__main__.' + __name__)
 
 class FSIPP(Generic[EdgeType, NodeType]):
     @timing
-    def __init__(self, g:Graph[EdgeType, NodeType], heuristic, num_agents, filter_nodes=None):
+    def __init__(self, g:Graph[EdgeType, NodeType], heuristic:dict[str, float], num_agents: int, filter_nodes:Iterable[NodeType]=None):
+        """ Create a flexibile safe interval any-start-time graph of the given graph, that can be used to run the search algorithm.
+
+        :param Graph g: Graph containing the nodes and edges with populated unsafe intervals. Edge length should be duration.
+        :param dict heuristic: Dictionary that maps node name to a value, this value is used as the heuristic in the A* search.
+        :param int num_agents: Number of agents present is the graph.
+        :param Iterable, optional filter_nodes: Optional argument to specify the allowed nodes the new agent is able to find a new path over.
+        :return: A FlexSIPP graph with SafeIntervals on the nodes, and FlexibleArrivalTimeFunctions between these nodes as edges.
+        """
         g.invert_unsafe_intervals()
         self.atfs: list[FlexibleArrivalTimeFunction] = []
         self.num_agents = num_agents
@@ -31,7 +39,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
                     self.atfs.append(flex_atf)
             [create_atf(*c) for c in node.get_safe_connections(self.nodes)]
 
-    def write(self, file):
+    def _write(self, file):
         with open(file, 'wt') as f:
             f.write(f"vertex count: {str(len([x for node in self.nodes for x in node.safe_intervals]))}\n")
             f.write(f"edge count: {str(len(self.atfs))}\n")
@@ -53,7 +61,17 @@ class FSIPP(Generic[EdgeType, NodeType]):
 
     @timing
     def run_search(self, timeout, origin, destination, start_time, file="flexsipp.txt", err_file="stderr.txt") -> Results:
-        self.write(file)
+        """ Search on the FSIPP graph.\n
+        The executable build from the search/build directory is assumed to be added to the PATH variable, such that it can be executed by running 'flexsipp.exe'.
+
+        :param timeout: Max search duration in seconds.
+        :param origin: Start location of the search.
+        :param destination: Location to search to.
+        :param start_time: Time to start searching from. At start_time, the origin should be safe to visit.
+        :param optional file: Location to store the search graph in.
+        :param optional err_file: Location to store the stderr output of flexsipp.exe.
+        """
+        self._write(file)
         print("Running FSIPP: ")
         print(" ".join(["flexsipp.exe",
                                    "--start", str(origin),
@@ -72,6 +90,8 @@ class FSIPP(Generic[EdgeType, NodeType]):
                                    ], timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                                   encoding='utf-8')
         except subprocess.TimeoutExpired as to:
+            with open(err_file, "w") as f:
+                f.write(to.stderr)
             logger.error(f'Timeout for repeat ({timeout}s) expired')
             raise RuntimeError
         with open(err_file, "w") as f:
