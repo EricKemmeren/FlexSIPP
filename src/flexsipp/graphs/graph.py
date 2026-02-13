@@ -31,14 +31,17 @@ class IntervalStore(object):
         self.merged = True
         if len(self.unsafe_intervals) == 0:
             return
+        merged_intervals = []
         start = self.unsafe_intervals[0]
         for next in self.unsafe_intervals[1:]:
             # Check for overlap using intersection
             if start & next:
-                start.merge(next)
-                self.unsafe_intervals.remove(next)
+                start = start | next
             else:
+                merged_intervals.append(start)
                 start = next
+        merged_intervals.append(start)
+        self.unsafe_intervals = merged_intervals
 
     def filter_out_agent(self, agent: Agent):
         return [ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id]
