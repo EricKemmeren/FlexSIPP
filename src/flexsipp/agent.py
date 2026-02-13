@@ -28,6 +28,9 @@ class Agent(Generic[EdgeType, NodeType]):
         return self.route[-1].to_node
 
     def _get_local_flexibility(self, move: EdgeType):
+        if len(move.unsafe_intervals) == 0:
+            return float('inf'), 0.0
+        
         zlist = list(zip(move.unsafe_intervals, move.unsafe_intervals[1:]))
         for a, b in zlist:
             if a.by_agent == self:
