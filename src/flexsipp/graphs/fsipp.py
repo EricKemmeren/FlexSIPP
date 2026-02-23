@@ -1,3 +1,5 @@
+import os
+import sys
 import subprocess
 from logging import getLogger
 from typing import Generic
@@ -11,6 +13,8 @@ logger = getLogger('__main__.' + __name__)
 
 
 class FSIPP(Generic[EdgeType, NodeType]):
+    """Functionality to generate the unsafe intervals, convert them to ATFs and run the FlexSIPP search algorithm."""
+
     def __init__(self, g:Graph[EdgeType, NodeType], heuristic):
         g.invert_unsafe_intervals()
         self.atfs: list[FlexibleArrivalTimeFunction] = []
@@ -50,7 +54,10 @@ class FSIPP(Generic[EdgeType, NodeType]):
     def run_search(self, timeout, origin, destination, start_time, file="flexsipp.txt") -> Results:
         self.write(file)
         try:
-            proc = subprocess.run(["flexsipp.exe",
+            flexsipp_path = os.path.join(os.path.dirname(__file__), "..", "..", "..", "search", "build", "flexsipp")
+            if sys.platform == "win32":
+                flexsipp_path += ".exe"
+            proc = subprocess.run([flexsipp_path,
                                    "--start", str(origin),
                                    "--goal", str(destination),
                                    "--edgegraph", str(file),

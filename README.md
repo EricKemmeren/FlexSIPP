@@ -11,31 +11,36 @@ Dependencies (version tested):
 - boost (1.83)
 - meson (1.2.3)
 
-Additionally, the Python `src/flexsipp` module requires the `numpy` package to be installed, we tested using version 1.25.1.
-
 Compiling:
 ```bash
-    cd search
+    cd ./FlexSIPP/search
     meson setup --buildtype release  build
     meson compile -C build
     meson setup --buildtype debug build_debug
     meson compile -C build_debug
 ```
+An executable is now located in `./FlexSIPP/search/build/flexsipp`.
 
-To create a package that can be installed from the flexsipp source code, run the following commands:
+To create a package that can be installed from the FlexSIPP source code, run the following commands:
 ```bash
+    python -m venv .venv
+    source .venv/bin/activate
+    pip install -r requirements
+    cd ./FlexSIPP/
     pip install -e .
 ```
-Flexsipp can now be imported in python with `import flexsipp`.
+FlexSIPP can now be imported in python with `import flexsipp`.
 
-To run a specific scenario (in this case scenario `data/enkhuizen/scenario_small_custom.json` on location `data/enkhuizen/location_enkhuizen.json` for agent 1):
+To run a specific scenario on a matching location for a specific agent (id=`1`):
 ```
-python3 generation/generate.py -s data/enkhuizen/scenario_small_custom.json -l data/enkhuizen/location_enkhuizen.json -o output
-./search/build/atsipp --edgegraph output --start t-405B --goal t-401A
+python src/flexsipp/main.py -s tests/scenario_test.json -l tests/location_test.json -t railway -a 1
+```
+
+To run the tests use:
+```
+python -m unittest
 ```
 
 To cite, please use:
 
-    Issa Hanou, Devin W. Thomas, Wheeler Ruml, and Mathijs de Weerdt. Replanning in Advance for Instant Delay Recovery in Multi-Agent Applications: Rerouting Trains in a Railway Hub. (2024). In Proceedings: International Conference on Automated Planning and Scheduling.
-
-To run the tests directory, make sure atstipp.exe is added to the PATH
+    Issa Hanou, Eric Kemmeren, Devin Wild Thomas, and Mathijs de Weerdt.Precomputing Multi-Agent Path Replanning using Temporal Flexibility: A Case Study on the Dutch Railway Network. (2026). [In Proceedings: International Conference on Automated Planning and Scheduling](https://arxiv.org/abs/2601.04884).

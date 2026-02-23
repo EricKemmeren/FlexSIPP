@@ -16,6 +16,8 @@ logger = getLogger('__main__.' + __name__)
 
 
 class IntervalStore(object):
+    """Definition of a safe interval."""
+    
     def __init__(self):
         super().__init__()
         self.unsafe_intervals: SortedKeyList[UnsafeInterval] = SortedKeyList(key=lambda x: x.start)
@@ -100,6 +102,8 @@ class IntervalStore(object):
 
 
 class Node(IntervalStore, Generic[EdgeType, NodeType]):
+    """Nodes in the @SIPP graphs, which are locations and a safe interval, with incoming and outgoing ATF edges."""
+
     def __init__(self, name: str):
         super().__init__()
         self.name = name
@@ -179,6 +183,8 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
 
 
 class Edge(IntervalStore, Generic[EdgeType, NodeType]):
+    """Edge in the @SIPP graph is an ATF describing safe traversal from the from_node to the to_node."""
+
     __last_id: ClassVar[int] = 1
 
     def __init__(self, f: NodeType, t: NodeType, l: float, mv: float):
@@ -210,6 +216,8 @@ class Edge(IntervalStore, Generic[EdgeType, NodeType]):
 
 
 class Graph(Generic[EdgeType, NodeType]):
+    """@SIPP graph with ATFs as edges and (configuration, safe-interval) pairs as nodes."""
+
     def __init__(self):
         self.edges: list[EdgeType] = []
         self.nodes: dict[str, NodeType] = {}

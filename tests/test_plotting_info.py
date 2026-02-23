@@ -1,3 +1,4 @@
+import os
 import unittest
 
 from flexsipp.generate import graph_from_file, scenario_from_file
@@ -7,8 +8,8 @@ class TestPlottingInfo(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bg = graph_from_file("location_test.json")
-        cls.scenario = scenario_from_file("scenario_test.json", bg)
+        bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
+        cls.scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), bg)
         cls.scenario.process()
 
     def test_start_times(self):
