@@ -1,4 +1,5 @@
 #include <iostream>
+#include <sstream>
 #include <fstream>
 #include <boost/iostreams/device/file.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
@@ -12,7 +13,7 @@ struct inATF{
     inATF(long s, long d, EdgeATF e):source(s),dest(d),eATF(e){}
 };
 
-void read_ATF(std::istream& i, std::vector<inATF>& res){
+void read_ATF(std::istringstream& i, std::vector<inATF>& res){
     long x, y;
     std::string s;
     if(!(i >> x)){return;}
@@ -41,17 +42,9 @@ void read_ATF(std::istream& i, std::vector<inATF>& res){
     res.emplace_back(x, y, edge);
 }
 
-Graph read_graph(std::string filename){
-    boost::iostreams::file_source fileSource(filename);
-
-    if (!fileSource.is_open()) {
-        std::cerr << "Failed to open file: " << filename << std::endl;
-    }
-    // Create a stream buffer from the file source
-    boost::iostreams::stream_buffer<boost::iostreams::file_source> buf(fileSource);
-
+Graph read_graph(std::string graph_string){
     // Attach the buffer to an istream
-    std::istream instream(&buf);
+    std::istringstream instream(graph_string);
 
     std::vector<inATF> res;
     Graph g;
