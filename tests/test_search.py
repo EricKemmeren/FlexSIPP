@@ -5,6 +5,7 @@ from flexsipp.generate import graph_from_file, scenario_from_file
 from flexsipp.graphs.fsipp import FSIPP
 from flexsipp.railways.train_agents.train_agent_limited_flexibility import train_agent_limited_flexibility_generator
 
+
 class TestSearch(unittest.TestCase):
 
     def setUpScenario(self, max_buffer, max_crt):

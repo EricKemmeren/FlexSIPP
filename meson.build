@@ -6,3 +6,5 @@ project(
 )
 
 subdir('src/flexsipp')
+
+subdir('src/search')

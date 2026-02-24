@@ -2,14 +2,13 @@ import io
 from logging import getLogger
 from typing import Generic, TextIO
 
-from .. import search
+from search import search
 from .graph import Graph
 from ..util.intervals import SafeInterval, FlexibleArrivalTimeFunction
 from ..util.results import Results
 from ..util.types import EdgeType, NodeType
 
 logger = getLogger('__main__.' + __name__)
-
 
 class FSIPP(Generic[EdgeType, NodeType]):
     def __init__(self, g:Graph[EdgeType, NodeType], heuristic):
@@ -71,5 +70,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
         graph = io.StringIO()
         self.write(graph)
         graph_str = graph.getvalue()
-        result = search(str(origin), str(destination), graph_str, start_time, timeout)
+        print(search)
+        print(dir(search))
+        result = search.search(str(origin), str(destination), graph_str, start_time, timeout)
         return Results(result)
