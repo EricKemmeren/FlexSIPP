@@ -69,8 +69,5 @@ class FSIPP(Generic[EdgeType, NodeType]):
     def run_search(self, timeout, origin, destination, start_time, file="flexsipp.txt") -> Results:
         graph = io.StringIO()
         self.write(graph)
-        graph_str = graph.getvalue()
-        print(search)
-        print(dir(search))
-        result = search.search(str(origin), str(destination), graph_str, start_time, timeout)
+        result = search.search(str(origin), str(destination), graph.getvalue(), start_time, timeout)
         return Results(result)
