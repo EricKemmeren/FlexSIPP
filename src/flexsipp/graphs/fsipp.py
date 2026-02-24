@@ -1,8 +1,8 @@
 import io
-import subprocess
 from logging import getLogger
 from typing import Generic, TextIO
 
+from .. import search
 from .graph import Graph
 from ..util.intervals import SafeInterval, FlexibleArrivalTimeFunction
 from ..util.results import Results
@@ -47,28 +47,29 @@ class FSIPP(Generic[EdgeType, NodeType]):
             num_trains = max(num_trains, atf.train_before.id, atf.train_after.id)
         f.write(f"num_trains {num_trains}\n")
 
-    def run_search(self, timeout, origin, destination, start_time, file="flexsipp.txt") -> Results:
-        with open(file, 'wt') as f:
-            self.write(f)
-        try:
-            proc = subprocess.run(["flexsipp.exe",
-                                   "--start", str(origin),
-                                   "--goal", str(destination),
-                                   "--edgegraph", str(file),
-                                   "--search", "repeat",
-                                   "--startTime", str(start_time)
-                                   ], timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
-                                  encoding='utf-8')
-        except subprocess.TimeoutExpired:
-            logger.error(f'Timeout for repeat ({timeout}s) expired')
-            raise RuntimeError
-        if int(proc.returncode) != 0:
-            logger.error(f'Search failed for repeat, ec: {proc.returncode}')
-            raise RuntimeError
-        return Results(str(proc.stdout))
+    # def run_search(self, timeout, origin, destination, start_time, file="flexsipp.txt") -> Results:
+    #     with open(file, 'wt') as f:
+    #         self.write(f)
+    #     try:
+    #         proc = subprocess.run(["flexsipp.exe",
+    #                                "--start", str(origin),
+    #                                "--goal", str(destination),
+    #                                "--edgegraph", str(file),
+    #                                "--search", "repeat",
+    #                                "--startTime", str(start_time)
+    #                                ], timeout=timeout, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+    #                               encoding='utf-8')
+    #     except subprocess.TimeoutExpired:
+    #         logger.error(f'Timeout for repeat ({timeout}s) expired')
+    #         raise RuntimeError
+    #     if int(proc.returncode) != 0:
+    #         logger.error(f'Search failed for repeat, ec: {proc.returncode}')
+    #         raise RuntimeError
+    #     return Results(str(proc.stdout))
 
-    def run_pybind_search(self, timeout, origin, destination, start_time, file="flexsipp.txt") -> Results:
+    def run_search(self, timeout, origin, destination, start_time, file="flexsipp.txt") -> Results:
         graph = io.StringIO()
         self.write(graph)
         graph_str = graph.getvalue()
-
+        result = search(str(origin), str(destination), graph_str, start_time, timeout)
+        return Results(result)

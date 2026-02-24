@@ -1,4 +1,4 @@
-#include <pybind11/pybind11.h>
+#include <boost/python.hpp>
 
 #include <chrono>
 #include <filesystem>
@@ -11,7 +11,7 @@
 #include "repeat.hpp"
 #include "structs.hpp"
 
-std::string flexsipp(std::string start, std::string goal, std::string graph_str, intervalTime_t start_time=0, intervalTime_t max_search_time=1000) {
+std::string search(std::string start, std::string goal, std::string graph_str, intervalTime_t start_time=0, intervalTime_t max_search_time=1000) {
     Location source_loc(start);
     Location goal_loc(goal);
 
@@ -52,6 +52,6 @@ std::string flexsipp(std::string start, std::string goal, std::string graph_str,
     return output;
 }
 
-PYBIND11_MODULE(flexsipp_lib, m) {
-    m.def("flexsipp", &flexsipp);
+BOOST_PYTHON_MODULE(search) {
+    boost::python::def("search", search);
 }
