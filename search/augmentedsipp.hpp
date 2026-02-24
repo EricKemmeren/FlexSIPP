@@ -68,9 +68,9 @@ namespace asipp{
 //        intervalTime_t duration_available = beta-(edge.alpha - delta);
         intervalTime_t duration_available = std::max(0.0, beta - alpha);
         intervalTime_t max_gamma = gam_after.second;
-        std::cerr << "Duration: " << duration_available << ", Max gamma before: " << max_gamma;
+        // std::cerr << "Duration: " << duration_available << ", Max gamma before: " << max_gamma;
         max_gamma = std::min(duration_available + min_gamma, gam_after.second);
-        std::cerr << " after: " << max_gamma << std::endl;
+        // std::cerr << " after: " << max_gamma << std::endl;
 
 //        gamma[edge.agent_after.id] = get_reduced_gamma(gam_item_t(min_gamma, max_gamma, gam_after.last_recovery), edge.agent_after);
         gamma[edge.agent_after.id] = gam_item_t(min_gamma, max_gamma, gam_after.last_recovery, gam_after.location, gam_after.initial_delay);
@@ -103,13 +103,13 @@ namespace asipp{
                 if (arrival_time_function.earliest_arrival_time() <= (*handle).g.earliest_arrival_time()) {
                     m.decreased++;
                     double h = edge.heuristic;
-                    Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source);
-                    std::cerr << "Decreased with better longer available path: " << new_node << std::endl;
+                    // Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source);
+                    // std::cerr << "Decreased with better longer available path: " << new_node << std::endl;
                 } else {
-                std::cerr << "Already found destination, but is worse " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
+                // std::cerr << "Already found destination, but is worse " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
                 }
             } else {
-                std::cerr << "Already found destination, but is (maybe) worse? " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
+                // std::cerr << "Already found destination, but is (maybe) worse? " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
             }
         }
         else{
@@ -153,7 +153,7 @@ namespace asipp{
 //            If there is more buffer time available than is currently being used, use it.
             intervalTime_t available_buffer_time = edge.agent_after.max_buffer_time - gamma_after.second;
             if (available_buffer_time > epsilon()) {
-                std::cerr << "Addition using " << available_buffer_time << " more buffer time" << std::endl;
+                // std::cerr << "Addition using " << available_buffer_time << " more buffer time" << std::endl;
 //                For this extra atf, alpha is the beta of the old edge
 //                  Beta is alpha + extra aviailable buffer time
 //                  Gamma for the agent after is atleast how much was used before, and max the new max buffer time.

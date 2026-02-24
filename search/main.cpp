@@ -11,7 +11,7 @@
 namespace po = boost::program_options;
 
 int main(int argc, char* argv[]) {
-    if (std::freopen("redirerr.txt", "w", stderr)) {
+    if (std::freopen(R"(C:\Users\eoss3\Documents\FlexSIPP\FlexSIPP\data\friso\demo\update-00\directredirr.txt)", "w", stderr)) {
         try {
             po::options_description desc("Allowed options");
             desc.add_options()
