@@ -13,11 +13,12 @@ Dependencies (version tested):
 
 Compiling:
 ```bash
-    cd ./FlexSIPP/search
-    meson setup --buildtype release  build
+    cd /search
+    meson setup --buildtype release build
     meson compile -C build
     meson setup --buildtype debug build_debug
     meson compile -C build_debug
+    cd ..
 ```
 An executable is now located in `./FlexSIPP/search/build/flexsipp`.
 
@@ -26,7 +27,6 @@ To create a package that can be installed from the FlexSIPP source code, run the
     python -m venv .venv
     source .venv/bin/activate
     pip install -r requirements
-    cd ./FlexSIPP/
     pip install -e .
 ```
 FlexSIPP can now be imported in python with `import flexsipp`.
