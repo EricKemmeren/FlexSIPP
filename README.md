@@ -1,10 +1,9 @@
 # Replanning in Advance for Instant Delay Recovery
 
 This project has the following directories:
-- `generation`: Python module to generate the @SIPP search graph
-- `search` (atSIPP): C++ module to search for any-start-time plans in the @SIPP search graph
-- `data`: two dutch shunting yard layouts: Enkhuizen and Heerlen. This also includes code to generate new scenarios and explanation of how the real-life scenario was created.
-- `experiments`: the notebook contains all the code to run experiments for our paper
+- `src/flexsipp`: Python module to generate the FlexSIPP search graph
+- `src/search` (atSIPP): C++ module to search for flexible any-start-time plans in the FlexSIPP search graph
+- `tests`: Tests and examples for how to use the flexsipp code.
 
 Dependencies (version tested):
 - msvc  (14.3)
