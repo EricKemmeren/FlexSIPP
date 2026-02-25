@@ -7,7 +7,7 @@ python = import('python').find_installation(
 # ---- Boost dependency ----
 boost_dep = dependency(
     'boost',
-    modules : ['python313', 'program_options', 'random', 'iostreams'],
+    modules : ['python3', 'program_options', 'random', 'iostreams'],
     required : true,
 )
 
