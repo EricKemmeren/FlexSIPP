@@ -22,7 +22,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent, instance_type, scena
         railway_graph = graph_from_file(location_file)
         scenario = scenario_from_file(scenario_file, railway_graph)
         scenario.process()
-        # TODO how to set up flexibility here?
+        # TODO do we need to set up flexibility here?
         if delay_agent is None:
             delay_agent = scenario.agents[0]
         else:
@@ -46,5 +46,3 @@ def run_flexsipp(location_file, scenario_file, delay_agent, instance_type, scena
 if __name__ == "__main__":
     args = parser.parse_args()
     run_flexsipp(args.location_file, args.scenario_file, args.delay_agent, args.type, args.end_time)
-
-# run_flexsipp(os.path.join(os.path.dirname(__file__), "..", "..", "data", "corridor", "corridor.map"), os.path.join(os.path.dirname(__file__), "..", "..", "data", "corridor", "corridor-2agents_paths.txt"), None, "mapf")

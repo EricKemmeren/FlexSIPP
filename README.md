@@ -48,3 +48,20 @@ python -m unittest
 To cite, please use:
 
     Issa Hanou, Eric Kemmeren, Devin Wild Thomas, and Mathijs de Weerdt.Precomputing Multi-Agent Path Replanning using Temporal Flexibility: A Case Study on the Dutch Railway Network. (2026). [In Proceedings: International Conference on Automated Planning and Scheduling](https://arxiv.org/abs/2601.04884).
+
+# Benchmarks
+
+### MovingAI
+
+The Moving AI benchmark set can be used with FlexSIPP, more information on the map format can be found [here](https://movingai.com/benchmarks/formats.html). FlexSIPP requires some initial solution for each instance, and the `scenario_file` provided to `src/flexsipp/main.py` should be a list of paths for each agent, formatted as follows:
+```
+Agent <id0>: {node1}->{node2}->{node2}->{node2}->{node3}->...->{nodeN}->
+Agent <id1>: {node1}->{node2}->{node2}->{node2}->{node3}->...->{nodeN}->
+...
+```
+
+### New Benchmark
+To add a new benchmark with a different file structure, the `Graph` class must be implemented for this type of location and the `Agent`s must be initialized with their initial routes and predefined flexibility. See `generate_mapf.py` for an example with the Moving AI benchmarks.
+
+### Railways
+<TODO explain file structures>
