@@ -2,7 +2,7 @@ import io
 from logging import getLogger
 from typing import Generic, TextIO
 
-from search import search
+from .. import search
 from .graph import Graph
 from ..util.intervals import SafeInterval, FlexibleArrivalTimeFunction
 from ..util.results import Results

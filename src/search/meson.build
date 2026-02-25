@@ -16,5 +16,5 @@ python.extension_module(
     ['bindentry.cpp', 'graph.cpp', 'segment.cpp', 'augmentedsipp.cpp', 'repeat.cpp'],
     install: true,
     dependencies: [boost_dep],
-    subdir: 'search'
+    subdir: '_flexsipp'
 )
