@@ -35,6 +35,10 @@ To run a specific scenario on a matching location for a specific agent (id=`1`):
 ```
 python src/flexsipp/main.py -s tests/scenario_test.json -l tests/location_test.json -t railway -a 1
 ```
+Or for a MAPF scenario, you need to pass the agents paths:
+```
+python src/flexsipp/main.py -s data/mapf/corridor/corridor-2agents_paths.txt -l data/mapf/corridor/corridor.map -t mapf
+```
 
 To run the tests use:
 ```
