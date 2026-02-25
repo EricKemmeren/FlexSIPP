@@ -7,35 +7,25 @@ This project has the following directories:
 - `experiments`: the notebook contains all the code to run experiments for our paper
 
 Dependencies (version tested):
-- gcc (13.2.1)
-- boost (1.83)
-- meson (1.2.3)
+- msvc  (14.3)
+- boost (1.90)
 
-Additionally, the Python `src/flexsipp` module requires the `numpy` package to be installed, we tested using version 1.25.1.
-
-Compiling:
+To create a package that can be installed from the flexsipp source code, run the following command:
 ```bash
-    cd search
-    meson setup --buildtype release  build
-    meson compile -C build
-    meson setup --buildtype debug build_debug
-    meson compile -C build_debug
-```
-
-To create a package that can be installed from the flexsipp source code, run the following commands:
-```bash
-    pip install -e .
+    pip install .
 ```
 Flexsipp can now be imported in python with `import flexsipp`.
 
-To run a specific scenario (in this case scenario `data/enkhuizen/scenario_small_custom.json` on location `data/enkhuizen/location_enkhuizen.json` for agent 1):
-```
-python3 generation/generate.py -s data/enkhuizen/scenario_small_custom.json -l data/enkhuizen/location_enkhuizen.json -o output
-./search/build/atsipp --edgegraph output --start t-405B --goal t-401A
-```
+This requires `boost` to be installed using `msvc`. On windows this can be accomplished by installing 
+the [boost binaries](https://www.boost.org/releases/1.90.0/) msvc version 14.3. Install these binaries in `C:\Boost` 
+or set the `BOOST_PATH_DLL` environment variable to the folder that contains the .dlls files.
 
-To cite, please use:
 
-    Issa Hanou, Devin W. Thomas, Wheeler Ruml, and Mathijs de Weerdt. Replanning in Advance for Instant Delay Recovery in Multi-Agent Applications: Rerouting Trains in a Railway Hub. (2024). In Proceedings: International Conference on Automated Planning and Scheduling.
 
-To run the tests directory, make sure atstipp.exe is added to the PATH
+[//]: # ()
+[//]: # (To cite, please use:)
+
+[//]: # ()
+[//]: # (    Issa Hanou, Devin W. Thomas, Wheeler Ruml, and Mathijs de Weerdt. Replanning in Advance for Instant Delay Recovery in Multi-Agent Applications: Rerouting Trains in a Railway Hub. &#40;2024&#41;. In Proceedings: International Conference on Automated Planning and Scheduling.)
+
+[//]: # (To run the tests directory, make sure atstipp.exe is added to the PATH)
