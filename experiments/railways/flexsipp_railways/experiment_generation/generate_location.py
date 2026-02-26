@@ -80,7 +80,7 @@ def defaultFalse(inp):
 
 
 def main():
-    print("Location generation program, [t]rack, [c]onnection, s[e]in, [d]istance marker, [s]ave, [l]oad")
+    print("Location experiment_generation program, [t]rack, [c]onnection, s[e]in, [d]istance marker, [s]ave, [l]oad")
     track_parts = dict()
     distance_markers = dict()
     signals = list()
@@ -104,7 +104,7 @@ def main():
             create_distance_markers(distance_markers)
         elif 'e' == c:
             signals.extend(add_signals(track_parts))
-        print("Location generation program, [t]rack, [c]onnection, s[e]in, [d]istance marker, [s]ave")
+        print("Location experiment_generation program, [t]rack, [c]onnection, s[e]in, [d]istance marker, [s]ave")
     print("Exit")
 
 def track_part():

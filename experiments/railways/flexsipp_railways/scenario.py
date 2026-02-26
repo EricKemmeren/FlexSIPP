@@ -4,12 +4,12 @@ import numpy as np
 from matplotlib import cm
 from matplotlib.axis import Axis
 
-from ..graphs.graph import IntervalStore
-from ..railways.block_graph import BlockGraph, BlockNode, BlockEdge
-from ..railways.track_graph import TrackEdge
-from ..railways.train_agent import TrainItem, TrainAgent
-from ..util.timing import timing
+from flexsipp.graphs.graph import IntervalStore
+from flexsipp.util.timing import timing
 
+from .track_graph import TrackEdge
+from .block_graph import BlockGraph, BlockNode, BlockEdge
+from .train_agent import TrainItem, TrainAgent
 
 class Scenario:
     @timing

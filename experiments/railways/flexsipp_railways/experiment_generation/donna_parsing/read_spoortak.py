@@ -3,7 +3,7 @@ from queue import PriorityQueue
 from dataclasses import dataclass, field
 from typing import Any
 
-from donna_parsing.parsedjson import JsonStation
+from experiments.railways.flexsipp_railways.experiment_generation.donna_parsing.parsedjson import JsonStation
 from parsedjson import JsonTrackPart, JsonOutput, JsonSignal
 
 kilometrering_dict: dict[str, tuple] = dict()

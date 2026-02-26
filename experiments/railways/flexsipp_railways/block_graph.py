@@ -7,10 +7,11 @@ from matplotlib import patches
 
 from tqdm import tqdm
 
-from ..agent import Agent
-from ..graphs.graph import Graph, Node, Edge
-from ..railways.track_graph import TrackEdge, TrackNode, TrackGraph, Signal
-from ..util.plotting_info import PlottingStore
+from flexsipp.agent import Agent
+from flexsipp.graphs.graph import Graph, Node, Edge
+from flexsipp.util.plotting_info import PlottingStore
+
+from .track_graph import TrackEdge, TrackNode, TrackGraph, Signal
 
 logger = getLogger('__main__.' + __name__)
 

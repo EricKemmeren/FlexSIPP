@@ -3,12 +3,12 @@ from typing import Tuple
 from dataclasses import dataclass
 from matplotlib.axis import Axis
 
-from ..agent import Agent
-from ..graphs.graph import IntervalStore
-from ..railways.block_graph import BlockEdge, BlockNode
-from ..railways.track_graph import TrackEdge
-from ..util.intervals import UnsafeInterval
+from flexsipp.agent import Agent
+from flexsipp.graphs.graph import IntervalStore
+from flexsipp.util.intervals import UnsafeInterval
 
+from .block_graph import BlockEdge, BlockNode
+from .track_graph import TrackEdge
 
 @dataclass
 class TrainItem:

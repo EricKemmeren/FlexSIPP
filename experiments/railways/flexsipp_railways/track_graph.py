@@ -3,9 +3,9 @@ import re
 from logging import getLogger
 from typing import Tuple
 
-from ..graphs.graph import Graph, Node, Edge, IntervalStore
-from ..util.plotting_info import PlottingStore
-from ..util.util import angle_to_speed
+from flexsipp.graphs.graph import Graph, Node, Edge, IntervalStore
+from flexsipp.util.plotting_info import PlottingStore
+from flexsipp.util.util import angle_to_speed
 
 logger = getLogger('__main__.' + __name__)
 

@@ -1,10 +1,10 @@
 import json
 
-from .railways.block_graph import BlockGraph
-from .railways.scenario import Scenario
-from .railways.track_graph import TrackGraph
-from .railways.train_agent import TrainAgent
-from .util.types import GraphType
+from .block_graph import BlockGraph
+from .scenario import Scenario
+from .track_graph import TrackGraph
+from .train_agent import TrainAgent
+from flexsipp.util.types import GraphType
 
 def graph_from_file(file) -> BlockGraph:
     track_graph = TrackGraph.read_graph(file)

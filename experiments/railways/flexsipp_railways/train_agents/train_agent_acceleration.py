@@ -1,11 +1,10 @@
 import math
 from typing import Tuple
 
+from flexsipp.util.intervals import UnsafeInterval
 
-from ...railways.track_graph import TrackEdge
-from ...railways.train_agent import TrainAgent
-from ...util.intervals import UnsafeInterval
-
+from ..train_agent import TrainAgent
+from ..track_graph import TrackEdge
 
 class TrainAgentAcceleration(TrainAgent):
     def _occupation_time(self, e: TrackEdge, velocity: float, cur_time: float, station_time: float) -> Tuple[UnsafeInterval, float, float]:

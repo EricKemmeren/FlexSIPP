@@ -2,9 +2,9 @@ import os
 import unittest
 from copy import copy
 
-from flexsipp.generate import graph_from_file, scenario_from_file
+from flexsipp_railways.generate import graph_from_file, scenario_from_file
 from flexsipp.graphs.fsipp import FSIPP
-from flexsipp.railways.train_agents.train_agent_limited_flexibility import train_agent_limited_flexibility_generator
+from flexsipp_railways.train_agents.train_agent_limited_flexibility import train_agent_limited_flexibility_generator
 
 class TestFSIPP(unittest.TestCase):
 
@@ -18,10 +18,10 @@ class TestFSIPP(unittest.TestCase):
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         new_agent = copy(scenario.agents[0])
         new_agent.id = -1
-        cls.flexSIPP = FSIPP(scenario.fsipp(new_agent), heuristic)
+        cls.flexSIPP = FSIPP(scenario.fsipp(new_agent), heuristic, len(scenario.agents))
 
     def test_atf_node_reference(self):
-        safe_node_interval_ids: set[int] = {si.index for node in self.flexSIPP.g.nodes.values() for si in node.safe_intervals}
+        safe_node_interval_ids: set[int] = {si.index for node in self.flexSIPP.nodes for si in node.safe_intervals}
         for atf in self.flexSIPP.atfs:
             self.assertTrue(atf.from_id in safe_node_interval_ids)
             self.assertTrue(atf.to_id in safe_node_interval_ids)
@@ -38,7 +38,7 @@ class TestLimitedFlexibilityGenerator(unittest.TestCase):
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         new_agent = copy(scenario.agents[0])
         new_agent.id = -1
-        return FSIPP(scenario.fsipp(new_agent), heuristic)
+        return FSIPP(scenario.fsipp(new_agent), heuristic, len(scenario.agents))
 
     def test_no_flexibility(self):
         flexSIPP = self.setUpScenario(0, 0)

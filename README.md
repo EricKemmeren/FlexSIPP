@@ -4,18 +4,23 @@ This project has the following directories:
 - `src/flexsipp`: Python module to generate the FlexSIPP search graph
 - `src/search` (atSIPP): C++ module to search for flexible any-start-time plans in the FlexSIPP search graph
 - `tests`: Tests and examples for how to use the flexsipp code.
+- `experiments`: Folders containing experiments with code specific to the implementation that is being tested.
+  - `mapf`: Multi Agent Path Finding problems, replanning agents in a 2d grid world.
+  - `railways`: Replanning delayed trains specific to the Dutch railway network.
 
 Dependencies (version tested):
 - msvc  (14.3)
 - boost (1.90)
 
-To create a package that can be installed from the flexsipp source code, run the following command:
+
+
+To create a package that can be installed from the flexsipp source code, run the following command in the root folder:
 ```bash
     pip install .
 ```
 FlexSIPP can now be imported in python with `import flexsipp`.
 
-This requires `boost` to be installed using `msvc`. On windows this can be accomplished by installing 
+Building flexsipp requires `boost` to be installed using `msvc`. On windows this can be accomplished by installing 
 the [boost binaries](https://www.boost.org/releases/1.90.0/) msvc version 14.3. Install these binaries in `C:\Boost` 
 or set the `BOOST_PATH_DLL` environment variable to the folder that contains the .dlls files.
 
