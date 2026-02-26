@@ -3,6 +3,7 @@ import sys
 from typing import Tuple
 from logging import getLogger, Logger
 from copy import copy
+from matplotlib import patches
 
 from tqdm import tqdm
 
@@ -37,9 +38,21 @@ class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
         # Store the buffer and crt
         for tr in self.track_route:
-            blocks = tr.blocks.union(tr.from_node.blocks)
-            for block in blocks:
+            # blocks = tr.blocks.union(tr.from_node.blocks)
+            for block in tr.blocks:
                 super(type(block), block).add_flexibility(agent, bt, crt)
+    
+    def plot_unsafe_interval(self, ax, x1, x2, color_map):
+        for ui in self.unsafe_intervals:
+            blocking_time = patches.Rectangle((x1, ui.start), x2 - x1, ui.end - ui.start,
+                                                linewidth=1, edgecolor="red", facecolor="none")
+            ax.add_patch(blocking_time)
+            
+            c = color_map.get(ui.by_agent.id, None)
+            bt, _ = self.get_flexibility(ui.by_agent)
+            buffer_time = patches.Rectangle((x1, ui.end), x2 - x1, bt,
+                                                linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
+            ax.add_patch(buffer_time)
 
 
 class TqdmLogger:

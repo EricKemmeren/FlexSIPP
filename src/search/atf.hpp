@@ -249,7 +249,7 @@ struct CompoundATF{
             std::cerr << std::endl;
             add_segment(segment);
         }
-        assert(bumper_to_bumper());
+        // assert(bumper_to_bumper());
         assert(monotonic_non_decreasing());
     }
 

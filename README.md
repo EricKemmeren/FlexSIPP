@@ -1,35 +1,23 @@
 # Replanning in Advance for Instant Delay Recovery
 
 This project has the following directories:
-- `generation`: Python module to generate the @SIPP search graph
-- `search` (atSIPP): C++ module to search for any-start-time plans in the @SIPP search graph
-- `data`: two dutch shunting yard layouts: Enkhuizen and Heerlen. This also includes code to generate new scenarios and explanation of how the real-life scenario was created.
-- `experiments`: the notebook contains all the code to run experiments for our paper
+- `src/flexsipp`: Python module to generate the FlexSIPP search graph
+- `src/search` (atSIPP): C++ module to search for flexible any-start-time plans in the FlexSIPP search graph
+- `tests`: Tests and examples for how to use the flexsipp code.
 
 Dependencies (version tested):
-- gcc (13.2.1)
-- boost (1.83)
-- meson (1.2.3)
+- msvc  (14.3)
+- boost (1.90)
 
-Compiling:
+To create a package that can be installed from the flexsipp source code, run the following command:
 ```bash
-    cd /search
-    meson setup --buildtype release build
-    meson compile -C build
-    meson setup --buildtype debug build_debug
-    meson compile -C build_debug
-    cd ..
-```
-An executable is now located in `./FlexSIPP/search/build/flexsipp`.
-
-To create a package that can be installed from the FlexSIPP source code, run the following commands:
-```bash
-    python -m venv .venv
-    source .venv/bin/activate
-    pip install -r requirements
-    pip install -e .
+    pip install .
 ```
 FlexSIPP can now be imported in python with `import flexsipp`.
+
+This requires `boost` to be installed using `msvc`. On windows this can be accomplished by installing 
+the [boost binaries](https://www.boost.org/releases/1.90.0/) msvc version 14.3. Install these binaries in `C:\Boost` 
+or set the `BOOST_PATH_DLL` environment variable to the folder that contains the .dlls files.
 
 To run a specific scenario on a matching location for a specific agent (id=`1`):
 ```

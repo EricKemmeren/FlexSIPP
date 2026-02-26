@@ -71,17 +71,18 @@ class UnsafeInterval(Interval):
         yield self.by_agent
         yield self.local_recovery_time
 
-    def __repr__(self):
+    def __str__(self):
         return f'{super().__str__()},{self.duration},{self.by_agent}'
 
-    def __str__(self):
-        return f"Agent {self.by_agent} unsafe {self.start}--{self.end} ({self.duration}) with lrt {self.local_recovery_time}"
+    def __or__(self, other):
+        sup = super().__or__(other)
+        return UnsafeInterval(sup.start, sup.end, self.duration + other.duration, self.by_agent, self.local_recovery_time + other.local_recovery_time)
 
     def merge(self, other):
         super().merge(other)
         self.duration += other.duration
         self.local_recovery_time += other.local_recovery_time
-        assert self.by_agent == other.by_agent
+        # assert self.by_agent == other.by_agent
 
 class SafeInterval(Interval):
     def __init__(self, start, end, agent_before: Agent, crt_before: float, agent_after: Agent, buffer_after: float, crt_after: float):

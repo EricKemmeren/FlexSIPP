@@ -33,14 +33,17 @@ class IntervalStore(object):
         self.merged = True
         if len(self.unsafe_intervals) == 0:
             return
+        merged_intervals = []
         start = self.unsafe_intervals[0]
         for next in self.unsafe_intervals[1:]:
             # Check for overlap using intersection
             if start & next:
-                start.merge(next)
-                self.unsafe_intervals.remove(next)
+                start = start | next
             else:
+                merged_intervals.append(start)
                 start = next
+        merged_intervals.append(start)
+        self.unsafe_intervals = merged_intervals
 
     def filter_out_agent(self, agent: Agent):
         return [ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id]
@@ -166,19 +169,20 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
             logger.error(f"##### ERROR ### No path was found between {self.name} and {to.name}")
         return path
 
-    def get_safe_connections(self) -> list[Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
+    def get_safe_connections(self, allowed_nodes: set[NodeType]) -> list[Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
         assert len(self.safe_intervals) > 0
         safe_connections = []
         for from_interval in self.safe_intervals:
             for edge in self.outgoing:
-                for edge_interval in edge.safe_intervals:
-                    # Check for overlap with the from node and edge
-                    if from_interval & edge_interval:
-                        for to_interval in edge.to_node.safe_intervals:
-                            # Check for overlap with the edge en to node
-                            # TODO: figure out if overlap with from and to node is needed
-                            if edge_interval & to_interval:
-                                safe_connections.append((from_interval, edge_interval, to_interval, edge.length))
+                if edge.to_node in allowed_nodes:
+                    for edge_interval in edge.safe_intervals:
+                        # Check for overlap with the from node and edge
+                        if from_interval & edge_interval:
+                            for to_interval in edge.to_node.safe_intervals:
+                                # Check for overlap with the edge en to node
+                                # TODO: figure out if overlap with from and to node is needed
+                                if edge_interval & to_interval:
+                                    safe_connections.append((from_interval, edge_interval, to_interval, edge.length))
         return safe_connections
 
 
