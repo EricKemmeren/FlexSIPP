@@ -23,7 +23,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end):
         delay_agent = scenario.get_replanning_agent(int(delay_agent))
     graph = scenario.fsipp(delay_agent)
     heuristic = {node.name: 0 for node in graph.nodes.values()}
-    flexSIPP = FSIPP(graph, heuristic, len(agents))
+    flexSIPP = FSIPP(graph, heuristic, len(scenario.agents))
     result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time)
     # TODO readable output
     print(result)

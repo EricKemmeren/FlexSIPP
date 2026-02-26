@@ -12,30 +12,26 @@ Dependencies (version tested):
 - msvc  (14.3)
 - boost (1.90)
 
-
-
-To create a package that can be installed from the flexsipp source code, run the following command in the root folder:
-```bash
-    pip install .
-```
-FlexSIPP can now be imported in python with `import flexsipp`.
+FlexSIPP can be installed in two ways, using `pip install flexsipp` or by building the package from the source code.
+To build the flexsipp from source code, in the root folder run `pip install .`
+FlexSIPP can now be imported in python using `import flexsipp`.
 
 Building flexsipp requires `boost` to be installed using `msvc`. On windows this can be accomplished by installing 
 the [boost binaries](https://www.boost.org/releases/1.90.0/) msvc version 14.3. Install these binaries in `C:\Boost` 
 or set the `BOOST_PATH_DLL` environment variable to the folder that contains the .dlls files.
 
 To run a specific scenario on a matching location for a specific agent (id=`1`):
-```
-python src/flexsipp/main.py -s tests/scenario_test.json -l tests/location_test.json -t railway -a 1
+```bash
+python experiments/railways/main.py -s tests/scenario_test.json -l tests/location_test.json -a 1
 ```
 Or for a MAPF scenario, you need to pass the agents paths:
-```
-python src/flexsipp/main.py -s data/mapf/corridor/corridor-2agents_paths.txt -l data/mapf/corridor/corridor.map -t mapf
+```bash
+python experiments/mapf/main.py -s data/mapf/corridor/corridor-2agents_paths.txt -l data/mapf/corridor/corridor.map
 ```
 
 To run the tests use:
-```
-python -m unittest
+```bash
+python -m unittest discover -s tests
 ```
 
 To cite, please use:
@@ -46,7 +42,10 @@ To cite, please use:
 
 ### MovingAI
 
-The Moving AI benchmark set can be used with FlexSIPP, more information on the map format can be found [here](https://movingai.com/benchmarks/formats.html). FlexSIPP requires some initial solution for each instance, and the `scenario_file` provided to `src/flexsipp/main.py` should be a list of paths for each agent, formatted as follows:
+The Moving AI benchmark set can be used with FlexSIPP, more information on the map format 
+can be found [here](https://movingai.com/benchmarks/formats.html). FlexSIPP requires some initial solution for each instance, 
+and the `scenario_file` provided to `experiments/mapf/main.py` should be a list of paths 
+for each agent, formatted as follows:
 ```
 Agent <id0>: {node1}->{node2}->{node2}->{node2}->{node3}->...->{nodeN}->
 Agent <id1>: {node1}->{node2}->{node2}->{node2}->{node3}->...->{nodeN}->
