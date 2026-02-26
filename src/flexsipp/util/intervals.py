@@ -121,6 +121,7 @@ class ArrivalTimeFunction:
         self.beta = min(from_interval.end, edge_interval.end, to_interval.end - delta)
         self.delta = delta
 
+    # TODO: check if still needed
     @staticmethod
     def _check_agent(agent):
         if isinstance(agent, Agent):

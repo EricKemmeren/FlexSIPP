@@ -28,6 +28,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
             self.nodes = filter_nodes
         else:
             self.nodes = g.nodes.values()
+        # TODO: maybe force self.nodes to be a set(), does remove ordering making manual reading of file more difficult
 
         for node in self.nodes:
             def create_atf(from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, delta):
