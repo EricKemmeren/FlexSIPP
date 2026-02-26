@@ -381,21 +381,3 @@ class Graph(Generic[EdgeType, NodeType]):
             path.extend(next_path)
 
         return path
-
-if __name__ == '__main__':
-    n = Node("test")
-    n.add_unsafe_interval(UnsafeInterval(2, 5, 1, 0, 1))
-    n.add_unsafe_interval(UnsafeInterval(10, 15, 2, 0, 1))
-    n.add_unsafe_interval(UnsafeInterval(0, 6, 4, 0, 1))
-    n.add_unsafe_interval(UnsafeInterval(12, 20, 8, 0, 1))
-    n.add_unsafe_interval(UnsafeInterval(18, 25, 16, 0, 1))
-    n.add_unsafe_interval(UnsafeInterval(-5, 0, 32, 0, 1))
-
-    for i in n.unsafe_intervals:
-        print(i, i.local_recovery_time)
-
-    print ("MERGING")
-    n.merge_unsafe_intervals()
-
-    for i in n.unsafe_intervals:
-        print(i, i.local_recovery_time)
