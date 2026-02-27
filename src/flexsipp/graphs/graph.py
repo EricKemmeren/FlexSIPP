@@ -6,6 +6,7 @@ import queue as Q
 from logging import getLogger
 from typing import Generic, ClassVar, Tuple
 
+from matplotlib import patches
 from sortedcontainers import SortedKeyList
 
 from ..agent import Agent
@@ -102,6 +103,18 @@ class IntervalStore(object):
             bt_b, crt_b = self.get_flexibility(agent_before)
             last_interval = SafeInterval(current, global_end_time, agent_before, crt_b, 0, 0, 0)
             self.safe_intervals.append(last_interval)
+
+    def plot_unsafe_interval(self, ax, x1, x2, color_map):
+        for ui in self.unsafe_intervals:
+            blocking_time = patches.Rectangle((x1, ui.start), x2 - x1, ui.end - ui.start,
+                                                linewidth=1, edgecolor="red", facecolor="none")
+            ax.add_patch(blocking_time)
+
+            c = color_map.get(ui.by_agent.id, None)
+            bt, _ = self.get_flexibility(ui.by_agent)
+            buffer_time = patches.Rectangle((x1, ui.end), x2 - x1, bt,
+                                                linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
+            ax.add_patch(buffer_time)
 
 
 class Node(IntervalStore, Generic[EdgeType, NodeType]):
