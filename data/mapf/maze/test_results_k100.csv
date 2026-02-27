@@ -1,4 +1,0 @@
-runtime,#high-level expanded,#high-level generated,#low-level expanded,#low-level generated,solution cost,root g value,runtime of detecting conflicts,runtime of building constraint tables,runtime of building CATs,runtime of path finding,runtime of generating child nodes,preprocessing runtime,solver name,instance name
-60.1249,504,609,32828573,30508229,-1,46299,0.135073,3.40613,1.09245,59.6541,59.8926,0.139133,PBS with SIPP,/Users/issahanou/Work/code/MAPF/PBS/../../FlexSIPP/data/mapf/maze/scen-even/maze-128-128-1-even-1.scen
-60.1313,769,797,34607165,34434197,-1,37948,0.108043,3.41966,1.10001,59.7149,59.9548,0.135365,PBS with SIPP,/Users/issahanou/Work/code/MAPF/PBS/../../FlexSIPP/data/mapf/maze/scen-even/maze-128-128-1-even-10.scen
-60.0439,773,831,34653880,33969783,-1,35011,0.101958,4.34322,1.12959,59.6504,59.8802,0.136094,PBS with SIPP,/Users/issahanou/Work/code/MAPF/PBS/../../FlexSIPP/data/mapf/maze/scen-even/maze-128-128-1-even-11.scen

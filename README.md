@@ -13,6 +13,7 @@ Dependencies (version tested):
 - boost (1.90)
 
 FlexSIPP can be installed in two ways, using `pip install flexsipp` or by building the package from the source code.
+We recommend using a virtual environment.
 To build the flexsipp from source code, in the root folder run `pip install .`
 FlexSIPP can now be imported in python using `import flexsipp`.
 
@@ -26,7 +27,8 @@ python experiments/railways/main.py -s tests/scenario_test.json -l tests/locatio
 ```
 Or for a MAPF scenario, you need to pass the agents paths:
 ```bash
- python experiments/mapf/main.py -s data/mapf/maze/scen-even/maze-128-128-1-even-1-k50_paths.txt -l data/mapf/maze/maze-128-128-1.map
+python experiments/mapf/main.py -s data/mapf/maze/scen-even/maze-128-128-1-even-1-k50_paths.txt -l data/mapf/maze/maze-128-128-1.map
+python experiments/mapf/main.py -s data/mapf/corridor/corridor-2agents_paths.txt -l data/mapf/corridor/corridor.map
 ```
 
 To run the tests use:
@@ -43,12 +45,12 @@ To cite, please use:
 ### MovingAI
 
 The Moving AI benchmark set can be used with FlexSIPP, more information on the map format 
-can be found [here](https://movingai.com/benchmarks/formats.html). FlexSIPP requires some initial solution for each instance, 
-and the `scenario_file` provided to `experiments/mapf/main.py` should be a list of paths 
-for each agent, formatted as follows:
+can be found [here](https://movingai.com/benchmarks/formats.html). 
+FlexSIPP requires some initial solution for each instance, 
+and the `scenario_file` provided to `experiments/mapf/main.py` should be a list of paths for each agent, for example the output from [PBS](https://github.com/Jiaoyang-Li/PBS), which is formatted as follows:
 ```
-Agent <id0>: {node1}->{node2}->{node2}->{node2}->{node3}->...->{nodeN}->
-Agent <id1>: {node1}->{node2}->{node2}->{node2}->{node3}->...->{nodeN}->
+Agent <id0>: (y0,x0)->(y1,x1)->(y1,x1)->(y1,x1)->(y2,x2)->...->(yN,xN)->
+Agent <id1>: (y0,x0)->(y1,x1)->(y1,x1)->(y1,x1)->(y2,x2)->...->(yN,xN)->
 ...
 ```
 
@@ -56,4 +58,4 @@ Agent <id1>: {node1}->{node2}->{node2}->{node2}->{node3}->...->{nodeN}->
 To add a new benchmark with a different file structure, the `Graph` class must be implemented for this type of location and the `Agent`s must be initialized with their initial routes and predefined flexibility. See `generate_mapf.py` for an example with the Moving AI benchmarks.
 
 ### Railways
-<TODO explain file structures>
+*TODO explain file structures*

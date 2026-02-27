@@ -4,7 +4,7 @@ from graph import Grid
 from agent import MapfAgent
 from flexsipp.util.intervals import UnsafeInterval
 
-def paths_to_safe_intervals(path_file, grid, scenario_end, delay_agent):
+def paths_to_safe_intervals(path_file, grid, scenario_end, delay_agent_id: int):
     with open(path_file, "r") as f:
         lines = f.readlines()
         if scenario_end is None:
@@ -15,11 +15,11 @@ def paths_to_safe_intervals(path_file, grid, scenario_end, delay_agent):
         for line in lines:
             name, path = line.strip().split(": ")
             id = int(name.split("Agent ")[1])
-            node_list = path.split("->")
+            node_list = get_coordinate_list(path)
             current_flexibility = 0
             agent = MapfAgent(id, [], grid.global_end_time)
             # Last node is empty
-            for i in range(1, len(node_list)- 1):
+            for i in range(1, len(node_list)):
                 if node_list[i] == node_list[i-1]:
                     current_flexibility += 1
                 else:
@@ -27,8 +27,7 @@ def paths_to_safe_intervals(path_file, grid, scenario_end, delay_agent):
                     # Duration is always one for grids
                     edge_interval = UnsafeInterval(i-1, i, 1, agent, current_flexibility)
                     node_interval = UnsafeInterval(i-1-current_flexibility, i, current_flexibility+1, agent, 0)
-                    print("Edge:", edge_interval, "node: ", node_interval)
-                    if delay_agent != id:
+                    if delay_agent_id != id:
                         grid.nodes[node_list[i-1]].add_unsafe_interval(node_interval)
                     edge = None
                     for e in grid.nodes[node_list[i-1]].outgoing:
@@ -37,23 +36,34 @@ def paths_to_safe_intervals(path_file, grid, scenario_end, delay_agent):
 
                     assert edge is not None, f"ERROR: cannot find edge from {node_list[i-1]} to {node_list[i]} in grid.\n{grid.nodes[node_list[i-1]].outgoing}"
                     agent.route.append(e)
-                    if delay_agent != id:
+                    if delay_agent_id != id:
                         e.add_unsafe_interval(edge_interval)
                     current_flexibility = 0
-                if i == len(node_list) - 2:
+                if i == len(node_list) - 1:
                     print(f"Agent {id} at node {node_list[i]} at time {i} until end {grid.global_end_time}")
                     node_interval = UnsafeInterval(i-1-current_flexibility, i, current_flexibility+1, agent, 0)
-                    if delay_agent != id:
+                    if delay_agent_id != id:
                         grid.nodes[node_list[i]].add_unsafe_interval(UnsafeInterval(i, grid.global_end_time, grid.global_end_time - i, agent, grid.global_end_time - i))
-            for x in agent.route:
-                print(x, x.unsafe_intervals)
+            # for x in agent.route:
+            #     print(x, x.unsafe_intervals)
             agents[id] = agent
         return agents
+    
+def get_coordinate_list(node_list):
+    nodes = node_list.split("->")
+    coordinates = []
+    for i, node in enumerate(nodes):
+        # Last node is empty
+        if i < len(nodes)-1:
+            # The list is formatted as coordinates (y,x) separated by ->
+            y, x = node.replace(")", "").replace("(", "").split(",")
+            coordinates.append(f"({x},{y})")
+    return coordinates
 
-def create_mapf_instance_from_paths(location_file, paths_file, scenario_end_time, delay_agent) -> Tuple[Grid, Dict[int, MapfAgent]]:
+def create_mapf_instance_from_paths(location_file, paths_file, scenario_end_time, delay_agent_id: int) -> Tuple[Grid, Dict[int, MapfAgent]]:
     grid = Grid.read_graph(location_file)
     print(grid)
-    agents = paths_to_safe_intervals(paths_file, grid, scenario_end_time, delay_agent)
+    agents = paths_to_safe_intervals(paths_file, grid, scenario_end_time, delay_agent_id)
 
     merge_list = list(grid.nodes.values()) + grid.edges
     for node in merge_list:

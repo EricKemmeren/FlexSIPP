@@ -47,16 +47,16 @@ class Grid(Graph[Edge, Node]):
                         if lines[z][x] in node_types["passable"]:
                             grid.add_node(GridCell(f"({x},{y})"))
                             cell = grid.nodes[f"({x},{y})"]
-                            if z > 4 and lines[ z -1][x] in node_types["passable"]:
-                                prev_cell = grid.nodes[f"({x},{ y -1})"]
+                            if z > 4 and lines[z - 1][x] in node_types["passable"]:
+                                prev_cell = grid.nodes[f"({x},{y - 1})"]
                                 e1 = GridConnection(prev_cell, cell, 1, 1)
                                 e2 = GridConnection(cell, prev_cell, 1, 1)
                                 e1.opposites.append(e2)
                                 e2.opposites.append(e1)
                                 grid.add_edge(e1)
                                 grid.add_edge(e2)
-                            if x > 0 and lines[z][ x -1] in node_types["passable"]:
-                                prev_cell = grid.nodes[f"({ x -1},{y})"]
+                            if x > 0 and lines[z][x - 1] in node_types["passable"]:
+                                prev_cell = grid.nodes[f"({x - 1},{y})"]
                                 e1 = GridConnection(prev_cell, cell, 1, 1)
                                 e2 = GridConnection(cell, prev_cell, 1, 1)
                                 e1.opposites.append(e2)

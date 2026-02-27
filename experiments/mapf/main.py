@@ -13,17 +13,18 @@ parser.add_argument('-s', "--scenario-file", help = "Path to the scenario file",
 parser.add_argument('-a', "--delay-agent", help="Identifier (int) of the agent in the scenario_file that is delayed. If not specified, the first agent in the scenario wil be chosen.", required=False, default=None)
 parser.add_argument('-e', "--end-time", help="End time of the scenario, if None is given", required=False, default=None)
 
-def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end):
-    # TODO the merging of intervals is not from the same agent, so we get an assertion error
-    graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end, int(delay_agent))
-    if delay_agent is None:
-        delay_agent = agents.values()[0]
+def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
+    if delay_agent_id is None:
+        delay_agent_id = 0
     else:
-        delay_agent = agents[int(delay_agent)]
+        delay_agent_id = int(delay_agent_id)
+    graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end, delay_agent_id)
+    assert delay_agent_id in agents, f"ERROR: no delay agent with id {delay_agent_id} in the set of agents."
+    delay_agent = agents[delay_agent_id]
     heuristic = {node.name: 0 for node in graph.nodes.values()}
     flexSIPP = FSIPP(graph, heuristic, len(agents))
     result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, 0)
-    # TODO readable output
+    # TODO readable output and not too many intermediate print statements
     print(result)
     fig, ax = plt.subplots()
     result.plot(ax, linestyle=3)
