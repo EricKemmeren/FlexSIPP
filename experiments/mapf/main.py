@@ -1,5 +1,7 @@
 import argparse
 
+from matplotlib import pyplot as plt
+
 from flexsipp.graphs.fsipp import FSIPP
 from read_experiment import create_mapf_instance_from_paths
 
@@ -13,16 +15,19 @@ parser.add_argument('-e', "--end-time", help="End time of the scenario, if None 
 
 def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end):
     # TODO the merging of intervals is not from the same agent, so we get an assertion error
-    graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
+    graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end, int(delay_agent))
     if delay_agent is None:
         delay_agent = agents[0]
     else:
         delay_agent = agents[int(delay_agent)]
     heuristic = {node.name: 0 for node in graph.nodes.values()}
     flexSIPP = FSIPP(graph, heuristic, len(agents))
-    result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time)
+    result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, 0)
     # TODO readable output
     print(result)
+    fig, ax = plt.subplots()
+    result.plot(ax, linestyle=3)
+    plt.show()
 
 if __name__ == "__main__":
     args = parser.parse_args()

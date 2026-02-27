@@ -26,7 +26,7 @@ python experiments/railways/main.py -s tests/scenario_test.json -l tests/locatio
 ```
 Or for a MAPF scenario, you need to pass the agents paths:
 ```bash
-python experiments/mapf/main.py -s data/mapf/corridor/corridor-2agents_paths.txt -l data/mapf/corridor/corridor.map
+ python experiments/mapf/main.py -s data/mapf/maze/scen-even/maze-128-128-1-even-1-k50_paths.txt -l data/mapf/maze/maze-128-128-1.map
 ```
 
 To run the tests use:
