@@ -17,7 +17,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end):
     # TODO the merging of intervals is not from the same agent, so we get an assertion error
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end, int(delay_agent))
     if delay_agent is None:
-        delay_agent = agents[0]
+        delay_agent = agents.values()[0]
     else:
         delay_agent = agents[int(delay_agent)]
     heuristic = {node.name: 0 for node in graph.nodes.values()}

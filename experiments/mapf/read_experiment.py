@@ -1,7 +1,7 @@
-from typing import Tuple, List
+from typing import Tuple, Dict
 
 from graph import Grid
-from flexsipp.agent import Agent
+from agent import MapfAgent
 from flexsipp.util.intervals import UnsafeInterval
 
 def paths_to_safe_intervals(path_file, grid, scenario_end, delay_agent):
@@ -11,13 +11,13 @@ def paths_to_safe_intervals(path_file, grid, scenario_end, delay_agent):
             grid.global_end_time = max([len(l.split(": ")[1].split("->"))-1 for l in lines])
         else:
             grid.global_end_time = int(scenario_end)
-        agents = []
+        agents: dict[int, MapfAgent] = {}
         for line in lines:
             name, path = line.strip().split(": ")
             id = int(name.split("Agent ")[1])
             node_list = path.split("->")
             current_flexibility = 0
-            agent = Agent(id, [])
+            agent = MapfAgent(id, [], grid.global_end_time)
             # Last node is empty
             for i in range(1, len(node_list)- 1):
                 if node_list[i] == node_list[i-1]:
@@ -47,10 +47,10 @@ def paths_to_safe_intervals(path_file, grid, scenario_end, delay_agent):
                         grid.nodes[node_list[i]].add_unsafe_interval(UnsafeInterval(i, grid.global_end_time, grid.global_end_time - i, agent, grid.global_end_time - i))
             for x in agent.route:
                 print(x, x.unsafe_intervals)
-            agents.append(agent)
+            agents[id] = agent
         return agents
 
-def create_mapf_instance_from_paths(location_file, paths_file, scenario_end_time, delay_agent) -> Tuple[Grid, List[Agent]]:
+def create_mapf_instance_from_paths(location_file, paths_file, scenario_end_time, delay_agent) -> Tuple[Grid, Dict[int, MapfAgent]]:
     grid = Grid.read_graph(location_file)
     print(grid)
     agents = paths_to_safe_intervals(paths_file, grid, scenario_end_time, delay_agent)
@@ -58,6 +58,6 @@ def create_mapf_instance_from_paths(location_file, paths_file, scenario_end_time
     merge_list = list(grid.nodes.values()) + grid.edges
     for node in merge_list:
         node.merge_unsafe_intervals()
-    for agent in agents:
+    for agent in agents.values():
         agent.calculate_flexibility()
     return grid, agents
