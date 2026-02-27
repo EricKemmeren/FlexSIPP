@@ -16,7 +16,7 @@ FlexSIPP can be installed in two ways, using `pip install flexsipp` or by buildi
 To build the flexsipp from source code, in the root folder run `pip install .`
 FlexSIPP can now be imported in python using `import flexsipp`.
 
-Building flexsipp requires `boost` to be installed using `msvc`. On windows this can be accomplished by installing 
+Building flexsipp requires `boost` to be installed using `msvc`. On Windows this can be accomplished by installing 
 the [boost binaries](https://www.boost.org/releases/1.90.0/) msvc version 14.3. Install these binaries in `C:\Boost` 
 or set the `BOOST_PATH_DLL` environment variable to the folder that contains the .dlls files.
 
