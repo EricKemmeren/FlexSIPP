@@ -1,5 +1,7 @@
 from typing import Generic
 
+from matplotlib.axis import Axis
+
 from .util.types import EdgeType, NodeType
 
 class Agent(Generic[EdgeType, NodeType]):
@@ -81,6 +83,17 @@ class Agent(Generic[EdgeType, NodeType]):
 
             # Store the buffer and crt
             move.add_flexibility(self, last_buffer_time, compound_recovery_time)
+
+    def plot_route(self, ax: Axis):
+        x = 0
+        for move in self.route:
+            try:
+                length = move.length
+            except AttributeError:
+                length = 0
+            move.plot_unsafe_interval(ax, x, x + length, {})
+            x += length
+        return x
 
     def __repr__(self):
         return f"{self.id}"
