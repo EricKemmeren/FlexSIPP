@@ -70,7 +70,7 @@ class Results:
     def plot(self, ax: Axis, **kwargs):
         color = kwargs.get('color', None)
         label = kwargs.get('label', None)
-        linestyle = Results.linestyles[kwargs.get('linestyle', 0)]
+        linestyle = Results.linestyles[kwargs.get('linestyle', 3)]
 
         y_offset = kwargs.get('y_offset', 0)
 

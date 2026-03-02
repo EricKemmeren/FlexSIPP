@@ -26,9 +26,17 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, 0)
     # TODO readable output and not too many intermediate print statements
     print(result)
+
     fig, ax = plt.subplots()
     result.plot(ax, linestyle=3)
     plt.show()
+    plt.close()
+
+    fig, ax = plt.subplots()
+    delay_agent.plot_route(ax)
+    ax.set_ylim(0, graph.global_end_time)
+    plt.show()
+    plt.close()
 
 if __name__ == "__main__":
     args = parser.parse_args()

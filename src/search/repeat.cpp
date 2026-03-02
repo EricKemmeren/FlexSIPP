@@ -53,7 +53,7 @@ double update_reference_time(const EdgeATF& path, rePEAT::Open& open_list){
     //     }
     // }
     std::cerr << "Result from ub ";
-    return upper_bound + epsilon();
+    return upper_bound;
 }
 
 CompoundATF<std::vector<GraphNode *>> rePEAT::search(GraphNode * source, const Location& dest, MetaData & m,

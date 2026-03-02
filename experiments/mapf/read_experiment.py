@@ -25,8 +25,8 @@ def paths_to_safe_intervals(path_file, grid, scenario_end, delay_agent_id: int):
                 else:
                     print(f"Agent {agent} at node {node_list[i-1]} at time {i-1} with flex {current_flexibility}")
                     # Duration is always one for grids
-                    edge_interval = UnsafeInterval(i-1, i, 1, agent, current_flexibility)
-                    node_interval = UnsafeInterval(i-1-current_flexibility, i, current_flexibility+1, agent, 0)
+                    edge_interval = UnsafeInterval(i-1, i, 1, agent, 0)
+                    node_interval = UnsafeInterval(i-1-current_flexibility, i, current_flexibility+1, agent, current_flexibility)
                     if delay_agent_id != id:
                         grid.nodes[node_list[i-1]].add_unsafe_interval(node_interval)
                     edge = None
@@ -35,17 +35,18 @@ def paths_to_safe_intervals(path_file, grid, scenario_end, delay_agent_id: int):
                             edge = e
 
                     assert edge is not None, f"ERROR: cannot find edge from {node_list[i-1]} to {node_list[i]} in grid.\n{grid.nodes[node_list[i-1]].outgoing}"
-                    agent.route.append(e)
+                    agent.route.append(edge.from_node)
+                    agent.route.append(edge)
                     if delay_agent_id != id:
-                        e.add_unsafe_interval(edge_interval)
+                        edge.add_unsafe_interval(edge_interval)
+                        edge.opposite.add_unsafe_interval(edge_interval)
                     current_flexibility = 0
                 if i == len(node_list) - 1:
                     print(f"Agent {id} at node {node_list[i]} at time {i} until end {grid.global_end_time}")
                     node_interval = UnsafeInterval(i-1-current_flexibility, i, current_flexibility+1, agent, 0)
                     if delay_agent_id != id:
                         grid.nodes[node_list[i]].add_unsafe_interval(UnsafeInterval(i, grid.global_end_time, grid.global_end_time - i, agent, grid.global_end_time - i))
-            # for x in agent.route:
-            #     print(x, x.unsafe_intervals)
+                    agent.route.append(grid.nodes[node_list[i]])
             agents[id] = agent
         return agents
     
