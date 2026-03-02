@@ -1,6 +1,8 @@
+import os
 import io
 from logging import getLogger
 from typing import Generic, TextIO, Iterable
+from contextlib import redirect_stderr
 
 from .. import search
 from .graph import Graph
@@ -87,5 +89,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
         """
         graph = io.StringIO()
         self._write(graph)
+        # with open(os.path.join(os.path.dirname(__file__), "search_stderr.txt"), "w") as f:
+            # with redirect_stderr(f):
         result = search.search(str(origin), str(destination), graph.getvalue(), start_time, timeout)
         return Results.parse_list_of_outputs(result)

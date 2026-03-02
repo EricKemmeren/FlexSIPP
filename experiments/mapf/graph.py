@@ -43,6 +43,10 @@ class Grid(Graph[Edge, Node]):
     def __repr__(self) -> str:
         return f"Grid {self.width}x{self.height} with {len(self.edges)} edges and {len(self.nodes)} nodes"
 
+    def display_graph(self):
+        for node in self.nodes:
+            print(f"Node {node} with outgoing {self.nodes[node].outgoing}")
+
     @classmethod
     def read_graph(cls, file_name):
         with open(file_name, "r") as f:

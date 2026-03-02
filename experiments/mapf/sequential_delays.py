@@ -10,7 +10,7 @@ parser = argparse.ArgumentParser(
                     description='Given a location (file) and a scenario (file), run the FlexSIPP program')
 parser.add_argument('-l', "--location-file", help = "Path to the location file", required = True)
 parser.add_argument('-s', "--scenario-file", help = "Path to the scenario file", required = True)
-parser.add_argument('-a', "--delay-agent", help="Identifier (int) of the agent in the scenario_file that is delayed. If not specified, the first agent in the scenario wil be chosen.", required=False, default=None)
+parser.add_argument('-d', "--delay-file", help="Path to the file that specifies delays: each line must be <agent;(x,y);(x,y);delayed_start_time> for delays that must be handled sequentially.", required=True, default=None)
 parser.add_argument('-e', "--end-time", help="End time of the scenario, if None is given", required=False, default=None)
 
 def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
@@ -18,7 +18,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
         delay_agent_id = 1
     else:
         delay_agent_id = int(delay_agent_id)
-    graph, agents, _ = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end, delay_agent_id)
+    graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end, delay_agent_id)
     assert delay_agent_id in agents, f"ERROR: no delay agent with id {delay_agent_id} in the set of agents."
     delay_agent = agents[delay_agent_id]
     # Heuristic for delay agent
@@ -42,7 +42,31 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     plt.show()
     plt.close()
 
+def repeated_delays(location_file, scenario_file, delay_file, scenario_end):
+    timeout = 300
+    graph, agents, unsafe_intervals = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end, None)
+    delays = parse_delays(delay_file, graph)
+    for delay_agent_id, origin, destination, start_time in delays:
+        assert delay_agent_id in agents, f"ERROR: no delay agent with id {delay_agent_id} in the set of agents."
+        delay_agent = agents[delay_agent_id]
+        heuristic = {node.name: graph.calculate_heuristic(delay_agent.destination, 1) for node in graph.nodes.values()}
+        flexSIPP = FSIPP(graph, heuristic, len(agents))
+        result = flexSIPP.run_search(timeout, origin, destination, start_time)
+        print(result)
+    
+def parse_delays(delay_file, grid):
+    with open(delay_file, "r") as f:
+        lines = f.readlines()
+        delays = []
+        for line in lines:
+            # Each line should be formatted as {agent_id;(y,x);(y,x);delay_start_time}
+            parts = line.strip().split(";")
+            origin = f"({parts[1].split(',')[1].replace(')', '')},{parts[1].split(',')[0].replace('(', '')})"
+            destination = f"({parts[2].split(',')[1].replace(')', '')},{parts[2].split(',')[0].replace('(', '')})"
+            delays.append((int(parts[0]), origin, destination, float(parts[3])))
+        print(delays)
+        return delays
 
 if __name__ == "__main__":
     args = parser.parse_args()
-    run_flexsipp(args.location_file, args.scenario_file, args.delay_agent, args.end_time)
+    repeated_delays(args.location_file, args.scenario_file, args.delay_file, args.end_time)
