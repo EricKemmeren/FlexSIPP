@@ -93,7 +93,7 @@ class Agent(Generic[EdgeType, NodeType]):
                 length = 0
             move.plot_unsafe_interval(ax, x, x + length, {})
             x += length
-        return x
+        ax.set_xlim(0, x)
 
     def __repr__(self):
         return f"{self.id}"
