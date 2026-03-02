@@ -27,14 +27,18 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     # TODO readable output and not too many intermediate print statements
     print(result)
 
-    fig, ax = plt.subplots()
-    result.plot(ax, linestyle=3)
-    plt.show()
-    plt.close()
+    fig, axs = plt.subplots(1,2, figsize = (10,5))
+    result.plot(axs[0], linestyle=3)
+    axs[0].set_xlabel('Departure Time')
+    axs[0].set_ylabel('Arrival Time')
+    axs[0].set_title('Arrival time function')
 
-    fig, ax = plt.subplots()
-    delay_agent.plot_route(ax)
-    ax.set_ylim(0, graph.global_end_time)
+    axs[1].grid(alpha=0.3)
+    delay_agent.plot_route(axs[1])
+    axs[1].set_ylim(0, graph.global_end_time)
+    axs[1].set_xlabel('Location')
+    axs[1].set_ylabel('Time')
+    axs[1].set_title('Unsafe Intervals')
     plt.show()
     plt.close()
 

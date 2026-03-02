@@ -79,16 +79,16 @@ namespace asipp{
 
         std::cerr << "Created catf " << arrival_time_function << std::endl;
 
-        intervalTime_t eat = cur.g.earliest_arrival_time();
+        intervalTime_t eat = arrival_time_function.earliest_arrival_time();
         if (eat > edge.beta) {
             std::cerr << "cur.alpha + cur.delta > edge.beta" << eat << " > " << edge.beta << std::endl;
             return;
         }
 
-        if (alpha == beta) {
-            std::cerr << "Alpha == Beta: " << alpha << std::endl;
-            return;
-        }
+//        if (alpha == beta) {
+//            std::cerr << "Alpha == Beta: " << alpha << std::endl;
+//            return;
+//        }
 
 //        if (!valid_gamma(gamma[edge.agent_after.id])) {
 //            std::cerr << "Gamma not valid " << gamma[edge.agent_after.id] << std::endl;

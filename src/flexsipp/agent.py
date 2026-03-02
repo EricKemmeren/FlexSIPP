@@ -86,14 +86,18 @@ class Agent(Generic[EdgeType, NodeType]):
 
     def plot_route(self, ax: Axis):
         x = 0
+        location_labels = []
         for move in self.route:
             try:
                 length = move.length
             except AttributeError:
                 length = 0
+                location_labels.append((x, move.name))
             move.plot_unsafe_interval(ax, x, x + length, {})
             x += length
-        ax.set_xlim(0, x)
+        ticks, labels = list(zip(*location_labels))
+        ax.set_xticks(ticks, labels)
+
 
     def __repr__(self):
         return f"{self.id}"
