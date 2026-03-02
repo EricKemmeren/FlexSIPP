@@ -80,8 +80,13 @@ namespace asipp{
         std::cerr << "Created catf " << arrival_time_function << std::endl;
 
         intervalTime_t eat = cur.g.earliest_arrival_time();
-        if (eat >= edge.beta) {
-            std::cerr << "cur.alpha + cur.delta > edge.beta" << eat << " >= " << edge.beta << std::endl;
+        if (eat > edge.beta) {
+            std::cerr << "cur.alpha + cur.delta > edge.beta" << eat << " > " << edge.beta << std::endl;
+            return;
+        }
+
+        if (alpha == beta) {
+            std::cerr << "Alpha == Beta: " << alpha << std::endl;
             return;
         }
 
@@ -152,6 +157,7 @@ namespace asipp{
 
 //            If there is more buffer time available than is currently being used, use it.
             intervalTime_t available_buffer_time = edge.agent_after.max_buffer_time - gamma_after.second;
+            std::cerr << "Available buffer time: " << available_buffer_time << ", from max: " << edge.agent_after.max_buffer_time << std::endl;
             if (available_buffer_time > epsilon()) {
                 // std::cerr << "Addition using " << available_buffer_time << " more buffer time" << std::endl;
 //                For this extra atf, alpha is the beta of the old edge
