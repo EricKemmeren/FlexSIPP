@@ -1,3 +1,4 @@
+from flexsipp.agent import Agent
 from flexsipp.graphs.graph import Node, Edge, Graph
 
 ### Node types in MovingAI benchmark maps ###
@@ -21,7 +22,17 @@ class GridCell(Node["GridConnection", "GridCell"]):
 class GridConnection(Edge["GridConnection", "GridCell"]):
     def __init__(self, f, t, length, max_speed):
         super().__init__(f, t, length, max_speed)
-        self.opposites: list[GridConnection] = []
+        self.opposite: GridConnection = None
+
+    def add_flexibility(self, agent: Agent, bt: float, crt:float):
+        """
+        Add the flexibility parameters to this node/edge
+        @param agent: Agent for which the bt and crt are defined
+        @param bt: Buffer Time at this node/edge
+        @param crt: Compound Recovery Time at this node/edge
+        """
+        super().add_flexibility(agent, bt, crt)
+        super(Edge, self.opposite).add_flexibility(agent, bt, crt)
 
 class Grid(Graph[Edge, Node]):
     def __init__(self, w, h):
@@ -51,16 +62,16 @@ class Grid(Graph[Edge, Node]):
                                 prev_cell = grid.nodes[f"({x},{y - 1})"]
                                 e1 = GridConnection(prev_cell, cell, 1, 1)
                                 e2 = GridConnection(cell, prev_cell, 1, 1)
-                                e1.opposites.append(e2)
-                                e2.opposites.append(e1)
+                                e1.opposite = e2
+                                e2.opposite = e1
                                 grid.add_edge(e1)
                                 grid.add_edge(e2)
                             if x > 0 and lines[z][x - 1] in node_types["passable"]:
                                 prev_cell = grid.nodes[f"({x - 1},{y})"]
                                 e1 = GridConnection(prev_cell, cell, 1, 1)
                                 e2 = GridConnection(cell, prev_cell, 1, 1)
-                                e1.opposites.append(e2)
-                                e2.opposites.append(e1)
+                                e1.opposite = e2
+                                e2.opposite = e1
                                 grid.add_edge(e1)
                                 grid.add_edge(e2)
                 return grid
