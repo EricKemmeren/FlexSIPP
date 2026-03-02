@@ -1,0 +1,10 @@
+[build-system]
+requires = ["setuptools >= 77.0.3"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "FlexSIPP-railways"
+version = "0.0.1"
+dependencies = [
+    "flexsipp>=0.0.1",
+]

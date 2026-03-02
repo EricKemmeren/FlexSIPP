@@ -1,0 +1,43 @@
+import argparse
+
+from matplotlib import pyplot as plt
+
+from flexsipp.graphs.fsipp import FSIPP
+from read_experiment import create_mapf_instance_from_paths
+
+parser = argparse.ArgumentParser(
+                    prog='FlexSIPP',
+                    description='Given a location (file) and a scenario (file), run the FlexSIPP program')
+parser.add_argument('-l', "--location-file", help = "Path to the location file", required = True)
+parser.add_argument('-s', "--scenario-file", help = "Path to the scenario file", required = True)
+parser.add_argument('-a', "--delay-agent", help="Identifier (int) of the agent in the scenario_file that is delayed. If not specified, the first agent in the scenario wil be chosen.", required=False, default=None)
+parser.add_argument('-e', "--end-time", help="End time of the scenario, if None is given", required=False, default=None)
+
+def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
+    if delay_agent_id is None:
+        delay_agent_id = 0
+    else:
+        delay_agent_id = int(delay_agent_id)
+    graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end, delay_agent_id)
+    assert delay_agent_id in agents, f"ERROR: no delay agent with id {delay_agent_id} in the set of agents."
+    delay_agent = agents[delay_agent_id]
+    heuristic = {node.name: 0 for node in graph.nodes.values()}
+    flexSIPP = FSIPP(graph, heuristic, len(agents))
+    result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, 0)
+    # TODO readable output and not too many intermediate print statements
+    print(result)
+
+    fig, ax = plt.subplots()
+    result.plot(ax, linestyle=3)
+    plt.show()
+    plt.close()
+
+    fig, ax = plt.subplots()
+    delay_agent.plot_route(ax)
+    ax.set_ylim(0, graph.global_end_time)
+    plt.show()
+    plt.close()
+
+if __name__ == "__main__":
+    args = parser.parse_args()
+    run_flexsipp(args.location_file, args.scenario_file, args.delay_agent, args.end_time)

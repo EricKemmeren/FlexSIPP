@@ -24,9 +24,9 @@ class Interval:
     def __bool__(self):
         """
         Check if the current interval is valid
-        @return: true iff start <= end
+        @return: true iff start < end
         """
-        return self.start <= self.end
+        return self.start < self.end
 
     def __or__(self, other):
         """
@@ -71,17 +71,18 @@ class UnsafeInterval(Interval):
         yield self.by_agent
         yield self.local_recovery_time
 
-    def __repr__(self):
+    def __str__(self):
         return f'{super().__str__()},{self.duration},{self.by_agent}'
 
-    def __str__(self):
-        return f"Agent {self.by_agent} unsafe {self.start}--{self.end} ({self.duration}) with lrt {self.local_recovery_time}"
+    def __or__(self, other):
+        sup = super().__or__(other)
+        return UnsafeInterval(sup.start, sup.end, self.duration + other.duration, self.by_agent, self.local_recovery_time + other.local_recovery_time)
 
     def merge(self, other):
         super().merge(other)
         self.duration += other.duration
         self.local_recovery_time += other.local_recovery_time
-        assert self.by_agent == other.by_agent
+        # assert self.by_agent == other.by_agent
 
 class SafeInterval(Interval):
     def __init__(self, start, end, agent_before: Agent, crt_before: float, agent_after: Agent, buffer_after: float, crt_after: float):
@@ -112,14 +113,27 @@ class ArrivalTimeFunction:
     def __init__(self, from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, delta: float):
         self.from_id = from_interval.index
         self.to_id   = to_interval.index
-        self.train_before = self._check_agent(edge_interval.agent_before)
-        self.train_after  = self._check_agent(edge_interval.agent_after)
 
         self.zeta = from_interval.start
         self.alpha = max(from_interval.start, edge_interval.start, to_interval.start - delta)
         self.beta = min(from_interval.end, edge_interval.end, to_interval.end - delta)
         self.delta = delta
 
+        if self.alpha == from_interval.start:
+            self.train_before = self._check_agent(from_interval.agent_before)
+        if self.alpha == edge_interval.start:
+            self.train_before = self._check_agent(edge_interval.agent_before)
+        if self.alpha == (to_interval.start - delta):
+            self.train_before = self._check_agent(to_interval.agent_before)
+
+        if self.beta == from_interval.end:
+            self.train_after  = self._check_agent(from_interval.agent_after)
+        if self.beta == edge_interval.end:
+            self.train_after = self._check_agent(edge_interval.agent_after)
+        if self.beta == (to_interval.end - delta):
+            self.train_after = self._check_agent(to_interval.agent_after)
+
+    # TODO: check if still needed
     @staticmethod
     def _check_agent(agent):
         if isinstance(agent, Agent):
@@ -135,12 +149,25 @@ class FlexibleArrivalTimeFunction(ArrivalTimeFunction):
     def __init__(self, from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, delta: float, heuristic: float):
         super().__init__(from_interval, edge_interval, to_interval, delta)
 
-        # TODO: check if maybe it should not be from the edge but from the from or to node
-        self.buffer_after = edge_interval.buffer_after
-        self.crt_after = edge_interval.crt_after
-        self.crt_before = edge_interval.crt_before
-
         self.heuristic = heuristic
+
+        # TODO: check if maybe it should not be from the edge but from the from or to node
+        if self.alpha == from_interval.start:
+            self.crt_before = from_interval.crt_before
+        if self.alpha == edge_interval.start:
+            self.crt_before = edge_interval.crt_before
+        if self.alpha == (to_interval.start - delta):
+            self.crt_before = to_interval.crt_before
+
+        if self.beta == from_interval.end:
+            self.crt_after = from_interval.crt_after
+            self.buffer_after = from_interval.buffer_after
+        if self.beta == edge_interval.end:
+            self.crt_after = edge_interval.crt_after
+            self.buffer_after = edge_interval.buffer_after
+        if self.beta == (to_interval.end - delta):
+            self.crt_after = to_interval.crt_after
+            self.buffer_after = to_interval.buffer_after
 
     def __repr__(self):
         return f"{self.from_id} {self.to_id} {self.zeta} {self.alpha} {self.beta} {self.delta} {self.train_before} {self.crt_before} {self.train_after} {self.buffer_after} {self.crt_after} {self.heuristic}"

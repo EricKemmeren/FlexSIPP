@@ -3,7 +3,7 @@ import unittest
 from copy import copy
 from typing import Tuple
 
-from flexsipp.generate import graph_from_file, scenario_from_file
+from flexsipp_railways.generate import graph_from_file, scenario_from_file
 from flexsipp.graphs.fsipp import FSIPP
 from flexsipp.graphs.graph import IntervalStore
 from flexsipp.util.intervals import Interval
@@ -218,19 +218,19 @@ class TestSafeIntervals(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
-        scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), bg)
+        cls.bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
+        scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), cls.bg)
         scenario.process()
-        heuristic = {node.name: 0 for node in bg.nodes.values()}
+        heuristic = {node.name: 0 for node in cls.bg.nodes.values()}
         new_agent = copy(scenario.agents[0])
         new_agent.id = -1
-        cls.fsipp = FSIPP(scenario.fsipp(new_agent), heuristic)
+        cls.fsipp = FSIPP(scenario.fsipp(new_agent), heuristic, len(scenario.agents))
 
 
     def test_safe_intervals(self):
-        node = self.fsipp.g.nodes["w|A"]
+        node = self.bg.nodes["w|A"]
         self.assertCountEqual(node.safe_intervals, [Interval(a, b) for a,b in [(0, 2), (3, 16), (17, 36)]])
-        node = self.fsipp.g.nodes["s2|A"]
+        node = self.bg.nodes["s2|A"]
         self.assertCountEqual(node.safe_intervals, [Interval(a, b) for a,b in [(0, 4), (5, 14), (15, 36)]])
 
 

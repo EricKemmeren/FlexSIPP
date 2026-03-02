@@ -3,7 +3,7 @@ __pycache__/
 .venv/
 *.egg-info/
 /data/prorail/*
-/donna_parsing/log.txt
+/experiments/railways/flexsipp_railways/experiment_generation/donna_parsing/log.txt
 !/data/prorail/scenarios
 /data/friso
 *.txt

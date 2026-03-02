@@ -2,9 +2,10 @@ import os
 import unittest
 from copy import copy
 
-from flexsipp.generate import graph_from_file, scenario_from_file
 from flexsipp.graphs.fsipp import FSIPP
-from flexsipp.railways.train_agents.train_agent_limited_flexiblity import train_agent_limited_flexibility_generator
+from flexsipp_railways.generate import graph_from_file, scenario_from_file
+from flexsipp_railways.train_agents.train_agent_limited_flexibility import train_agent_limited_flexibility_generator
+
 
 class TestSearch(unittest.TestCase):
 
@@ -15,7 +16,7 @@ class TestSearch(unittest.TestCase):
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         self.new_agent = copy(scenario.agents[0])
         self.new_agent.id = -1
-        self.flexSIPP = FSIPP(scenario.fsipp(self.new_agent), heuristic)
+        self.flexSIPP = FSIPP(scenario.fsipp(self.new_agent), heuristic, len(scenario.agents))
         self.scenario = scenario
 
     def test_no_flexibility(self):
