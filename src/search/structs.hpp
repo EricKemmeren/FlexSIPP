@@ -35,7 +35,7 @@ struct Location{
             return name == l.name;
         }
         inline friend std::ostream& operator<< (std::ostream& stream, const Location& loc){
-            stream << loc.name;
+            stream << "\"" << loc.name << "\"";
             return stream;
         }
 };
@@ -59,7 +59,7 @@ struct State{
         return loc == s.loc && interval == s.interval;
     }
     inline friend std::ostream& operator<< (std::ostream& stream, const State& s){
-        stream << s.loc << " <" << begin(s.interval) << "," << end(s.interval) << ">";
+        stream << "{\"loc\": " << s.loc << ", \"interval\": [" << begin(s.interval) << "," << end(s.interval) << "]}";
         return stream;
     }
 };
@@ -88,7 +88,11 @@ struct MetaData{
         decreased = 0;
     }
     inline friend std::ostream& operator<< (std::ostream& stream, const MetaData& m){
-        stream << "Nodes generated: " << m.generated << " Nodes decreased: " << m.decreased << " Nodes expanded: " << m.expanded; 
+        stream << "{";
+        stream << "\"Nodes generated\": " << m.generated << ", ";
+        stream << "\"Nodes decreased\": " << m.decreased << ", ";
+        stream << "\"Nodes expanded\": "  << m.expanded;
+        stream << "}";
         return stream;
     }
 };

@@ -15,12 +15,7 @@ struct GraphNode{
     GraphNode() = default;
     GraphNode(const State& s):state(s){}
     inline friend std::ostream& operator<<(std::ostream& stream, const GraphNode& gn){
-        stream << gn.state << " ns:" << gn.successors.size() << " [";
-
-        for (gam_item_t gamma : gn.gamma) {
-            stream << "<" << gamma.first << ", " << gamma.second << ">, ";
-        }
-        stream << "]";
+        stream << "{\"state\": " << gn.state << ", \"outgoing_edges\": " << gn.successors.size() << "}";
         return stream;
     }
 

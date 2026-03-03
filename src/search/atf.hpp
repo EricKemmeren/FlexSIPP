@@ -24,7 +24,11 @@ struct NeightbouringAgent{
     NeightbouringAgent(long _id, intervalTime_t _max_buffer_time, intervalTime_t _compound_recovery_time): id(_id), max_buffer_time(_max_buffer_time), compound_recovery_time(_compound_recovery_time){}
 
     inline friend std::ostream& operator<< (std::ostream& stream, const NeightbouringAgent& train){
-        stream << train.id << " bt: " << train.max_buffer_time << " crt: " << train.compound_recovery_time;
+        stream << "{";
+        stream << "\"train\":" << train.id << ", ";
+        stream << "\"bt\": " << train.max_buffer_time << ", ";
+        stream << "\"crt\": " << train.compound_recovery_time;
+        stream << "}";
         return stream;
     }
 };
@@ -127,16 +131,17 @@ struct EdgeATF{
     }
     
     inline friend std::ostream& operator<< (std::ostream& stream, const EdgeATF& eatf){
-        stream << "<" << eatf.zeta << "," << eatf.alpha << "," << eatf.beta << "," << eatf.delta << ",[";
-
+        stream << "{";
+        stream << "\"atf\": [\"" << eatf.zeta << "\",\"" << eatf.alpha << "\",\"" << eatf.beta << "\",\"" << eatf.delta << "\"], ";
+        stream << "\"gammas\": [";
         if (eatf.gamma.empty()) {
-            stream << eatf.agent_before << ", " << eatf.agent_after;
+            stream << "{\"agent_before\":" << eatf.agent_before << ", \"agent_after\":" << eatf.agent_after << "}";
         } else {
             for (gam_item_t gamma: eatf.gamma) {
-                stream << gamma << "; ";
+                stream << gamma << ", ";
             }
         }
-        stream << "]>";
+        stream << "]}";
         return stream;
     }
 
@@ -285,17 +290,20 @@ struct CompoundATF{
 
     inline friend std::ostream& operator<< (std::ostream& stream, const CompoundATF& catf){
         std::unordered_set<long> indexes;
-    
+
+        stream << "{\"segments\":[";
         for(const auto& segment : catf.segments){
             stream << segment << ", ";
         }
-        stream << "\n";
+        stream << "], \"payloads\":[";
         for(const auto& segment : catf.segments){
+            stream << "{\"payload\": [";
             for (auto j : catf.payload[segment.payload]){
-                stream << *j << "\n";
+                stream << *j << ",";
             }
-            stream << catf.edge_atfs[segment.payload] << "\n";
+            stream << "], \"edge_atf\":" << catf.edge_atfs[segment.payload] << "}, ";
         }
+        stream << "]}";
         return stream;
     }
 };
