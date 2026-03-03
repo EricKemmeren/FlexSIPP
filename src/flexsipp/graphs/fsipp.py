@@ -93,4 +93,4 @@ class FSIPP(Generic[EdgeType, NodeType]):
         # with open(os.path.join(os.path.dirname(__file__), "search_stderr.txt"), "w") as f:
             # with redirect_stderr(f):
         result = search.search(str(origin), str(destination), graph, start_time, timeout)
-        return Results.parse_list_of_outputs(result)
+        return Results.parse_json(result)

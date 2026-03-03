@@ -1,63 +1,44 @@
 from matplotlib.axis import Axis
 import pickle
+from rapidjson import Decoder, PM_TRAILING_COMMAS
+
+json_decoder = Decoder(parse_mode=PM_TRAILING_COMMAS)
 
 class Results:
     def __init__(self):
         self.metadata= {}
         self.unique_paths = {}
         self.unique_path_eatfs = {}
+        self.segments = []
 
     @classmethod
-    def parse_list_of_outputs(cls, s, offset=0):
-        #s is a string with the text output of a repeat search this parses it into the compount atf, and the individual augmentded SIPP plans for each segment
+    def parse_json(cls, s):
         self = cls()
-        s = s.splitlines() # avoid empty element in list
-        # s is the output split on newline characters
-        i = 0
-        while "Nodes generated" not in s[i]:
-            i += 1
-        lns = s[i].split(" ")
-        self.metadata["Nodes generated"] = lns[2]
-        self.metadata["Nodes decreased"] = lns[5]
-        self.metadata["Nodes expanded"] = lns[8]
-        i+=1
-        self.catf = s[i].strip(", ").split(", ") # avoid empty element in list
-        self.catf = [tuple([str(round(float(y) - offset, 2)) for y in (x.strip("'").strip("<").strip(">").split(","))]) for x in self.catf]
-        i += 1
-        paths = []
-        eatfs = []
-        while i < len(s) and "time: " not in s[i]:
-            paths.append([])
-            while "time: " not in s[i] and (s[i][0] != "<") and (s[i][-1] != ">"):
-                # s[i]: "node_name node_safe_interval node_id"
-                paths[-1].append(s[i].split(" ")[0])
-                i += 1
-            atf = s[i]
-            atf = atf.strip("<").strip(">").split(",")
-            gammas = [gamma[1:-1].split(": ") for gamma in atf[-1][1:-1].split("; ")[0:-1]]
-            atf[-1] = gammas
-            for j in range(len(atf) - 2):
-                atf[j] = str(round(float(atf[j]) - offset, 2))
-            atf = tuple(atf)
-            eatfs.append(atf)
-            i += 1
 
-        search_time = s[i].split(" ")
-        self.metadata["Search time"] = search_time[-2]
+        input = json_decoder(s)
+        self.metadata = input["MetaData"]
+        self.metadata["Search Time"] = input["Search time"]
+        result = input["Result"]
 
-        if [] in paths:
-            paths.remove([]) # because the last path added stays empty
+        # json_decoder does not support direct conversion of -inf/inf to float, thus manual conversion is needed.
+        self.segments = [(float(x0), float(x1), float(y0), float(y1)) for x0, x1, y0, y1 in result["segments"]]
 
-        for (i,p) in enumerate(paths):
-            path_string = ";".join(p)
-            if path_string in self.unique_paths:
-                self.unique_paths[path_string] += 1
-                if eatfs[i] not in self.unique_path_eatfs[path_string]:
-                    self.unique_path_eatfs[path_string].append(eatfs[i])
+        # Last found route is bullshit
+        for found_route in result["payloads"][0:-1]:
+            zeta, alpha, beta, delta = found_route["edge_atf"]["atf"]
+            atf = (float(zeta), float(alpha), float(beta), float(delta))
+
+            path = [payload["state"]["loc"] for payload in found_route["payload"]]
+            # TODO: rewrite this, this does not make any sense tbh
+            path_str = "->".join(path)
+            if path_str in self.unique_paths:
+                self.unique_paths[path_str] += 1
+                if atf not in self.unique_path_eatfs[path_str]:
+                    self.unique_path_eatfs[path_str].append(atf)
             else:
-                self.unique_paths[path_string] = 1
-                self.unique_path_eatfs[path_string] = [eatfs[i]]
-        
+                self.unique_paths[path_str] = 1
+                self.unique_path_eatfs[path_str] = [atf]
+
         return self
 
     linestyles = [
@@ -75,7 +56,7 @@ class Results:
         y_offset = kwargs.get('y_offset', 0)
 
         line = None
-        for (x0, x1, y0, y1) in self.catf:
+        for (x0, x1, y0, y1) in self.segments:
             if x0 == "-inf" and x1 != "inf" and y1 != "inf":
                 ax.hlines(float(y1) + y_offset, 0, float(x1), colors=color, linestyle=linestyle)
             line, = ax.plot([float(x0), float(x1)], [float(y0) + y_offset, float(y1) + y_offset], color=color,
@@ -87,7 +68,7 @@ class Results:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
     def compare_paths(self, f, original_path:list[str]):
-        paths:list[str] = [key.split(";") for key in self.unique_paths.keys()]
+        paths:list[str] = [key.split("->") for key in self.unique_paths.keys()]
         def split_list_on_gaps(path: list[int]) -> list[list[int]]:
             if not path:
                 return [path]
