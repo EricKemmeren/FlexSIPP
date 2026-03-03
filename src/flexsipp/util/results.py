@@ -2,6 +2,8 @@ from matplotlib.axis import Axis
 import pickle
 from rapidjson import Decoder, PM_TRAILING_COMMAS
 
+from flexsipp.graphs.graph import Graph
+
 json_decoder = Decoder(parse_mode=PM_TRAILING_COMMAS)
 
 class Results:
@@ -10,9 +12,10 @@ class Results:
         self.unique_paths = {}
         self.unique_path_eatfs = {}
         self.segments = []
+        self.found_routes = []
 
     @classmethod
-    def parse_json(cls, s):
+    def parse_json(cls, s: str, g: Graph):
         self = cls()
 
         input = json_decoder(s)
@@ -28,9 +31,9 @@ class Results:
             zeta, alpha, beta, delta = found_route["edge_atf"]["atf"]
             atf = (float(zeta), float(alpha), float(beta), float(delta))
 
-            path = [payload["state"]["loc"] for payload in found_route["payload"]]
+            path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"]]
             # TODO: rewrite this, this does not make any sense tbh
-            path_str = "->".join(path)
+            path_str = "->".join([node for node, interval in path])
             if path_str in self.unique_paths:
                 self.unique_paths[path_str] += 1
                 if atf not in self.unique_path_eatfs[path_str]:
@@ -39,6 +42,18 @@ class Results:
                 self.unique_paths[path_str] = 1
                 self.unique_path_eatfs[path_str] = [atf]
 
+            delays = {}
+            for agent, gamma in enumerate(found_route["edge_atf"]["gammas"][1:], 1):
+                delays[agent] = []
+                for incurred_delay in gamma["incurred_delays"]:
+                    location = g.nodes[incurred_delay["location"]]
+                    min_delay = incurred_delay["delay"]
+                    delays[agent].append((location, min_delay))
+
+            # TODO: make this a route, including the exact edges taken
+            node_route = [(g.nodes[node], interval) for node, interval in path]
+
+            self.found_routes.append((atf, {"route": node_route, "delays": delays}))
         return self
 
     linestyles = [
@@ -95,6 +110,18 @@ class Results:
                 f.write(", ".join(differences))
                 f.write("\n")
             f.write("\n")
+
+    def get_fastest_route(self, actual_delay: float):
+        best_route = None
+        best_arrival_time = float("inf")
+        for atf, route in self.found_routes:
+            zeta, alpha, beta, delta = atf
+            if zeta <= actual_delay < beta:
+                arrival_time = max(alpha, actual_delay) + delta
+                if arrival_time < best_arrival_time:
+                    best_arrival_time = arrival_time
+                    best_route = (atf, route)
+        return best_route
 
 
 if __name__ == "__main__":

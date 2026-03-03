@@ -25,6 +25,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
         g.invert_unsafe_intervals()
         self.atfs: list[FlexibleArrivalTimeFunction] = []
         self.num_agents = num_agents
+        self.g = g
 
         if filter_nodes:
             self.nodes = filter_nodes
@@ -93,4 +94,4 @@ class FSIPP(Generic[EdgeType, NodeType]):
         # with open(os.path.join(os.path.dirname(__file__), "search_stderr.txt"), "w") as f:
             # with redirect_stderr(f):
         result = search.search(str(origin), str(destination), graph, start_time, timeout)
-        return Results.parse_json(result)
+        return Results.parse_json(result, self.g)
