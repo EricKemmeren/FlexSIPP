@@ -2,6 +2,7 @@
 #include <functional>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 #include <boost/heap/d_ary_heap.hpp>
 #include "graph.hpp"
 #include "repeat.hpp"
@@ -73,7 +74,7 @@ namespace asipp{
         // std::cerr << " after: " << max_gamma << std::endl;
 
 //        gamma[edge.agent_after.id] = get_reduced_gamma(gam_item_t(min_gamma, max_gamma, gam_after.last_recovery), edge.agent_after);
-        gamma[edge.agent_after.id] = gam_item_t(min_gamma, max_gamma, gam_after.last_recovery, gam_after.location, gam_after.initial_delay);
+        gamma[edge.agent_after.id] = gam_item_t(min_gamma, max_gamma, gam_after.last_recovery, gam_after.incurred_delays);
 
         EdgeATF arrival_time_function(zeta, alpha, beta, delta, gamma);
 
@@ -152,7 +153,7 @@ namespace asipp{
             std::cerr << "Outgoing edge " << edge << ", b: " << gamma_before << ", a: " << gamma_after << std::endl;
 
             gamma_t old_gamma = gamma_t(cur.g.gamma);
-            old_gamma[successor->edge.agent_after.id] = gam_item_t(gamma_after.first, gamma_after.second,  gamma_after.last_recovery, gamma_after.location, gamma_after.initial_delay);
+            old_gamma[successor->edge.agent_after.id] = gam_item_t(gamma_after.first, gamma_after.second,  gamma_after.last_recovery, gamma_after.incurred_delays);
             extendOpen(cur, open_list, m, successor->source, successor->destination, edge, old_gamma);
 
 //            If there is more buffer time available than is currently being used, use it.
@@ -169,13 +170,14 @@ namespace asipp{
                 extra_edge.beta = extra_edge.alpha + available_buffer_time;
 
                 gamma_t new_gamma = gamma_t(cur.g.gamma);
+                std::vector<incurred_delay_t> incurred_delays = gamma_after.incurred_delays;
+                incurred_delays.push_back(incurred_delay_t(cur.node->state.loc.name, gamma_after.second));
                 new_gamma[successor->edge.agent_after.id] =
                         gam_item_t(
                                 gamma_after.second,
                                 successor->edge.agent_after.max_buffer_time,
                                 gamma_after.last_recovery,
-                                cur.node->state.loc.name,
-                                gamma_after.second);
+                                incurred_delays);
 
                 std::cerr << "Additional edge " << extra_edge << ", " << new_gamma[successor->edge.agent_after.id] << std::endl;
                 extendOpen(cur, open_list, m, successor->source, successor->destination, extra_edge, new_gamma);

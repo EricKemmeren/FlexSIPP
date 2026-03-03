@@ -45,9 +45,11 @@ std::string search(std::string start, std::string goal, std::string graph_str, i
     std::stringstream ss;
 
     std::flush(std::cerr);
-    ss << m << std::endl;
-    ss << res;
-    ss << "Search time: " << search_duration.count() << " milliseconds" << std::endl;
+    ss << "{";
+    ss << "\"MetaData\":" << m << ", ";
+    ss << "\"Result\":" << res << ", ";
+    ss << "\"Search time\": " << search_duration.count();
+    ss << "}";
     std::flush(ss);
     std::string output = std::move(ss).str();
     return output;
