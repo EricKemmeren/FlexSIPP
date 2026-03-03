@@ -195,7 +195,7 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
                                 # Check for overlap with the edge en to node
                                 # TODO: figure out if overlap with from and to node is needed
                                 if edge_interval & to_interval:
-                                    safe_connections.append((from_interval, edge_interval, to_interval, edge.length))
+                                    safe_connections.append((from_interval, edge_interval, to_interval, edge))
         return safe_connections
 
 
@@ -270,7 +270,7 @@ class Graph(Generic[EdgeType, NodeType]):
         for ui in uis:
             ui.get_safe_intervals(self.global_end_time)
 
-    def calculate_heuristic(self, start: NodeType, agent_velocity) -> dict[str, float]:
+    def calculate_heuristic(self, start: NodeType) -> dict[str, float]:
         time_distances = {n: float("inf") for n in self.nodes}
         pq = Q.PriorityQueue()
         time_distances[start.name] = 0.0
@@ -282,8 +282,7 @@ class Graph(Generic[EdgeType, NodeType]):
         while not pq.empty():
             v: NodeType = pq.get()[2]
             for e in v.incoming:
-                velocity = min(e.max_speed, agent_velocity)
-                tmp = time_distances[v.name] + (e.length / velocity)
+                tmp = time_distances[v.name] + (e.length / e.max_speed)
                 if tmp < time_distances[e.from_node.name]:
                     time_distances[e.from_node.name] = tmp
                     pq.put((time_distances[e.from_node.name], pq_counter, e.from_node))

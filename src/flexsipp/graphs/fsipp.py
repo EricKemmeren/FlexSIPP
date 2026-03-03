@@ -33,9 +33,9 @@ class FSIPP(Generic[EdgeType, NodeType]):
         # TODO: maybe force self.nodes to be a set(), does remove ordering making manual reading of file more difficult
 
         for node in self.nodes:
-            def create_atf(from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, delta):
-                h = heuristic[node.name] if node.name in heuristic else 0
-                flex_atf = FlexibleArrivalTimeFunction(from_interval, edge_interval, to_interval, delta, h)
+            def create_atf(from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, edge):
+                h = heuristic[edge.to_node.name] if edge.to_node.name in heuristic else 0
+                flex_atf = FlexibleArrivalTimeFunction(from_interval, edge_interval, to_interval, edge.length, h)
                 if flex_atf:
                     self.atfs.append(flex_atf)
             [create_atf(*c) for c in node.get_safe_connections(self.nodes)]
@@ -89,7 +89,8 @@ class FSIPP(Generic[EdgeType, NodeType]):
         """
         graph = io.StringIO()
         self._write(graph)
+        graph = graph.getvalue()
         # with open(os.path.join(os.path.dirname(__file__), "search_stderr.txt"), "w") as f:
             # with redirect_stderr(f):
-        result = search.search(str(origin), str(destination), graph.getvalue(), start_time, timeout)
+        result = search.search(str(origin), str(destination), graph, start_time, timeout)
         return Results.parse_list_of_outputs(result)

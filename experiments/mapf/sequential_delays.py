@@ -22,7 +22,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     assert delay_agent_id in agents, f"ERROR: no delay agent with id {delay_agent_id} in the set of agents."
     delay_agent = agents[delay_agent_id]
     # Heuristic for delay agent
-    heuristic = {node.name: graph.calculate_heuristic(delay_agent.route[-1], 1) for node in graph.nodes.values()}
+    heuristic = graph.calculate_heuristic(delay_agent.destination)
     flexSIPP = FSIPP(graph, heuristic, len(agents))
     result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, 0)
     print(result)
