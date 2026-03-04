@@ -39,6 +39,13 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     axs[1].set_xlabel('Location')
     axs[1].set_ylabel('Time')
     axs[1].set_title('Unsafe Intervals')
+
+    atf, new_route, minimum_delays = result.get_fastest_route(6, agents)
+    del minimum_delays[delay_agent]
+    graph.update_unsafe_intervals(minimum_delays=minimum_delays)
+
+    delay_agent.plot_route(axs[1])
+
     plt.show()
     plt.close()
 
