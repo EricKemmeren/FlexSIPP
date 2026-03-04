@@ -268,6 +268,7 @@ class Graph(Generic[EdgeType, NodeType]):
         """
         uis: list[IntervalStore] = list(self.nodes.values()) + self.edges
         for ui in uis:
+            ui.safe_intervals.clear()
             ui.get_safe_intervals(self.global_end_time)
 
     def calculate_heuristic(self, start: NodeType) -> dict[str, float]:
