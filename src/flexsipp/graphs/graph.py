@@ -30,6 +30,9 @@ class IntervalStore(object):
     def add_unsafe_interval(self, interval: UnsafeInterval):
         self.unsafe_intervals.add(interval)
 
+    def remove_unsafe_interval(self, interval: UnsafeInterval):
+        self.unsafe_intervals.remove(interval)
+
     def merge_unsafe_intervals(self):
         self.merged = True
         if len(self.unsafe_intervals) == 0:

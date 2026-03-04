@@ -14,6 +14,9 @@ class Results:
         self.unique_path_eatfs = {}
         self.segments = []
         self.found_routes = []
+    
+    def __repr__(self):
+        return f"Found {len(self.found_routes)} routes with unique paths {list(self.unique_paths.keys())}"
 
     @classmethod
     def parse_json(cls, s: str, g: Graph):
