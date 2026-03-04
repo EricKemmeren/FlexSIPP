@@ -119,14 +119,18 @@ class Results:
                 f.write("\n")
             f.write("\n")
 
-    def get_fastest_route(self, actual_delay: float, agents: dict[int, Agent]):
+    def get_fastest_route(self, actual_departure_time: float, agents: dict[int, Agent], discrete=False):
+        if discrete:
+            delay_addition = 1
+        else:
+            delay_addition = 0
         best_route = None
         best_atf = None
         best_arrival_time = float("inf")
         for atf, route in self.found_routes:
             zeta, alpha, beta, delta = atf
-            if zeta <= actual_delay < beta:
-                arrival_time = max(alpha, actual_delay) + delta
+            if zeta <= actual_departure_time < beta:
+                arrival_time = max(alpha, actual_departure_time) + delta
                 if arrival_time < best_arrival_time:
                     best_arrival_time = arrival_time
                     best_route = route
@@ -137,7 +141,7 @@ class Results:
             minimum_delay = {}
             for delay_location, min_delay in best_route["delays"][agent.id]:
                 wait_location = agent.get_wait_location(delay_location, {node for node, interval in best_route["route"]})
-                delay = min_delay + max(best_atf[1], actual_delay) - best_atf[1]
+                delay = min_delay + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
                 print(f"Agent {agent} delayed at {delay_location}, should wait at {wait_location} for at least {delay}")
                 for loc in wait_location:
                     minimum_delay[loc] = max(minimum_delay.get(loc, 0), delay)

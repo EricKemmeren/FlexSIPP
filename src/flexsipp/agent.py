@@ -90,10 +90,12 @@ class Agent(Generic[EdgeType, NodeType]):
         for move in self.route:
             try:
                 length = move.length
+                color = "red"
             except AttributeError:
                 length = 0
+                color = "blue"
                 location_labels.append((x, move.name))
-            move.plot_unsafe_interval(ax, x, x + length, {})
+            move.plot_unsafe_interval(ax, x, x + length, **kwargs, edgecolor=color)
             x += length
         ticks, labels = list(zip(*location_labels))
         ax.set_xticks(ticks, labels)

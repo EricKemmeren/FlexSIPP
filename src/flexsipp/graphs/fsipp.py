@@ -23,8 +23,8 @@ class FSIPP(Generic[EdgeType, NodeType]):
         :param Iterable, optional filter_nodes: Optional argument to specify the allowed nodes the new agent is able to find a new path over.
         :return: A FlexSIPP graph with SafeIntervals on the nodes, and FlexibleArrivalTimeFunctions between these nodes as edges.
         """
+        g.reset_flexibility()
         for agent in agents.values():
-            g.reset_flexibility()
             agent.calculate_flexibility()
         g.invert_unsafe_intervals()
         self.atfs: list[FlexibleArrivalTimeFunction] = []

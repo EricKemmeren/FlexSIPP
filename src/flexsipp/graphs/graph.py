@@ -21,7 +21,7 @@ class IntervalStore(object):
     
     def __init__(self):
         super().__init__()
-        self.unsafe_intervals: SortedKeyList[UnsafeInterval] = SortedKeyList(key=lambda x: x.start)
+        self.unsafe_intervals: SortedKeyList = SortedKeyList(key=lambda x: x.start)
         self.safe_intervals: list[SafeInterval] = []
         self.bt: dict[int, float] = {}
         self.crt: dict[int, float] = {}
@@ -30,27 +30,24 @@ class IntervalStore(object):
     def add_unsafe_interval(self, interval: UnsafeInterval):
         self.unsafe_intervals.add(interval)
 
-    def remove_unsafe_interval(self, interval: UnsafeInterval):
-        self.unsafe_intervals.remove(interval)
-
     def merge_unsafe_intervals(self):
         self.merged = True
         if len(self.unsafe_intervals) == 0:
             return
-        merged_intervals = []
+        merged_intervals = SortedKeyList(key=lambda x: x.start)
         start = self.unsafe_intervals[0]
         for next in self.unsafe_intervals[1:]:
             # Check for overlap using intersection
             if start & next:
                 start = start | next
             else:
-                merged_intervals.append(start)
+                merged_intervals.add(start)
                 start = next
-        merged_intervals.append(start)
+        merged_intervals.add(start)
         self.unsafe_intervals = merged_intervals
 
     def filter_out_agent(self, agent: Agent):
-        return [ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id]
+        self.unsafe_intervals = SortedKeyList([ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id], key=lambda x: x.start)
 
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
         """
@@ -106,17 +103,18 @@ class IntervalStore(object):
             last_interval = SafeInterval(current, global_end_time, agent_before, crt_b, 0, 0, 0)
             self.safe_intervals.append(last_interval)
 
-    def plot_unsafe_interval(self, ax, x1, x2, color_map):
+    def plot_unsafe_interval(self, ax, x1, x2, **kwargs):
         for ui in self.unsafe_intervals:
             blocking_time = patches.Rectangle((x1, ui.start), x2 - x1, ui.end - ui.start,
-                                                linewidth=1, edgecolor="red", facecolor="none")
+                                                linewidth=1, edgecolor=kwargs.get("edgecolor", "red"),
+                                                facecolor="none")
             ax.add_patch(blocking_time)
 
-            c = color_map.get(ui.by_agent.id, None)
-            bt, _ = self.get_flexibility(ui.by_agent)
-            buffer_time = patches.Rectangle((x1, ui.end), x2 - x1, bt,
-                                                linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
-            ax.add_patch(buffer_time)
+            # c = color_map.get(ui.by_agent.id, None)
+            # bt, _ = self.get_flexibility(ui.by_agent)
+            # buffer_time = patches.Rectangle((x1, ui.end), x2 - x1, bt,
+            #                                     linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
+            # ax.add_patch(buffer_time)
 
 
 class Node(IntervalStore, Generic[EdgeType, NodeType]):
@@ -403,26 +401,39 @@ class Graph(Generic[EdgeType, NodeType]):
 
         return path
 
-    def _update_minimum_delays(self, minimum_delays):
+    def _update_delayed_agent(self, *args, **kwargs):
+        # This is more implementation specific, should be overwritten if used
+        raise NotImplementedError
+
+    def _update_using_minimum_delays(self, minimum_delays):
         for agent, delays in minimum_delays.items():
             current_delay = 0
             for move in agent.route:
-                ui = [ui for ui in move.unsafe_intervals if ui.by_agent == agent][0]
-                new_delay = delays.get(move, 0)
-                if current_delay < new_delay:
-                    # Delay becomes larger, thus the agent should wait here. Extend end of interval delay, start of interval is shifted by old delay
-                    ui.start += current_delay
-                    ui.end += new_delay
-                    current_delay = new_delay
-                    # As it's standing still here, it is gaining local recovery time by the difference in delay amount
-                    ui.local_recovery_time += new_delay - current_delay
-                else:
-                    ui.start += current_delay
-                    ui.end += current_delay - ui.local_recovery_time
-                    updated_delay = max(0, current_delay - ui.local_recovery_time)
-                    ui.local_recovery_time -= current_delay - updated_delay
-                    current_delay = updated_delay
+                filtered_uis = [ui for ui in move.unsafe_intervals if ui.by_agent == agent]
+                if len(filtered_uis)>0:
+                    ui = filtered_uis[0]
+                    new_delay = delays.get(move, 0)
+                    if current_delay < new_delay:
+                        # Delay becomes larger, thus the agent should wait here. Extend end of interval delay, start of interval is shifted by old delay
+                        ui.start += current_delay
+                        ui.end += new_delay
+                        current_delay = new_delay
+                        # As it's standing still here, it is gaining local recovery time by the difference in delay amount
+                        ui.local_recovery_time += new_delay - current_delay
+                    else:
+                        ui.start += current_delay
+                        ui.end += current_delay - ui.local_recovery_time
+                        updated_delay = max(0, current_delay - ui.local_recovery_time)
+                        ui.local_recovery_time -= current_delay - updated_delay
+                        current_delay = updated_delay
 
-    def update_unsafe_intervals(self, minimum_delays=None):
+    def update_unsafe_intervals(self, new_path=None, minimum_delays=None):
+        if new_path is not None:
+            self._update_delayed_agent(*new_path)
         if minimum_delays is not None:
-            self._update_minimum_delays(minimum_delays)
+            self._update_using_minimum_delays(minimum_delays)
+
+    def filter_out_agent(self, agent: Agent):
+        uis:list[IntervalStore] = list(self.nodes.values()) + self.edges
+        for ui in uis:
+            ui.filter_out_agent(agent)
