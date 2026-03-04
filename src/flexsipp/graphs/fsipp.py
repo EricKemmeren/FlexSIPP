@@ -6,6 +6,7 @@ from contextlib import redirect_stderr
 
 from .. import search
 from .graph import Graph
+from ..agent import Agent
 from ..util.intervals import SafeInterval, FlexibleArrivalTimeFunction
 from ..util.results import Results
 from ..util.types import EdgeType, NodeType
@@ -13,18 +14,21 @@ from ..util.types import EdgeType, NodeType
 logger = getLogger('__main__.' + __name__)
 
 class FSIPP(Generic[EdgeType, NodeType]):
-    def __init__(self, g:Graph[EdgeType, NodeType], heuristic:dict[str, float], num_agents: int, filter_nodes:Iterable[NodeType]=None):
+    def __init__(self, g:Graph[EdgeType, NodeType], heuristic:dict[str, float], agents: dict[int, Agent], filter_nodes:Iterable[NodeType]=None):
         """ Create a flexibile safe interval any-start-time graph of the given graph, that can be used to run the search algorithm.
 
         :param Graph g: Graph containing the nodes and edges with populated unsafe intervals. Edge length should be duration.
         :param dict heuristic: Dictionary that maps node name to a value, this value is used as the heuristic in the A* search.
-        :param int num_agents: Number of agents present is the graph.
+        :param Iterable agents: Number of agents present is the graph.
         :param Iterable, optional filter_nodes: Optional argument to specify the allowed nodes the new agent is able to find a new path over.
         :return: A FlexSIPP graph with SafeIntervals on the nodes, and FlexibleArrivalTimeFunctions between these nodes as edges.
         """
+        for agent in agents.values():
+            g.reset_flexibility()
+            agent.calculate_flexibility()
         g.invert_unsafe_intervals()
         self.atfs: list[FlexibleArrivalTimeFunction] = []
-        self.num_agents = num_agents
+        self.num_agents = len(agents)
         self.g = g
 
         if filter_nodes:

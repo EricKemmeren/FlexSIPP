@@ -49,7 +49,6 @@ class IntervalStore(object):
     def filter_out_agent(self, agent: Agent):
         return [ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id]
 
-
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
         """
         Add the flexibility parameters to this node/edge
@@ -270,6 +269,12 @@ class Graph(Generic[EdgeType, NodeType]):
         for ui in uis:
             ui.safe_intervals.clear()
             ui.get_safe_intervals(self.global_end_time)
+
+    def reset_flexibility(self):
+        uis: list[IntervalStore] = list(self.nodes.values()) + self.edges
+        for ui in uis:
+            ui.crt = {}
+            ui.bt = {}
 
     def calculate_heuristic(self, start: NodeType) -> dict[str, float]:
         time_distances = {n: float("inf") for n in self.nodes}

@@ -85,6 +85,4 @@ def create_mapf_instance_from_paths(location_file, paths_file, scenario_end_time
     merge_list = list(grid.nodes.values()) + grid.edges
     for node in merge_list:
         node.merge_unsafe_intervals()
-    for agent in agents.values():
-        agent.calculate_flexibility()
     return grid, agents, unsafe_intervals
