@@ -31,6 +31,12 @@ python experiments/mapf/main.py -s data/mapf/maze/scen-even/maze-128-128-1-even-
 python experiments/mapf/main.py -s data/mapf/corridor/corridor-2agents_paths.txt -l data/mapf/corridor/corridor.map
 ```
 
+To run an experiment with several sequential delays, run:
+```bash
+python experiments/mapf/sequential_delays.py -l data/mapf/corridor/corridor.map -s data/mapf/corridor/corridor-2agents_paths.txt -d data/mapf/corridor/delays.csv -e 20
+python experiments/mapf/sequential_delays.py -l data/mapf/simple/simple.map -s data/mapf/simple/6agents_paths.txt -d data/mapf/simple/delays.csv
+```
+
 To run the tests use:
 ```bash
 python -m unittest discover -s tests
