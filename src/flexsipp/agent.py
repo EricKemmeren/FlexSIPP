@@ -14,6 +14,7 @@ class Agent(Generic[EdgeType, NodeType]):
         """
         self.id = id
         self.route: list[EdgeType | NodeType] = route
+        self.max_buffer = float("inf")
 
     @staticmethod
     def calculate_route(start: NodeType, stops: list[NodeType], **kwargs):
@@ -66,8 +67,7 @@ class Agent(Generic[EdgeType, NodeType]):
         """
         compound_recovery_time = 0.0
 
-        max_buffer = float("inf")
-        last_buffer_time = max_buffer
+        last_buffer_time = self.max_buffer
         for move in self.route[::-1]:
             local_buffer, local_recovery = self._get_local_flexibility(move)
 
@@ -79,7 +79,7 @@ class Agent(Generic[EdgeType, NodeType]):
 
             # Buffer time can increase by recovery time if it would fit
             compound_recovery_time += local_recovery
-            last_buffer_time = min(last_buffer_time + local_recovery, max_buffer)
+            last_buffer_time = min(last_buffer_time + local_recovery, self.max_buffer)
 
             # Store the buffer and crt
             move.add_flexibility(self, last_buffer_time, compound_recovery_time)

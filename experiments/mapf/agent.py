@@ -4,6 +4,7 @@ class MapfAgent(Agent):
     def __init__(self, id: int, route: list, global_end_time: int):
         super().__init__(id, route)
         self.global_end_time = global_end_time
+        self.max_buffer = 10
 
     def _get_local_flexibility(self, move):
         if len(move.unsafe_intervals) == 0:
