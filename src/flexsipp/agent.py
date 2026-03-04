@@ -98,6 +98,19 @@ class Agent(Generic[EdgeType, NodeType]):
         ticks, labels = list(zip(*location_labels))
         ax.set_xticks(ticks, labels)
 
+    def get_wait_location(self, initial_location: NodeType, opposing_route: set[EdgeType | NodeType]):
+        from flexsipp.graphs.graph import Node
+        try:
+            i = self.route.index(initial_location)
+            while i > 0:
+                i -= 1
+                wait_location = self.route[i]
+                if isinstance(wait_location, Node):
+                    if wait_location not in opposing_route:
+                        return wait_location
+        except ValueError:
+            return initial_location
+
 
     def __repr__(self):
         return f"{self.id}"

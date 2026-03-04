@@ -2,6 +2,7 @@ from matplotlib.axis import Axis
 import pickle
 from rapidjson import Decoder, PM_TRAILING_COMMAS
 
+from flexsipp.agent import Agent
 from flexsipp.graphs.graph import Graph
 
 json_decoder = Decoder(parse_mode=PM_TRAILING_COMMAS)
@@ -111,8 +112,9 @@ class Results:
                 f.write("\n")
             f.write("\n")
 
-    def get_fastest_route(self, actual_delay: float):
+    def get_fastest_route(self, actual_delay: float, agents: dict[int, Agent]):
         best_route = None
+        best_atf = None
         best_arrival_time = float("inf")
         for atf, route in self.found_routes:
             zeta, alpha, beta, delta = atf
@@ -120,8 +122,22 @@ class Results:
                 arrival_time = max(alpha, actual_delay) + delta
                 if arrival_time < best_arrival_time:
                     best_arrival_time = arrival_time
-                    best_route = (atf, route)
-        return best_route
+                    best_route = route
+                    best_atf = atf
+
+        wait_locations = {}
+        for agent in agents.values():
+            wait_locations[agent] = {}
+            for delay_location, min_delay in best_route["delays"][agent.id]:
+                wait_location = agent.get_wait_location(delay_location, {node for node, interval in best_route["route"]})
+                delay = min_delay + max(best_atf[1], actual_delay) - best_atf[1]
+                print(f"Agent {agent} delayed at {delay_location}, should wait at {wait_location} for {delay}")
+                if wait_location in wait_locations[agent]:
+                    if delay > wait_locations[agent][wait_location]:
+                        wait_locations[agent][wait_location] = delay
+                else:
+                    wait_locations[agent][wait_location] = delay
+        return best_atf, best_route["route"], wait_locations
 
 
 if __name__ == "__main__":
