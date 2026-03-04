@@ -71,6 +71,10 @@ class Results:
 
         y_offset = kwargs.get('y_offset', 0)
 
+        ax.set_xlabel(kwargs.get('xlabel', 'Departure Time'))
+        ax.set_ylabel(kwargs.get('ylabel', 'Arrival Time'))
+        ax.set_title(kwargs.get('title', 'Arrival time function'))
+
         line = None
         for (x0, x1, y0, y1) in self.segments:
             if x0 == "-inf" and x1 != "inf" and y1 != "inf":

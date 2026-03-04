@@ -84,7 +84,7 @@ class Agent(Generic[EdgeType, NodeType]):
             # Store the buffer and crt
             move.add_flexibility(self, last_buffer_time, compound_recovery_time)
 
-    def plot_route(self, ax: Axis):
+    def plot_route(self, ax: Axis, **kwargs):
         x = 0
         location_labels = []
         for move in self.route:
@@ -97,6 +97,10 @@ class Agent(Generic[EdgeType, NodeType]):
             x += length
         ticks, labels = list(zip(*location_labels))
         ax.set_xticks(ticks, labels)
+
+        ax.set_xlabel(kwargs.get('xlabel', 'Location'))
+        ax.set_ylabel(kwargs.get('ylabel', 'Time'))
+        ax.set_title(kwargs.get('title', 'Unsafe Intervals'))
 
     def get_wait_location(self, initial_location: NodeType, opposing_route: set[EdgeType | NodeType]):
         from flexsipp.graphs.graph import Node
