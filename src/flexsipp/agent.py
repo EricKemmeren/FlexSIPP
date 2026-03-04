@@ -100,16 +100,18 @@ class Agent(Generic[EdgeType, NodeType]):
 
     def get_wait_location(self, initial_location: NodeType, opposing_route: set[EdgeType | NodeType]):
         from flexsipp.graphs.graph import Node
+        delayed_at = [initial_location]
         try:
             i = self.route.index(initial_location)
             while i > 0:
                 i -= 1
                 wait_location = self.route[i]
+                delayed_at.append(wait_location)
                 if isinstance(wait_location, Node):
                     if wait_location not in opposing_route:
-                        return wait_location
+                        return delayed_at
         except ValueError:
-            return initial_location
+            return delayed_at
 
 
     def __repr__(self):

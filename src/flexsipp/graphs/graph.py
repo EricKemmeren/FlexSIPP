@@ -393,3 +393,23 @@ class Graph(Generic[EdgeType, NodeType]):
             path.extend(next_path)
 
         return path
+
+    def _update_minimum_delays(self, minimum_delays):
+        for agent, delays in minimum_delays.items():
+            current_delay = 0
+            for move in agent.route:
+                ui = [ui for ui in move.unsafe_intervals if ui.by_agent == agent][0]
+                new_delay = delays.get(move, 0)
+                if current_delay < new_delay:
+                    # Delay becomes larger, thus the agent should wait here. Extend end of interval delay, start of interval is shifted by old delay
+                    ui.start += current_delay
+                    ui.end += new_delay
+                    current_delay = new_delay
+                else:
+                    ui.start += current_delay
+                    ui.end += current_delay - ui.local_recovery_time
+                    current_delay = max(0, current_delay - ui.local_recovery_time)
+
+    def update_unsafe_intervals(self, minimum_delays=None):
+        if minimum_delays is not None:
+            self._update_minimum_delays(minimum_delays)

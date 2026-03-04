@@ -125,19 +125,18 @@ class Results:
                     best_route = route
                     best_atf = atf
 
-        wait_locations = {}
+        minimum_delays = {}
         for agent in agents.values():
-            wait_locations[agent] = {}
+            minimum_delay = {}
             for delay_location, min_delay in best_route["delays"][agent.id]:
                 wait_location = agent.get_wait_location(delay_location, {node for node, interval in best_route["route"]})
                 delay = min_delay + max(best_atf[1], actual_delay) - best_atf[1]
-                print(f"Agent {agent} delayed at {delay_location}, should wait at {wait_location} for {delay}")
-                if wait_location in wait_locations[agent]:
-                    if delay > wait_locations[agent][wait_location]:
-                        wait_locations[agent][wait_location] = delay
-                else:
-                    wait_locations[agent][wait_location] = delay
-        return best_atf, best_route["route"], wait_locations
+                print(f"Agent {agent} delayed at {delay_location}, should wait at {wait_location} for at least {delay}")
+                for loc in wait_location:
+                    minimum_delay[loc] = max(minimum_delay.get(loc, 0), delay)
+            minimum_delays[agent] = minimum_delay
+
+        return best_atf, best_route["route"], minimum_delays
 
 
 if __name__ == "__main__":
