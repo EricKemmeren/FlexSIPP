@@ -6,8 +6,9 @@ build-backend = "mesonpy"
 name = "FlexSIPP"
 version = "0.0.1"
 dependencies = [
-    "numpy>=1.25.1",
+    "numpy>=2.4.2",
     "matplotlib>=3.10.8",
     "sortedcontainers>=2.4.0",
     "tqdm>=4.67.3",
+    "python-rapidjson>=1.23"
 ]

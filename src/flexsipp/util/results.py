@@ -1,61 +1,64 @@
 from matplotlib.axis import Axis
+import pickle
+from rapidjson import Decoder, PM_TRAILING_COMMAS
 
+from flexsipp.agent import Agent
+from flexsipp.graphs.graph import Graph
+
+json_decoder = Decoder(parse_mode=PM_TRAILING_COMMAS)
 
 class Results:
-    def __init__(self, s:str):
-        #s is a string with the text output of a repeat search this parses it into the compount atf, and the individual augmentded SIPP plans for each segment
+    def __init__(self):
         self.metadata= {}
         self.unique_paths = {}
         self.unique_path_eatfs = {}
-        s = s.splitlines() # avoid empty element in list
-        self.parse_list_of_outputs(s)
+        self.segments = []
+        self.found_routes = []
+    
+    def __repr__(self):
+        return f"Found {len(self.found_routes)} routes with unique paths {list(self.unique_paths.keys())}"
 
-    def parse_list_of_outputs(self, s, offset=0):
-        # s is the output split on newline characters
-        i = 0
-        while "Nodes generated" not in s[i]:
-            i += 1
-        lns = s[i].split(" ")
-        self.metadata["Nodes generated"] = lns[2]
-        self.metadata["Nodes decreased"] = lns[5]
-        self.metadata["Nodes expanded"] = lns[8]
-        i+=1
-        self.catf = s[i].strip(", ").split(", ") # avoid empty element in list
-        self.catf = [tuple([str(round(float(y) - offset, 2)) for y in (x.strip("'").strip("<").strip(">").split(","))]) for x in self.catf]
-        i += 1
-        paths = []
-        eatfs = []
-        while i < len(s) and "time: " not in s[i]:
-            paths.append([])
-            while "time: " not in s[i] and (s[i][0] != "<") and (s[i][-1] != ">"):
-                # s[i]: "node_name node_safe_interval node_id"
-                paths[-1].append(s[i].split(" ")[0])
-                i += 1
-            atf = s[i]
-            atf = atf.strip("<").strip(">").split(",")
-            gammas = [gamma[1:-1].split(": ") for gamma in atf[-1][1:-1].split("; ")[0:-1]]
-            atf[-1] = gammas
-            for j in range(len(atf) - 2):
-                atf[j] = str(round(float(atf[j]) - offset, 2))
-            atf = tuple(atf)
-            eatfs.append(atf)
-            i += 1
+    @classmethod
+    def parse_json(cls, s: str, g: Graph):
+        self = cls()
 
-        search_time = s[i].split(" ")
-        self.metadata["Search time"] = search_time[-2]
+        input = json_decoder(s)
+        self.metadata = input["MetaData"]
+        self.metadata["Search Time"] = input["Search time"]
+        result = input["Result"]
 
-        if [] in paths:
-            paths.remove([]) # because the last path added stays empty
+        # json_decoder does not support direct conversion of -inf/inf to float, thus manual conversion is needed.
+        self.segments = [(float(x0), float(x1), float(y0), float(y1)) for x0, x1, y0, y1 in result["segments"]]
 
-        for (i,p) in enumerate(paths):
-            path_string = ";".join(p)
-            if path_string in self.unique_paths:
-                self.unique_paths[path_string] += 1
-                if eatfs[i] not in self.unique_path_eatfs[path_string]:
-                    self.unique_path_eatfs[path_string].append(eatfs[i])
+        # Last found route is bullshit
+        for found_route in result["payloads"][0:-1]:
+            zeta, alpha, beta, delta = found_route["edge_atf"]["atf"]
+            atf = (float(zeta), float(alpha), float(beta), float(delta))
+
+            path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"]]
+            # TODO: rewrite this, this does not make any sense tbh
+            path_str = "->".join([node for node, interval in path])
+            if path_str in self.unique_paths:
+                self.unique_paths[path_str] += 1
+                if atf not in self.unique_path_eatfs[path_str]:
+                    self.unique_path_eatfs[path_str].append(atf)
             else:
-                self.unique_paths[path_string] = 1
-                self.unique_path_eatfs[path_string] = [eatfs[i]]
+                self.unique_paths[path_str] = 1
+                self.unique_path_eatfs[path_str] = [atf]
+
+            delays = {}
+            for agent, gamma in enumerate(found_route["edge_atf"]["gammas"][1:], 1):
+                delays[agent] = []
+                for incurred_delay in gamma["incurred_delays"]:
+                    location = g.nodes[incurred_delay["location"]]
+                    min_delay = incurred_delay["delay"]
+                    delays[agent].append((location, min_delay))
+
+            # TODO: make this a route, including the exact edges taken
+            node_route = [(g.nodes[node], interval) for node, interval in path]
+
+            self.found_routes.append((atf, {"route": node_route, "delays": delays}))
+        return self
 
     linestyles = [
         (0, (5, 10)),
@@ -67,42 +70,89 @@ class Results:
     def plot(self, ax: Axis, **kwargs):
         color = kwargs.get('color', None)
         label = kwargs.get('label', None)
-        linestyle = Results.linestyles[kwargs.get('linestyle', 0)]
+        linestyle = Results.linestyles[kwargs.get('linestyle', 3)]
 
         y_offset = kwargs.get('y_offset', 0)
 
+        ax.set_xlabel(kwargs.get('xlabel', 'Departure Time'))
+        ax.set_ylabel(kwargs.get('ylabel', 'Arrival Time'))
+        ax.set_title(kwargs.get('title', 'Arrival time function'))
+
         line = None
-        for (x0, x1, y0, y1) in self.catf:
+        for (x0, x1, y0, y1) in self.segments:
             if x0 == "-inf" and x1 != "inf" and y1 != "inf":
                 ax.hlines(float(y1) + y_offset, 0, float(x1), colors=color, linestyle=linestyle)
             line, = ax.plot([float(x0), float(x1)], [float(y0) + y_offset, float(y1) + y_offset], color=color,
                             linestyle=linestyle)
         line.set_label(label) if line is not None else None
 
-def test():
-    Results(
-        "\n".join(['Arrival time: 130.667',
-                   'Nodes generated: 10 Nodes decreased: 0 Nodes expanded: 8',
-                   '<-inf,20,130.667,130.667>, '
-                   '<20,50,130.667,160.667>, '
-                   '<50,inf,inf,inf>, '
-                   '',
-                   't-EHB <0,50> ns:1',
-                   's-123BL <0,150> ns:2',
-                   's-125BR <93,160> ns:2',
-                   's-131B <88,170> ns:2',
-                   't-401B <115,2000> ns:1',
-                   't-401A <115,2000> ns:2',
-                   '<-inf,20,50,110.667>',
-                   't-EHB <0,50> ns:1',
-                   's-123BL <0,150> ns:2',
-                   's-125BR <93,160> ns:2',
-                   's-131B <88,170> ns:2',
-                   't-401B <115,2000> ns:1',
-                   't-401A <115,2000> ns:2',
-                   '<-inf,20,50,110.667>',
-                   '<0,0,inf,inf>',
-                   'Search time: 1141791 nanoseconds',
-                   'Total (n=100) Lookup time: 10917 nanoseconds'])
-)
-        # run $ python3 -c 'from parseRePEAT import *; test()'
+    def save(self, file):
+        with open(file, "wb") as outp:
+            pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
+
+    def compare_paths(self, f, original_path:list[str]):
+        paths:list[str] = [key.split("->") for key in self.unique_paths.keys()]
+        def split_list_on_gaps(path: list[int]) -> list[list[int]]:
+            if not path:
+                return [path]
+            result = []
+            result.append([path[0]])
+            for p in path[1:]:
+                if p - 1 == result[-1][-1]:
+                    result[-1].append(p)
+                else:
+                    result.append([p])
+            return result
+        
+        for path in paths:
+            # Find differences in the paths between original and new
+            differences = list(set(path) - set(original_path))
+            diff_index = [path.index(i) for i in differences]
+            diff_index.sort()
+
+            largest_beta = max([b for z,a,b,d,g in self.unique_path_eatfs[";".join(path)]])
+
+            f.write(f"Path differences when departing before {largest_beta}\n")
+            for diffs in split_list_on_gaps(diff_index):
+                differences = [path[i] for i in diffs]
+                f.write(", ".join(differences))
+                f.write("\n")
+            f.write("\n")
+
+    def get_fastest_route(self, actual_departure_time: float, agents: dict[int, Agent], discrete=False):
+        if discrete:
+            delay_addition = 1
+        else:
+            delay_addition = 0
+        best_route = None
+        best_atf = None
+        best_arrival_time = float("inf")
+        for atf, route in self.found_routes:
+            zeta, alpha, beta, delta = atf
+            if zeta <= actual_departure_time < beta:
+                arrival_time = max(alpha, actual_departure_time) + delta
+                if arrival_time < best_arrival_time:
+                    best_arrival_time = arrival_time
+                    best_route = route
+                    best_atf = atf
+
+        minimum_delays = {}
+        for agent in agents.values():
+            minimum_delay = {}
+            for delay_location, min_delay in best_route["delays"][agent.id]:
+                wait_location = agent.get_wait_location(delay_location, {node for node, interval in best_route["route"]})
+                delay = min_delay + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
+                print(f"Agent {agent} delayed at {delay_location}, should wait at {wait_location} for at least {delay}")
+                for loc in wait_location:
+                    minimum_delay[loc] = max(minimum_delay.get(loc, 0), delay)
+            minimum_delays[agent] = minimum_delay
+
+        return best_atf, best_route["route"], minimum_delays
+
+
+if __name__ == "__main__":
+    with open(r"C:\Users\eoss3\Documents\FlexSIPP\FlexSIPP\data\friso\demo_backup\update-00\results.pkl", "rb") as f:
+        data = pickle.load(f)
+
+    with open(r"C:\Users\eoss3\Documents\FlexSIPP\FlexSIPP\data\friso\demo_backup\update-00\results2.txt", "w") as f:
+        data.compare_paths(f, ['LPE-1284', 'LPE-1264', 'BTL_LPE-1236', 'BTL-1194', 'BTL-1124', 'BTL_TB-1542', 'BTL_TB-1536', 'BTL_TB-1532', 'BTL_TB-1528', 'BTL_TB-1522', 'BTL_TB-528', 'BTL_TB-524', 'BTL_TB-518', 'BTL_TB-512', 'BTL_TB-506', 'TB-168', 'TB-892', 'TB-130', 'TB-116', 'TBU-96', 'TBU-72', 'BD_TBU-874', 'BD_TBU-870', 'BD_TBU-866', 'BD_TBU-862', 'BD_TBU-858', 'BD_TBU-852', 'BD_TBU-846', 'BD_TBU-836', 'BD_TBU-830', 'BD_TBU-826', 'BD_TBU-822', 'BD_TBU-818', 'BD_TBU-812', 'BD-1150', 'BD-1136', 'BD-1080', 'BD-1044', 'BD-1028', 'BD_ZHA-703', 'BD_ZHA-709', 'BD_ZHA-715', 'ZHA-526', 'ZHA-508', 'ZHA-2376', 'RTDBD-2356', 'RTDBD-2346', 'RTDBD-2336', 'RTDBD-2326', 'RTDBD-2316', 'RTDBD-2306', 'RTDBD-2296', 'RTDBD-2286', 'RTDBD-2276', 'RTDBD-2266', 'RTDBD-2256', 'KFHAZ_RTDBD-710'])
