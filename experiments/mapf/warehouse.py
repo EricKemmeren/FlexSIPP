@@ -38,7 +38,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, 0)
     print(result)
 
-    fig, axs = plt.subplots(1,3, figsize = (15,5))
+    fig, axs = plt.subplots(1,2, figsize = (10,5))
     result.plot(axs[0], linestyle=3)
 
     axs[1].grid(alpha=0.3)
@@ -50,7 +50,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     del minimum_delays[delay_agent]
     graph.update_unsafe_intervals(minimum_delays=minimum_delays)
 
-    delay_agent.plot_route(axs[1])
+    delay_agent.plot_route(axs[1], continues=True)
 
     plt.show()
     plt.close()
