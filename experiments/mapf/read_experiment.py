@@ -40,7 +40,7 @@ def paths_to_unsafe_intervals(path_file, grid, scenario_end):
 
                     current_flexibility = 0
                 if i == len(node_list) - 1:
-                    node_interval = UnsafeInterval(i, grid.global_end_time, grid.global_end_time - i, agent, grid.global_end_time - i)
+                    node_interval = UnsafeInterval(i - current_flexibility, grid.global_end_time, grid.global_end_time - i, agent, grid.global_end_time - i + current_flexibility)
                     grid.nodes[node_list[i]].add_unsafe_interval(node_interval)
                     agent.route.append(grid.nodes[node_list[i]])
             agents[id] = agent
