@@ -52,7 +52,9 @@ class Results:
                 for incurred_delay in gamma["incurred_delays"]:
                     location = g.nodes[incurred_delay["location"]]
                     min_delay = incurred_delay["delay"]
-                    delays[agent].append((location, min_delay))
+                    min_gamma = gamma["min_gamma"]
+                    max_gamma = gamma["max_gamma"]
+                    delays[agent].append((location, min_delay, min_gamma, max_gamma))
 
             # TODO: make this a route, including the exact edges taken
             node_route = [(g.nodes[node], interval) for node, interval in path]
@@ -68,33 +70,46 @@ class Results:
     ]
 
     def plot(self, ax: Axis, **kwargs):
-        color = kwargs.get('color', None)
-        label = kwargs.get('label', None)
-        linestyle = Results.linestyles[kwargs.get('linestyle', 3)]
+        if kwargs.get("show_atf", True):
+            color = kwargs.get('color', "red")
+            label = kwargs.get('label', None)
+            linestyle = Results.linestyles[kwargs.get('linestyle', 3)]
 
-        y_offset = kwargs.get('y_offset', 0)
+            y_offset = kwargs.get('y_offset', 0)
 
-        ax.set_xlabel(kwargs.get('xlabel', 'Departure Time'))
-        ax.set_ylabel(kwargs.get('ylabel', 'Arrival Time'))
-        ax.set_title( kwargs.get('title', 'Arrival time function'))
+            ax.set_xlabel(kwargs.get('xlabel', 'Departure Time'))
+            ax.set_ylabel(kwargs.get('ylabel', 'Arrival Time'))
+            ax.set_title( kwargs.get('title', 'Arrival time function'))
 
-        line = None
-        for (x0, x1, y0, y1) in self.segments:
-            if x0 == "-inf" and x1 != "inf" and y1 != "inf":
-                ax.hlines(float(y1) + y_offset, 0, float(x1), colors=color, linestyle=linestyle)
-            line, = ax.plot([float(x0), float(x1)], [float(y0) + y_offset, float(y1) + y_offset], color=color,
-                            linestyle=linestyle)
-        line.set_label(label) if line is not None else None
+            line = None
+            for (x0, x1, y0, y1) in self.segments:
+                if x0 == "-inf" and x1 != "inf" and y1 != "inf":
+                    ax.hlines(float(y1) + y_offset, 0, float(x1), colors=color, linestyle=linestyle)
+                line, = ax.plot([float(x0), float(x1)], [float(y0) + y_offset, float(y1) + y_offset], color=color,
+                                linestyle=linestyle)
+            line.set_label(label) if line is not None else None
 
-        if kwargs.get("show_buffer_time", False):
-            axr = ax.twinx()
-            axr.set_ylabel("Additional Delay")
+        if kwargs.get("show_additional_delays", False):
+            ax.set_xlabel("Departure Time")
+            ax.set_ylabel("Additional Delay")
+            ax.set_title("Flexibility Used")
             for atf, route in self.found_routes:
                 zeta, alpha, beta, delta = atf
-                delay_at_alpha = sum([delay for agents_delays in route["delays"].values() for node, delay in agents_delays if agents_delays])
-                delay_at_beta = sum([delay + max(0, beta - alpha) for agents_delays in route["delays"].values() for node, delay in agents_delays if agents_delays])
-                # axr.plot([alpha, beta], [delay_at_alpha, delay_at_beta], color="blue", alpha=0.5)
-                axr.fill_between([alpha, beta], [delay_at_alpha, delay_at_beta], color="lightblue", alpha=0.5)
+                delay_at_alpha = 0
+                delay_at_beta  = 0
+                for agents_delays in route["delays"].values():
+                    current_delay_at_alpha = 0
+                    current_delay_at_beta  = 0
+                    if agents_delays:
+                        for node, delay, min_gamma, max_gamma in agents_delays:
+                            current_delay_at_alpha = max(current_delay_at_alpha, min_gamma)
+                            current_delay_at_beta  = max(current_delay_at_beta,  max_gamma)
+                    delay_at_alpha += current_delay_at_alpha
+                    delay_at_beta  += current_delay_at_beta
+
+                ax.plot([alpha, beta], [delay_at_alpha, delay_at_beta], color="lightblue")
+                # ax.fill_between([alpha, beta], [delay_at_alpha, delay_at_beta], color="lightblue")
+
                 print(atf, delay_at_alpha, delay_at_beta)
 
 
@@ -151,7 +166,7 @@ class Results:
         minimum_delays = {}
         for agent in agents.values():
             minimum_delay = {}
-            for delay_location, min_delay in best_route["delays"][agent.id]:
+            for delay_location, min_delay, min_gamma, max_gamma in best_route["delays"][agent.id]:
                 wait_location = agent.get_wait_location(delay_location, {node for node, interval in best_route["route"]})
                 delay = min_delay + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
                 print(f"Agent {agent} delayed at {delay_location}, should wait at {wait_location} for at least {delay}")

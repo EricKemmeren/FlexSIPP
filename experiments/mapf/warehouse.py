@@ -22,35 +22,67 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
         delay_agent_id = int(delay_agent_id)
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     assert delay_agent_id in agents, f"ERROR: no delay agent with id {delay_agent_id} in the set of agents."
-    delay_agent = agents[delay_agent_id]
+
+    # Agent 1 (top left) breaks down, and is unable to move from (0,0)
+    graph.filter_out_agent(agents[1])
+    graph.nodes["(0,0)"].add_unsafe_interval(UnsafeInterval(0.1, graph.global_end_time, 0, agents[1], 0))
+
+    # The route of Agent 2 is not not possible anymore, we should find a new route for this agent
+    rerouting_agent = agents[2]
     for agent in agents.values():
-        agent.max_buffer = 2
+        agent.max_buffer = 5
 
-    graph.filter_out_agent(delay_agent)
+    # Filter out it's unsafe intervals because it will find a new route
+    graph.filter_out_agent(rerouting_agent)
 
-    # obstacle = MapfAgent(2, [], graph.global_end_time)
-    # obstacle.max_buffer = 0
-    # agents[obstacle.id] = obstacle
-    # graph.nodes["(2,0)"].add_unsafe_interval(UnsafeInterval(3, 10, 1, obstacle, 0))
-    # Heuristic for delay agent
-    heuristic = graph.calculate_heuristic(delay_agent.destination)
+    continues = False
+    actual_departure_time = 1
+    start_time = 0
+    show_buffer_time = True
+
+    # Don't use a heuristic, set it to 0 for every node
+    heuristic = {node.name: 0 for node in graph.nodes.values()}
     flexSIPP = FSIPP(graph, heuristic, agents)
-    result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, 0)
+    result = flexSIPP.run_search(graph.global_end_time, rerouting_agent.origin.name, rerouting_agent.destination.name, start_time)
     print(result)
 
-    fig, axs = plt.subplots(1,2, figsize = (10,5))
-    result.plot(axs[0], linestyle=3)
+    fig, axs = plt.subplots(2,3, figsize = (15,10))
+    result.plot(axs[0,0], linestyle=3)
+    result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
 
-    axs[1].grid(alpha=0.3)
-    delay_agent.plot_route(axs[1], continues=True)
-    axs[1].set_ylim(0, graph.global_end_time)
-    axs[1].set_yticks(range(0, graph.global_end_time + 1, 2))
+    ax = axs[0,1]
+    ax.grid(alpha=0.3)
+    rerouting_agent.plot_route(ax, continues=continues, title="Unsafe interval on original path", show_buffer_time=show_buffer_time)
+    ax.set_ylim(0, graph.global_end_time)
+    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
-    atf, new_route, minimum_delays = result.get_fastest_route(1, agents, discrete=True)
-    del minimum_delays[delay_agent]
-    graph.update_unsafe_intervals(minimum_delays=minimum_delays)
+    ax = axs[1,1]
+    ax.grid(alpha=0.3)
+    agents[4].plot_route(ax, continues=continues, title="Agent 4 before", show_buffer_time=show_buffer_time)
+    ax.set_ylim(0, graph.global_end_time)
+    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
-    delay_agent.plot_route(axs[1], continues=True)
+    # Update the graph with the results from flexsipp, assume we now know the actual delay of the agent
+    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=True)
+    del minimum_delays[rerouting_agent]
+    graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
+
+    # TODO: check flexibility creation, possibly an error here.
+    graph.reset_flexibility()
+    for agent in agents.values():
+        agent.calculate_flexibility()
+
+    ax = axs[0,2]
+    ax.grid(alpha=0.3)
+    rerouting_agent.plot_route(ax, continues=continues, title=f"Unsafe Intervals when departing at {actual_departure_time}", show_buffer_time=False)
+    ax.set_ylim(0, graph.global_end_time)
+    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
+
+    ax = axs[1,2]
+    ax.grid(alpha=0.3)
+    agents[4].plot_route(ax, continues=continues, title="Agent 4 after", show_buffer_time=False)
+    ax.set_ylim(0, graph.global_end_time)
+    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     plt.show()
     plt.close()

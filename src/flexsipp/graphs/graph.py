@@ -38,7 +38,7 @@ class IntervalStore(object):
         start = self.unsafe_intervals[0]
         for next in self.unsafe_intervals[1:]:
             # Check for overlap using intersection
-            if start & next:
+            if start & next and start.by_agent == next.by_agent:
                 start = start | next
             else:
                 merged_intervals.add(start)
@@ -117,6 +117,7 @@ class IntervalStore(object):
                                                     linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
             else:
                 x = [x1, x1, x2, x2]
+                # x = [x2, x2, x1, x1]
                 y = [ui.start, ui.end, ui.end + (x2 - x1), ui.start + (x2 - x1)]
                 blocking_time = patches.Polygon(xy=list(zip(x,y)),
                                                 linewidth=1, edgecolor=kwargs.get("edgecolor", "red"),
