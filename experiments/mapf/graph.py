@@ -35,6 +35,7 @@ class GridConnection(Edge["GridConnection", "GridCell"]):
     def add_unsafe_interval(self, interval: UnsafeInterval):
         super().add_unsafe_interval(interval)
         super(Edge, self.opposite).add_unsafe_interval(interval)
+        self.to_node.add_unsafe_interval(interval)
 
     def add_flexibility(self, agent: MapfAgent, bt: float, crt:float):
         """

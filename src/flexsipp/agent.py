@@ -71,11 +71,11 @@ class Agent(Generic[EdgeType, NodeType]):
         for move in self.route[::-1]:
             local_buffer, local_recovery = self._get_local_flexibility(move)
 
-            # TODO: check order of these operations
+            # TODO: local buffer can be negative because agents can both have an unsafe interval on a node.
             # Because we are going backwards over the route,
             # the buffer time cannot be larger than the buffer time in the future
             # (if ignoring recovery time)
-            last_buffer_time = min(last_buffer_time, local_buffer)
+            last_buffer_time = min(last_buffer_time, max(0, local_buffer))
 
             # Buffer time can increase by recovery time if it would fit
             compound_recovery_time += local_recovery

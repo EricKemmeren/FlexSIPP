@@ -26,7 +26,7 @@ class Interval:
         Check if the current interval is valid
         @return: true iff start < end
         """
-        return self.start < self.end
+        return self.start <= self.end
 
     def __or__(self, other):
         """
@@ -34,9 +34,7 @@ class Interval:
         @param other: An overlapping interval
         @return: an Interval encompassing both the current and the other interval
         """
-        if self & other:
-            return Interval(min(self.start, other.start), max(self.end, other.end))
-        raise ValueError
+        return Interval(min(self.start, other.start), max(self.end, other.end))
 
     def __and__(self, other):
         return Interval(max(self.start, other.start), min(self.end, other.end))
