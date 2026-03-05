@@ -6,6 +6,7 @@ import queue as Q
 from logging import getLogger
 from typing import Generic, ClassVar, Tuple
 
+from matplotlib import patches
 from sortedcontainers import SortedKeyList
 
 from ..agent import Agent
@@ -16,9 +17,11 @@ logger = getLogger('__main__.' + __name__)
 
 
 class IntervalStore(object):
+    """Definition of a safe interval."""
+    
     def __init__(self):
         super().__init__()
-        self.unsafe_intervals: SortedKeyList[UnsafeInterval] = SortedKeyList(key=lambda x: x.start)
+        self.unsafe_intervals: SortedKeyList = SortedKeyList(key=lambda x: x.start)
         self.safe_intervals: list[SafeInterval] = []
         self.bt: dict[int, float] = {}
         self.crt: dict[int, float] = {}
@@ -31,18 +34,20 @@ class IntervalStore(object):
         self.merged = True
         if len(self.unsafe_intervals) == 0:
             return
+        merged_intervals = SortedKeyList(key=lambda x: x.start)
         start = self.unsafe_intervals[0]
         for next in self.unsafe_intervals[1:]:
             # Check for overlap using intersection
             if start & next:
-                start.merge(next)
-                self.unsafe_intervals.remove(next)
+                start = start | next
             else:
+                merged_intervals.add(start)
                 start = next
+        merged_intervals.add(start)
+        self.unsafe_intervals = merged_intervals
 
     def filter_out_agent(self, agent: Agent):
-        return [ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id]
-
+        self.unsafe_intervals = SortedKeyList([ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id], key=lambda x: x.start)
 
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
         """
@@ -98,8 +103,23 @@ class IntervalStore(object):
             last_interval = SafeInterval(current, global_end_time, agent_before, crt_b, 0, 0, 0)
             self.safe_intervals.append(last_interval)
 
+    def plot_unsafe_interval(self, ax, x1, x2, **kwargs):
+        for ui in self.unsafe_intervals:
+            blocking_time = patches.Rectangle((x1, ui.start), x2 - x1, ui.end - ui.start,
+                                                linewidth=1, edgecolor=kwargs.get("edgecolor", "red"),
+                                                facecolor="none")
+            ax.add_patch(blocking_time)
+
+            # c = color_map.get(ui.by_agent.id, None)
+            # bt, _ = self.get_flexibility(ui.by_agent)
+            # buffer_time = patches.Rectangle((x1, ui.end), x2 - x1, bt,
+            #                                     linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
+            # ax.add_patch(buffer_time)
+
 
 class Node(IntervalStore, Generic[EdgeType, NodeType]):
+    """Nodes in the @SIPP graphs, which are locations and a safe interval, with incoming and outgoing ATF edges."""
+
     def __init__(self, name: str):
         super().__init__()
         self.name = name
@@ -162,23 +182,26 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
             logger.error(f"##### ERROR ### No path was found between {self.name} and {to.name}")
         return path
 
-    def get_safe_connections(self) -> list[Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
+    def get_safe_connections(self, allowed_nodes: set[NodeType]) -> list[Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
         assert len(self.safe_intervals) > 0
         safe_connections = []
         for from_interval in self.safe_intervals:
             for edge in self.outgoing:
-                for edge_interval in edge.safe_intervals:
-                    # Check for overlap with the from node and edge
-                    if from_interval & edge_interval:
-                        for to_interval in edge.to_node.safe_intervals:
-                            # Check for overlap with the edge en to node
-                            # TODO: figure out if overlap with from and to node is needed
-                            if edge_interval & to_interval:
-                                safe_connections.append((from_interval, edge_interval, to_interval, edge.length))
+                if edge.to_node in allowed_nodes:
+                    for edge_interval in edge.safe_intervals:
+                        # Check for overlap with the from node and edge
+                        if from_interval & edge_interval:
+                            for to_interval in edge.to_node.safe_intervals:
+                                # Check for overlap with the edge en to node
+                                # TODO: figure out if overlap with from and to node is needed
+                                if edge_interval & to_interval:
+                                    safe_connections.append((from_interval, edge_interval, to_interval, edge))
         return safe_connections
 
 
 class Edge(IntervalStore, Generic[EdgeType, NodeType]):
+    """Edge in the @SIPP graph is an ATF describing safe traversal from the from_node to the to_node."""
+
     __last_id: ClassVar[int] = 1
 
     def __init__(self, f: NodeType, t: NodeType, l: float, mv: float):
@@ -210,6 +233,8 @@ class Edge(IntervalStore, Generic[EdgeType, NodeType]):
 
 
 class Graph(Generic[EdgeType, NodeType]):
+    """@SIPP graph with ATFs as edges and (configuration, safe-interval) pairs as nodes."""
+
     def __init__(self):
         self.edges: list[EdgeType] = []
         self.nodes: dict[str, NodeType] = {}
@@ -243,9 +268,16 @@ class Graph(Generic[EdgeType, NodeType]):
         """
         uis: list[IntervalStore] = list(self.nodes.values()) + self.edges
         for ui in uis:
+            ui.safe_intervals.clear()
             ui.get_safe_intervals(self.global_end_time)
 
-    def calculate_heuristic(self, start: NodeType, agent_velocity) -> dict[str, float]:
+    def reset_flexibility(self):
+        uis: list[IntervalStore] = list(self.nodes.values()) + self.edges
+        for ui in uis:
+            ui.crt = {}
+            ui.bt = {}
+
+    def calculate_heuristic(self, start: NodeType) -> dict[str, float]:
         time_distances = {n: float("inf") for n in self.nodes}
         pq = Q.PriorityQueue()
         time_distances[start.name] = 0.0
@@ -257,8 +289,7 @@ class Graph(Generic[EdgeType, NodeType]):
         while not pq.empty():
             v: NodeType = pq.get()[2]
             for e in v.incoming:
-                velocity = min(e.max_speed, agent_velocity)
-                tmp = time_distances[v.name] + (e.length / velocity)
+                tmp = time_distances[v.name] + (e.length / e.max_speed)
                 if tmp < time_distances[e.from_node.name]:
                     time_distances[e.from_node.name] = tmp
                     pq.put((time_distances[e.from_node.name], pq_counter, e.from_node))
@@ -370,20 +401,40 @@ class Graph(Generic[EdgeType, NodeType]):
 
         return path
 
-if __name__ == '__main__':
-    n = Node("test")
-    n.add_unsafe_interval(UnsafeInterval(2, 5, 1, 0, 1))
-    n.add_unsafe_interval(UnsafeInterval(10, 15, 2, 0, 1))
-    n.add_unsafe_interval(UnsafeInterval(0, 6, 4, 0, 1))
-    n.add_unsafe_interval(UnsafeInterval(12, 20, 8, 0, 1))
-    n.add_unsafe_interval(UnsafeInterval(18, 25, 16, 0, 1))
-    n.add_unsafe_interval(UnsafeInterval(-5, 0, 32, 0, 1))
+    def _update_delayed_agent(self, *args, **kwargs):
+        # This is more implementation specific, should be overwritten if used
+        raise NotImplementedError
 
-    for i in n.unsafe_intervals:
-        print(i, i.local_recovery_time)
+    def _update_using_minimum_delays(self, minimum_delays):
+        for agent, delays in minimum_delays.items():
+            current_delay = 0
+            for move in agent.route:
+                filtered_uis = [ui for ui in move.unsafe_intervals if ui.by_agent == agent]
+                if len(filtered_uis)>0:
+                    ui = filtered_uis[0]
+                    new_delay = delays.get(move, 0)
+                    if current_delay < new_delay:
+                        # Delay becomes larger, thus the agent should wait here. Extend end of interval delay, start of interval is shifted by old delay
+                        ui.start += current_delay
+                        ui.end += new_delay
+                        current_delay = new_delay
+                        # As it's standing still here, it is gaining local recovery time by the difference in delay amount
+                        ui.local_recovery_time += new_delay - current_delay
+                    else:
+                        recovery_used = min(ui.local_recovery_time, current_delay)
+                        updated_delay = current_delay - recovery_used
+                        ui.start += current_delay
+                        ui.end += updated_delay
+                        ui.local_recovery_time -= recovery_used
+                        current_delay = updated_delay
 
-    print ("MERGING")
-    n.merge_unsafe_intervals()
+    def update_unsafe_intervals(self, new_path=None, minimum_delays=None):
+        if new_path is not None:
+            self._update_delayed_agent(*new_path)
+        if minimum_delays is not None:
+            self._update_using_minimum_delays(minimum_delays)
 
-    for i in n.unsafe_intervals:
-        print(i, i.local_recovery_time)
+    def filter_out_agent(self, agent: Agent):
+        uis:list[IntervalStore] = list(self.nodes.values()) + self.edges
+        for ui in uis:
+            ui.filter_out_agent(agent)

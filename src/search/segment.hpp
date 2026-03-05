@@ -96,7 +96,12 @@ struct Segment{
     }
 
     inline friend std::ostream& operator<< (std::ostream& stream, const Segment& seg){
-        stream << "<" << seg.x0 << "," << seg.x1 << "," << seg.y0 << "," << seg.y1 << ">";
+        stream << "[";
+        stream << "\"" << seg.x0 << "\", ";
+        stream << "\"" << seg.x1 << "\", ";
+        stream << "\"" << seg.y0 << "\", ";
+        stream << "\"" << seg.y1 << "\"";
+        stream << "]";
         return stream;
     }
 };

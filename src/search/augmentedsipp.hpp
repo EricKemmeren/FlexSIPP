@@ -2,6 +2,7 @@
 #include <functional>
 #include <unordered_map>
 #include <utility>
+#include <vector>
 #include <boost/heap/d_ary_heap.hpp>
 #include "graph.hpp"
 #include "repeat.hpp"
@@ -68,22 +69,27 @@ namespace asipp{
 //        intervalTime_t duration_available = beta-(edge.alpha - delta);
         intervalTime_t duration_available = std::max(0.0, beta - alpha);
         intervalTime_t max_gamma = gam_after.second;
-        std::cerr << "Duration: " << duration_available << ", Max gamma before: " << max_gamma;
+        // std::cerr << "Duration: " << duration_available << ", Max gamma before: " << max_gamma;
         max_gamma = std::min(duration_available + min_gamma, gam_after.second);
-        std::cerr << " after: " << max_gamma << std::endl;
+        // std::cerr << " after: " << max_gamma << std::endl;
 
 //        gamma[edge.agent_after.id] = get_reduced_gamma(gam_item_t(min_gamma, max_gamma, gam_after.last_recovery), edge.agent_after);
-        gamma[edge.agent_after.id] = gam_item_t(min_gamma, max_gamma, gam_after.last_recovery, gam_after.location, gam_after.initial_delay);
+        gamma[edge.agent_after.id] = gam_item_t(min_gamma, max_gamma, gam_after.last_recovery, gam_after.incurred_delays);
 
         EdgeATF arrival_time_function(zeta, alpha, beta, delta, gamma);
 
         std::cerr << "Created catf " << arrival_time_function << std::endl;
 
-        intervalTime_t eat = cur.g.earliest_arrival_time();
-        if (eat >= edge.beta) {
-            std::cerr << "cur.alpha + cur.delta > edge.beta" << eat << " >= " << edge.beta << std::endl;
+        intervalTime_t eat = arrival_time_function.earliest_arrival_time();
+        if (eat > edge.beta) {
+            std::cerr << "cur.alpha + cur.delta > edge.beta" << eat << " > " << edge.beta << std::endl;
             return;
         }
+
+//        if (alpha == beta) {
+//            std::cerr << "Alpha == Beta: " << alpha << std::endl;
+//            return;
+//        }
 
 //        if (!valid_gamma(gamma[edge.agent_after.id])) {
 //            std::cerr << "Gamma not valid " << gamma[edge.agent_after.id] << std::endl;
@@ -103,13 +109,13 @@ namespace asipp{
                 if (arrival_time_function.earliest_arrival_time() <= (*handle).g.earliest_arrival_time()) {
                     m.decreased++;
                     double h = edge.heuristic;
-                    Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source);
-                    std::cerr << "Decreased with better longer available path: " << new_node << std::endl;
+                    // Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source);
+                    // std::cerr << "Decreased with better longer available path: " << new_node << std::endl;
                 } else {
-                std::cerr << "Already found destination, but is worse " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
+                // std::cerr << "Already found destination, but is worse " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
                 }
             } else {
-                std::cerr << "Already found destination, but is (maybe) worse? " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
+                // std::cerr << "Already found destination, but is (maybe) worse? " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
             }
         }
         else{
@@ -147,13 +153,14 @@ namespace asipp{
             std::cerr << "Outgoing edge " << edge << ", b: " << gamma_before << ", a: " << gamma_after << std::endl;
 
             gamma_t old_gamma = gamma_t(cur.g.gamma);
-            old_gamma[successor->edge.agent_after.id] = gam_item_t(gamma_after.first, gamma_after.second,  gamma_after.last_recovery, gamma_after.location, gamma_after.initial_delay);
+            old_gamma[successor->edge.agent_after.id] = gam_item_t(gamma_after.first, gamma_after.second,  gamma_after.last_recovery, gamma_after.incurred_delays);
             extendOpen(cur, open_list, m, successor->source, successor->destination, edge, old_gamma);
 
 //            If there is more buffer time available than is currently being used, use it.
             intervalTime_t available_buffer_time = edge.agent_after.max_buffer_time - gamma_after.second;
+            std::cerr << "Available buffer time: " << available_buffer_time << ", from max: " << edge.agent_after.max_buffer_time << std::endl;
             if (available_buffer_time > epsilon()) {
-                std::cerr << "Addition using " << available_buffer_time << " more buffer time" << std::endl;
+                // std::cerr << "Addition using " << available_buffer_time << " more buffer time" << std::endl;
 //                For this extra atf, alpha is the beta of the old edge
 //                  Beta is alpha + extra aviailable buffer time
 //                  Gamma for the agent after is atleast how much was used before, and max the new max buffer time.
@@ -163,13 +170,14 @@ namespace asipp{
                 extra_edge.beta = extra_edge.alpha + available_buffer_time;
 
                 gamma_t new_gamma = gamma_t(cur.g.gamma);
+                std::vector<incurred_delay_t> incurred_delays = gamma_after.incurred_delays;
+                incurred_delays.push_back(incurred_delay_t(cur.node->state.loc.name, gamma_after.second));
                 new_gamma[successor->edge.agent_after.id] =
                         gam_item_t(
                                 gamma_after.second,
                                 successor->edge.agent_after.max_buffer_time,
                                 gamma_after.last_recovery,
-                                cur.node->state.loc.name,
-                                gamma_after.second);
+                                incurred_delays);
 
                 std::cerr << "Additional edge " << extra_edge << ", " << new_gamma[successor->edge.agent_after.id] << std::endl;
                 extendOpen(cur, open_list, m, successor->source, successor->destination, extra_edge, new_gamma);

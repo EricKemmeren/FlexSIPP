@@ -7,6 +7,6 @@ def timing(f):
         ts = time()
         result = f(*args, **kw)
         te = time()
-        print(f'Function {str(f).split(" at ", maxsplit=1)[0]} took {te-ts:2.4f} seconds')
+        print(f'Function {str(f).split(" at ", maxsplit=1)[0].split("<function ")[1]} took {te-ts:2.4f} seconds')
         return result
     return wrap
