@@ -76,7 +76,7 @@ class Results:
 
         ax.set_xlabel(kwargs.get('xlabel', 'Departure Time'))
         ax.set_ylabel(kwargs.get('ylabel', 'Arrival Time'))
-        ax.set_title(kwargs.get('title', 'Arrival time function'))
+        ax.set_title( kwargs.get('title', 'Arrival time function'))
 
         line = None
         for (x0, x1, y0, y1) in self.segments:
@@ -85,6 +85,18 @@ class Results:
             line, = ax.plot([float(x0), float(x1)], [float(y0) + y_offset, float(y1) + y_offset], color=color,
                             linestyle=linestyle)
         line.set_label(label) if line is not None else None
+
+        if kwargs.get("show_buffer_time", False):
+            axr = ax.twinx()
+            axr.set_ylabel("Additional Delay")
+            for atf, route in self.found_routes:
+                zeta, alpha, beta, delta = atf
+                delay_at_alpha = sum([delay for agents_delays in route["delays"].values() for node, delay in agents_delays if agents_delays])
+                delay_at_beta = sum([delay + max(0, beta - alpha) for agents_delays in route["delays"].values() for node, delay in agents_delays if agents_delays])
+                # axr.plot([alpha, beta], [delay_at_alpha, delay_at_beta], color="blue", alpha=0.5)
+                axr.fill_between([alpha, beta], [delay_at_alpha, delay_at_beta], color="lightblue", alpha=0.5)
+                print(atf, delay_at_alpha, delay_at_beta)
+
 
     def save(self, file):
         with open(file, "wb") as outp:

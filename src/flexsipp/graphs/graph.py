@@ -104,17 +104,31 @@ class IntervalStore(object):
             self.safe_intervals.append(last_interval)
 
     def plot_unsafe_interval(self, ax, x1, x2, **kwargs):
+        continues = kwargs.get("continues", False)
         for ui in self.unsafe_intervals:
-            blocking_time = patches.Rectangle((x1, ui.start), x2 - x1, ui.end - ui.start,
+            c = kwargs.get("bt_color", "lightblue")
+            bt, _ = self.get_flexibility(ui.by_agent)
+
+            if not continues:
+                blocking_time = patches.Rectangle((x1, ui.start), x2 - x1, ui.end - ui.start,
+                                                    linewidth=1, edgecolor=kwargs.get("edgecolor", "red"),
+                                                    facecolor="none")
+                buffer_time = patches.Rectangle((x1, ui.end), x2 - x1, bt,
+                                                    linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
+            else:
+                x = [x1, x1, x2, x2]
+                y = [ui.start, ui.end, ui.end + (x2 - x1), ui.start + (x2 - x1)]
+                blocking_time = patches.Polygon(xy=list(zip(x,y)),
                                                 linewidth=1, edgecolor=kwargs.get("edgecolor", "red"),
                                                 facecolor="none")
-            ax.add_patch(blocking_time)
+                x = [x1, x1, x2, x2]
+                y = [ui.end, ui.end + bt, ui.end + bt + (x2 - x1), ui.end + (x2 - x1)]
+                buffer_time = patches.Polygon(xy=list(zip(x,y)),
+                                              linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
 
-            # c = color_map.get(ui.by_agent.id, None)
-            # bt, _ = self.get_flexibility(ui.by_agent)
-            # buffer_time = patches.Rectangle((x1, ui.end), x2 - x1, bt,
-            #                                     linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
-            # ax.add_patch(buffer_time)
+            ax.add_patch(blocking_time)
+            if kwargs.get("show_buffer_time", True):
+                ax.add_patch(buffer_time)
 
 
 class Node(IntervalStore, Generic[EdgeType, NodeType]):
