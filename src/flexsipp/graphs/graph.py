@@ -421,10 +421,11 @@ class Graph(Generic[EdgeType, NodeType]):
                         # As it's standing still here, it is gaining local recovery time by the difference in delay amount
                         ui.local_recovery_time += new_delay - current_delay
                     else:
+                        recovery_used = min(ui.local_recovery_time, current_delay)
+                        updated_delay = current_delay - recovery_used
                         ui.start += current_delay
-                        ui.end += current_delay - ui.local_recovery_time
-                        updated_delay = max(0, current_delay - ui.local_recovery_time)
-                        ui.local_recovery_time -= current_delay - updated_delay
+                        ui.end += updated_delay
+                        ui.local_recovery_time -= recovery_used
                         current_delay = updated_delay
 
     def update_unsafe_intervals(self, new_path=None, minimum_delays=None):
