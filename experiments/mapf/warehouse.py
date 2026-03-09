@@ -4,13 +4,13 @@ import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
 from numpy.ma.core import minimum
-from matplotlib.backends.backend_pgf import FigureCanvasPgf
-
-matplotlib.backend_bases.register_backend('pdf', FigureCanvasPgf)
-matplotlib.rcParams.update({
-    "pgf.texsystem": "pdflatex",
-    'pgf.rcfonts': False,
-})
+# from matplotlib.backends.backend_pgf import FigureCanvasPgf
+#
+# matplotlib.backend_bases.register_backend('pdf', FigureCanvasPgf)
+# matplotlib.rcParams.update({
+#     "pgf.texsystem": "pdflatex",
+#     'pgf.rcfonts': False,
+# })
 
 from agent import MapfAgent
 from flexsipp.graphs.fsipp import FSIPP
@@ -51,8 +51,8 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     heuristic = {node.name: 0 for node in graph.nodes.values()}
 
     flexSIPP = FSIPP(graph, heuristic, agents)
-    result, runtime = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time)
-    print(f"FlexSIPP Search time {runtime:.2f} yields: ", result)
+    result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time)
+    print(f"FlexSIPP Search time (python) {result.metadata["Search Time Python"]:.2f}, (c++) {result.metadata["Search Time"]} yields: ", result)
 
     fig, axs = plt.subplots(2,3, figsize = (15,10))
     result.plot(axs[0,0], linestyle=3)

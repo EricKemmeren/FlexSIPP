@@ -103,4 +103,4 @@ class FSIPP(Generic[EdgeType, NodeType]):
         with suppress_cpp_output():
             result = search.search(str(origin), str(destination), graph, start_time, max_delay)
         log_time_end = time.time()
-        return Results.parse_json(result, self.g), log_time_end - log_time_start
+        return Results.parse_json(result, self.g, log_time_end - log_time_start)
