@@ -19,7 +19,7 @@ class Results:
         self.unique_routes_eatfs = {}
     
     def __repr__(self):
-        return f"Found {len(self.found_routes)} start times with unique paths {list(self.unique_paths.keys())}"
+        return f"Found {len(self.found_routes)} start times with unique paths {list(self.unique_routes.keys())}"
 
     @classmethod
     def parse_json(cls, s: str, g: Graph, search_time: float):
