@@ -3,7 +3,7 @@ import pickle
 from rapidjson import Decoder, PM_TRAILING_COMMAS
 
 from flexsipp.agent import Agent
-from flexsipp.graphs.graph import Graph
+from flexsipp.graphs.graph import Graph, Node
 from flexsipp.util.lines import Line
 
 json_decoder = Decoder(parse_mode=PM_TRAILING_COMMAS)
@@ -19,7 +19,7 @@ class Results:
         self.unique_routes_eatfs = {}
     
     def __repr__(self):
-        return f"Found {len(self.found_routes)} routes with unique paths {list(self.unique_routes.keys())}"
+        return f"Found {len(self.found_routes)} start times with unique paths {list(self.unique_paths.keys())}"
 
     @classmethod
     def parse_json(cls, s: str, g: Graph):
@@ -28,12 +28,14 @@ class Results:
         input = json_decoder(s)
         self.metadata = input["MetaData"]
         self.metadata["Search Time"] = input["Search time"]
+        self.metadata["earliest_start_time"] = input["earliest start"]
+        self.metadata["max_delay"] = input["max delay"]
         result = input["Result"]
 
         # json_decoder does not support direct conversion of -inf/inf to float, thus manual conversion is needed.
         self.segments = [(float(x0), float(x1), float(y0), float(y1)) for x0, x1, y0, y1 in result["segments"]]
 
-        # Last found route is bullshit
+        # Last found route is irrelevant
         for found_route in result["payloads"][0:-1]:
             zeta, alpha, beta, delta = found_route["edge_atf"]["atf"]
             atf = (float(zeta), float(alpha), float(beta), float(delta))
@@ -82,6 +84,7 @@ class Results:
     ]
 
     def plot(self, ax: Axis, **kwargs):
+        return_values = []
         if kwargs.get("show_atf", True):
             color = kwargs.get('color', "red")
             label = kwargs.get('label', None)
@@ -121,6 +124,8 @@ class Results:
 
                 ax.plot([alpha, beta], [delay_at_alpha, delay_at_beta], color="lightblue")
 
+                print(f"Found ATF {atf} with flexibility between {delay_at_alpha} and {delay_at_beta}")
+                return_values.append(((alpha, beta), (delay_at_alpha, delay_at_beta)))
         if kwargs.get("show_total_delays", False):
             ax.set_xlabel("Departure Time")
             ax.set_ylabel("Delay")
@@ -141,7 +146,7 @@ class Results:
                     delay_at_beta  += current_delay_at_beta
 
                 ax.plot([alpha, beta], [delay_at_alpha, delay_at_beta], color="blue")
-
+        return return_values
 
     def save(self, file):
         with open(file, "wb") as outp:
@@ -204,7 +209,7 @@ class Results:
             for delay_location, min_delay, min_gamma, max_gamma in best_route["delays"][agent.id]:
                 wait_location = agent.get_wait_location(delay_location, {node for node, interval in best_route["route"]})
                 delay = min_delay + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
-                print(f"Agent {agent} delayed at {delay_location}, should wait at {wait_location} for at least {delay}")
+                print(f"Agent {agent} delayed at {delay_location}, should wait at {[x.name for x in wait_location if isinstance(x, Node)]} for at least {delay}")
                 for loc in wait_location:
                     minimum_delay[loc] = max(minimum_delay.get(loc, 0), delay)
             minimum_delays[agent] = minimum_delay

@@ -48,6 +48,8 @@ std::string search(std::string start, std::string goal, std::string graph_str, i
     ss << "{";
     ss << "\"MetaData\":" << m << ", ";
     ss << "\"Result\":" << res << ", ";
+    ss << "\"earliest start\":" << start_time << ", ";
+    ss << "\"max delay\":" << max_search_time << ", ";
     ss << "\"Search time\": " << search_duration.count();
     ss << "}";
     std::flush(ss);

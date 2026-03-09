@@ -1,8 +1,11 @@
+import logging
 from typing import Generic
 
 from matplotlib.axis import Axis
 
 from .util.types import EdgeType, NodeType
+
+logger = logging.getLogger('__main__.' + __name__)
 
 class Agent(Generic[EdgeType, NodeType]):
 
@@ -70,6 +73,7 @@ class Agent(Generic[EdgeType, NodeType]):
         last_buffer_time = self.max_buffer
         for move in self.route[::-1]:
             local_buffer, local_recovery = self._get_local_flexibility(move)
+            logger.info(f"Agent {self.id} with move {move} has local buffer {local_buffer} and recovery {local_recovery}")
 
             # TODO: local buffer can be negative because agents can both have an unsafe interval on a node.
             # Because we are going backwards over the route,
