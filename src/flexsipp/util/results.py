@@ -220,7 +220,7 @@ class Results:
     def find_tipping_points(self, **kwargs):
         line_list:list[Line] = []
         tipping_points = []
-        original_arrival_time = kwargs.get("original_arrival_time")
+        original_arrival_time = kwargs.get("original_arrival_time", 0)
         for atf, route in self.found_routes:
             zeta, alpha, beta, delta = atf
             delay_at_alpha = alpha + delta - original_arrival_time
