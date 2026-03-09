@@ -89,20 +89,19 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     del minimum_delays[rerouting_agent]
     graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
 
-    # TODO: check flexibility creation, possibly an error here.
     graph.reset_flexibility()
     for agent in agents.values():
         agent.calculate_flexibility()
 
     ax = axs[0,2]
     ax.grid(alpha=0.3)
-    rerouting_agent.plot_route(ax, continues=continues, title=f"Unsafe Intervals Agent {rerouting_agent.id} when departing at {actual_departure_time}", show_buffer_time=False)
+    rerouting_agent.plot_route(ax, continues=continues, title=f"Unsafe Intervals Agent {rerouting_agent.id} when departing at {actual_departure_time}", show_buffer_time=True)
     ax.set_ylim(0, graph.global_end_time)
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     ax = axs[1,2]
     ax.grid(alpha=0.3)
-    agents[4].plot_route(ax, continues=continues, title="Agent 4 after", show_buffer_time=False)
+    agents[4].plot_route(ax, continues=continues, title="Agent 4 after", show_buffer_time=True)
     ax.set_ylim(0, graph.global_end_time)
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
