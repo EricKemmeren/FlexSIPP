@@ -22,11 +22,12 @@ class Results:
         return f"Found {len(self.found_routes)} start times with unique paths {list(self.unique_paths.keys())}"
 
     @classmethod
-    def parse_json(cls, s: str, g: Graph):
+    def parse_json(cls, s: str, g: Graph, search_time: float):
         self = cls()
 
         input = json_decoder(s)
         self.metadata = input["MetaData"]
+        self.metadata["Search Time Python"] = search_time
         self.metadata["Search Time"] = input["Search time"]
         self.metadata["earliest_start_time"] = input["earliest start"]
         self.metadata["max_delay"] = input["max delay"]

@@ -47,7 +47,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     delay_agent.plot_route(axs[1])
 
     flexSIPP = FSIPP(graph, heuristic, agents)
-    result, runtime = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, 6)
+    result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, 6)
 
     atf, new_route, minimum_delays = result.get_fastest_route(10, agents, discrete=True)
     del minimum_delays[delay_agent]

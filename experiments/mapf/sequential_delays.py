@@ -40,7 +40,7 @@ def repeated_delays(location_file, scenario_file, delay_file, scenario_end):
         # Create safe intervals and calculate the ATFs
         flexSIPP = FSIPP(graph, heuristic, agents)
         # Run the expansion A* search
-        result, runtime = flexSIPP.run_search(origin, destination, start_time)
+        result = flexSIPP.run_search(origin, destination, start_time)
         print(result)
 
         # Pick a route from the results the agent will take, currently selecting a given amount of delay
