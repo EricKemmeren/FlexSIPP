@@ -1,7 +1,6 @@
 import argparse
 import csv
 
-from IPython.core.pylabtools import figsize
 from matplotlib import pyplot as plt
 
 from flexsipp.graphs.fsipp import FSIPP
@@ -16,7 +15,6 @@ parser.add_argument('-d', "--delay-file", help="Path to the file that specifies 
 parser.add_argument('-e', "--end-time", help="End time of the scenario, if None is given", required=False, default=None)
 
 def repeated_delays(location_file, scenario_file, delay_file, scenario_end):
-    timeout = 300
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     delays = parse_delays(delay_file, graph)
     fig, axs = plt.subplots(1, 2 * len(delays), figsize=(5 * len(delays), 5))
@@ -42,7 +40,7 @@ def repeated_delays(location_file, scenario_file, delay_file, scenario_end):
         # Create safe intervals and calculate the ATFs
         flexSIPP = FSIPP(graph, heuristic, agents)
         # Run the expansion A* search
-        result = flexSIPP.run_search(timeout, origin, destination, start_time)
+        result, runtime = flexSIPP.run_search(origin, destination, start_time)
         print(result)
 
         # Pick a route from the results the agent will take, currently selecting a given amount of delay
@@ -75,5 +73,6 @@ def parse_delays(delay_file, grid):
     return delays
 
 if __name__ == "__main__":
+    # Run with data/mapf/corridor/
     args = parser.parse_args()
     repeated_delays(args.location_file, args.scenario_file, args.delay_file, args.end_time)

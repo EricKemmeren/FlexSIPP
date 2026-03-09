@@ -14,7 +14,7 @@ def paths_to_unsafe_intervals(path_file, grid, scenario_end):
         agents: dict[int, MapfAgent] = {}
         for line in lines:
             name, path = line.strip().split(": ")
-            id = int(name.split("Agent ")[1])
+            id = int(name.split("Agent ")[1])+1
             node_list = get_coordinate_list(path)
             current_flexibility = 0
             agent = MapfAgent(id, [], grid.global_end_time)

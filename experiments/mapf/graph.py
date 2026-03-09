@@ -1,4 +1,4 @@
-from experiments.mapf.agent import MapfAgent
+from agent import MapfAgent
 from flexsipp.graphs.graph import Node, Edge, Graph
 from flexsipp.util.intervals import UnsafeInterval
 

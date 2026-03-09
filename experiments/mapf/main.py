@@ -5,6 +5,9 @@ from matplotlib import pyplot as plt
 from flexsipp.graphs.fsipp import FSIPP
 from read_experiment import create_mapf_instance_from_paths
 
+import logging
+logger = logging.getLogger()
+
 parser = argparse.ArgumentParser(
                     prog='FlexSIPP',
                     description='Given a location (file) and a scenario (file), run the FlexSIPP program')
@@ -25,7 +28,8 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     # Heuristic for delay agent
     heuristic = graph.calculate_heuristic(delay_agent.destination)
     flexSIPP = FSIPP(graph, heuristic, agents)
-    result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, 0)
+    result, runtime = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, 0)
+    print("Runtime", runtime)
     print(result)
 
     fig, axs = plt.subplots(1,3, figsize = (15,5))
@@ -35,14 +39,15 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     delay_agent.plot_route(axs[1])
     axs[1].set_ylim(0, graph.global_end_time)
 
-    atf, new_route, minimum_delays = result.get_fastest_route(6, agents, discrete=True)
+    min_delay = 1
+    atf, new_route, minimum_delays = result.get_fastest_route(1, agents, discrete=True)
     del minimum_delays[delay_agent]
     graph.update_unsafe_intervals(minimum_delays=minimum_delays)
 
     delay_agent.plot_route(axs[1])
 
     flexSIPP = FSIPP(graph, heuristic, agents)
-    result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, 6)
+    result, runtime = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, 6)
 
     atf, new_route, minimum_delays = result.get_fastest_route(10, agents, discrete=True)
     del minimum_delays[delay_agent]
@@ -56,5 +61,6 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
 
 
 if __name__ == "__main__":
+    # Run with 
     args = parser.parse_args()
     run_flexsipp(args.location_file, args.scenario_file, args.delay_agent, args.end_time)
