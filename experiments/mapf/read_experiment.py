@@ -3,6 +3,7 @@ from typing import Tuple, Dict
 from graph import Grid
 from agent import MapfAgent
 from flexsipp.util.intervals import UnsafeInterval
+from flexsipp.util.timing import timing
 
 def paths_to_unsafe_intervals(path_file, grid, scenario_end):
     with open(path_file, "r") as f:
@@ -57,6 +58,7 @@ def get_coordinate_list(node_list):
             coordinates.append(f"({x},{y})")
     return coordinates
 
+@timing
 def create_mapf_instance_from_paths(location_file, paths_file, scenario_end_time) -> Tuple[Grid, Dict[int, MapfAgent]]:
     grid = Grid.read_graph(location_file)
     agents = paths_to_unsafe_intervals(paths_file, grid, scenario_end_time)

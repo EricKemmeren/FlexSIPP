@@ -12,12 +12,13 @@ logger.setLevel(logging.CRITICAL)
 
 def run_flexsipp(location_file, scenario_file, delay_agent_id, max_delay=1000, scenario_end=None):
     gen_time_start = time.time()
+    maeder_graph, maeder_agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     assert delay_agent_id in agents, f"ERROR: no delay agent with id {delay_agent_id} in the set of agents."
     delay_agent = agents[delay_agent_id]
     graph.filter_out_agent(delay_agent)
     heuristic = graph.calculate_heuristic(delay_agent.destination)
-    maeder = FSIPP(graph, heuristic, agents, use_flexibility=False)
+    maeder = FSIPP(maeder_graph, heuristic, maeder_agents, use_flexibility=False)
     flexSIPP = FSIPP(graph, heuristic, agents, use_flexibility=True)
     gen_time_end = time.time()
 
@@ -37,7 +38,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, max_delay=1000, s
         "max_delay": max_delay,
         "generation_time": gen_time_end - gen_time_start
     }
-    print(f"Generation took {dat['generation_time']} and FlexSIPP search took {result.metadata["Search Time"]}")
+    print(f"Generation took {data['generation_time']} and FlexSIPP search took {result.metadata["Search Time"]}")
     return data
 
 if __name__ == "__main__":
