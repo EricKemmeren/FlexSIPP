@@ -9,6 +9,7 @@ from .graph import Graph
 from ..agent import Agent
 from ..util.intervals import SafeInterval, FlexibleArrivalTimeFunction
 from ..util.results import Results
+from ..util.timing import timing
 from ..util.types import EdgeType, NodeType
 
 logger = getLogger('__main__.' + __name__)
@@ -35,6 +36,7 @@ def suppress_cpp_output():
         os.close(old_stderr)
 
 class FSIPP(Generic[EdgeType, NodeType]):
+    @timing
     def __init__(self, g:Graph[EdgeType, NodeType], heuristic:dict[str, float], agents: dict[int, Agent], filter_nodes:Iterable[NodeType]=None, use_flexibility=True):
         """ Create a flexible safe interval any-start-time graph of the given graph, that can be used to run the search algorithm.
 
@@ -57,7 +59,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
         if filter_nodes:
             self.nodes = filter_nodes
         else:
-            self.nodes = g.nodes.values()
+            self.nodes = set(g.nodes.values())
         # TODO: maybe force self.nodes to be a set(), does remove ordering making manual reading of file more difficult
 
         for node in self.nodes:
