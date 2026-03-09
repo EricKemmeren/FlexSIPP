@@ -17,6 +17,8 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, max_delay=1000, s
     assert delay_agent_id in agents, f"ERROR: no delay agent with id {delay_agent_id} in the set of agents."
     delay_agent = agents[delay_agent_id]
     graph.filter_out_agent(delay_agent)
+    maeder_delay_agent = maeder_agents[delay_agent_id]
+    maeder_graph.filter_out_agent(maeder_delay_agent)
     heuristic = graph.calculate_heuristic(delay_agent.destination)
     maeder = FSIPP(maeder_graph, heuristic, maeder_agents, use_flexibility=False)
     flexSIPP = FSIPP(graph, heuristic, agents, use_flexibility=True)
