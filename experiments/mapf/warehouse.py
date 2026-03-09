@@ -3,14 +3,15 @@ from collections import OrderedDict
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
-from numpy.ma.core import minimum
-# from matplotlib.backends.backend_pgf import FigureCanvasPgf
-#
-# matplotlib.backend_bases.register_backend('pdf', FigureCanvasPgf)
-# matplotlib.rcParams.update({
-#     "pgf.texsystem": "pdflatex",
-#     'pgf.rcfonts': False,
-# })
+import shutil
+
+if shutil.which('pdflatex'):
+    from matplotlib.backends.backend_pgf import FigureCanvasPgf
+    matplotlib.backend_bases.register_backend('pdf', FigureCanvasPgf)
+    matplotlib.rcParams.update({
+        "pgf.texsystem": "pdflatex",
+        'pgf.rcfonts': False,
+    })
 
 from agent import MapfAgent
 from flexsipp.graphs.fsipp import FSIPP
