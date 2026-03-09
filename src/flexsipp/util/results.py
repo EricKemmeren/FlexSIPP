@@ -4,6 +4,7 @@ from rapidjson import Decoder, PM_TRAILING_COMMAS
 
 from flexsipp.agent import Agent
 from flexsipp.graphs.graph import Graph
+from flexsipp.util.lines import Line
 
 json_decoder = Decoder(parse_mode=PM_TRAILING_COMMAS)
 
@@ -14,9 +15,11 @@ class Results:
         self.unique_path_eatfs = {}
         self.segments = []
         self.found_routes = []
+        self.unique_routes = {}
+        self.unique_routes_eatfs = {}
     
     def __repr__(self):
-        return f"Found {len(self.found_routes)} routes with unique paths {list(self.unique_paths.keys())}"
+        return f"Found {len(self.found_routes)} routes with unique paths {list(self.unique_routes.keys())}"
 
     @classmethod
     def parse_json(cls, s: str, g: Graph):
@@ -38,6 +41,7 @@ class Results:
             path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"]]
             # TODO: rewrite this, this does not make any sense tbh
             path_str = "->".join([node for node, interval in path])
+            route_str = "->".join([f"({node}, {interval})" for node, interval in path])
             if path_str in self.unique_paths:
                 self.unique_paths[path_str] += 1
                 if atf not in self.unique_path_eatfs[path_str]:
@@ -45,6 +49,14 @@ class Results:
             else:
                 self.unique_paths[path_str] = 1
                 self.unique_path_eatfs[path_str] = [atf]
+
+            if route_str in self.unique_routes:
+                self.unique_routes[route_str] += 1
+                if atf not in self.unique_routes_eatfs[route_str]:
+                    self.unique_routes_eatfs[route_str].append(atf)
+            else:
+                self.unique_routes[route_str] = 1
+                self.unique_routes_eatfs[route_str] = [atf]
 
             delays = {}
             for agent, gamma in enumerate(found_route["edge_atf"]["gammas"][1:], 1):
@@ -108,9 +120,27 @@ class Results:
                     delay_at_beta  += current_delay_at_beta
 
                 ax.plot([alpha, beta], [delay_at_alpha, delay_at_beta], color="lightblue")
-                # ax.fill_between([alpha, beta], [delay_at_alpha, delay_at_beta], color="lightblue")
 
-                print(atf, delay_at_alpha, delay_at_beta)
+        if kwargs.get("show_total_delays", False):
+            ax.set_xlabel("Departure Time")
+            ax.set_ylabel("Delay")
+            ax.set_title("Flexibility Used")
+            original_arrival_time = kwargs.get("original_arrival_time")
+            for atf, route in self.found_routes:
+                zeta, alpha, beta, delta = atf
+                delay_at_alpha = alpha + delta - original_arrival_time
+                delay_at_beta  = beta + delta - original_arrival_time
+                for agents_delays in route["delays"].values():
+                    current_delay_at_alpha = 0
+                    current_delay_at_beta  = 0
+                    if agents_delays:
+                        for node, delay, min_gamma, max_gamma in agents_delays:
+                            current_delay_at_alpha = max(current_delay_at_alpha, min_gamma)
+                            current_delay_at_beta  = max(current_delay_at_beta,  max_gamma)
+                    delay_at_alpha += current_delay_at_alpha
+                    delay_at_beta  += current_delay_at_beta
+
+                ax.plot([alpha, beta], [delay_at_alpha, delay_at_beta], color="blue")
 
 
     def save(self, file):
@@ -146,8 +176,9 @@ class Results:
                 f.write("\n")
             f.write("\n")
 
-    def get_fastest_route(self, actual_departure_time: float, agents: dict[int, Agent], discrete=False):
-        if discrete:
+    # TODO: get_best_route that takes into account the total delay
+    def get_fastest_route(self, actual_departure_time: float, agents: dict[int, Agent], **kwargs):
+        if kwargs.get("discrete", False):
             delay_addition = 1
         else:
             delay_addition = 0
@@ -156,7 +187,11 @@ class Results:
         best_arrival_time = float("inf")
         for atf, route in self.found_routes:
             zeta, alpha, beta, delta = atf
-            if zeta <= actual_departure_time < beta:
+            if kwargs.get("beta_inclusive", False):
+                in_range = zeta <= actual_departure_time <= beta
+            else:
+                in_range = zeta <= actual_departure_time < beta
+            if in_range:
                 arrival_time = max(alpha, actual_departure_time) + delta
                 if arrival_time < best_arrival_time:
                     best_arrival_time = arrival_time
@@ -176,6 +211,44 @@ class Results:
 
         return best_atf, best_route["route"], minimum_delays
 
+    def find_tipping_points(self, **kwargs):
+        line_list:list[Line] = []
+        tipping_points = []
+        original_arrival_time = kwargs.get("original_arrival_time")
+        for atf, route in self.found_routes:
+            zeta, alpha, beta, delta = atf
+            delay_at_alpha = alpha + delta - original_arrival_time
+            delay_at_beta  = beta + delta - original_arrival_time
+            for agents_delays in route["delays"].values():
+                current_delay_at_alpha = 0
+                current_delay_at_beta  = 0
+                if agents_delays:
+                    for node, delay, min_gamma, max_gamma in agents_delays:
+                        current_delay_at_alpha = max(current_delay_at_alpha, min_gamma)
+                        current_delay_at_beta  = max(current_delay_at_beta,  max_gamma)
+                delay_at_alpha += current_delay_at_alpha
+                delay_at_beta  += current_delay_at_beta
+
+            new_line = Line(alpha, beta, delay_at_alpha, delay_at_beta)
+
+            if new_line in line_list:
+                continue
+            # Check if this new line decreases the total delay as opposed to the previous line
+            if line_list and new_line.y0 < line_list[-1].y1:
+                # If it decreases, the tipping point is the first(?) point where the y0
+                for old_line in line_list[::-1]:
+                    if kwargs.get("optimize_total_delay", True):
+                        x_intersection = old_line.get_x_value(new_line.y0)
+                        if x_intersection < float("inf"):
+                            tipping_points.append(x_intersection)
+                            break
+                    else:
+                        tipping_points.append(old_line.x1)
+                        break
+
+            line_list.append(new_line)
+        print(f"found tipping point on {tipping_points}")
+        return tipping_points
 
 if __name__ == "__main__":
     with open(r"C:\Users\eoss3\Documents\FlexSIPP\FlexSIPP\data\friso\demo_backup\update-00\results.pkl", "rb") as f:

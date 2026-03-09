@@ -1,6 +1,8 @@
 import argparse
 
 from matplotlib import pyplot as plt
+from matplotlib.lines import Line2D
+from numpy.ma.core import minimum
 
 from experiments.mapf.agent import MapfAgent
 from flexsipp.graphs.fsipp import FSIPP
@@ -48,7 +50,18 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
 
     fig, axs = plt.subplots(2,3, figsize = (15,10))
     result.plot(axs[0,0], linestyle=3)
-    result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
+    axs[1,0].grid(alpha=0.3)
+    result.plot(axs[1,0], show_atf=False, show_additional_delays=True, show_total_delays=True, original_arrival_time=3)
+
+    custom_lines = [Line2D([0], [0], color="blue"),
+                    Line2D([0], [0], color="lightblue"),]
+    axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"])
+    tipping_points = result.find_tipping_points(original_arrival_time=3, optimize_total_delay=False)
+    for tipping_point in tipping_points:
+        atf, new_route, minimum_delays = result.get_fastest_route(tipping_point, agents, beta_inclusive=True)
+        for agent, delays in minimum_delays.items():
+            if delays:
+                print(f"Tipping point for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
 
     ax = axs[0,1]
     ax.grid(alpha=0.3)
@@ -63,7 +76,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     # Update the graph with the results from flexsipp, assume we now know the actual delay of the agent
-    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=True)
+    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents)
     del minimum_delays[rerouting_agent]
     graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
 
