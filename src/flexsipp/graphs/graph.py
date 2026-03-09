@@ -30,6 +30,9 @@ class IntervalStore(object):
     def add_unsafe_interval(self, interval: UnsafeInterval):
         self.unsafe_intervals.add(interval)
 
+    def remove_unsafe_interval(self, interval: UnsafeInterval):
+        self.unsafe_intervals.remove(interval)
+
     def merge_unsafe_intervals(self):
         self.merged = True
         if len(self.unsafe_intervals) == 0:
@@ -422,26 +425,26 @@ class Graph(Generic[EdgeType, NodeType]):
 
     def _update_using_minimum_delays(self, minimum_delays):
         for agent, delays in minimum_delays.items():
-            current_delay = 0
-            for move in agent.route:
-                filtered_uis = [ui for ui in move.unsafe_intervals if ui.by_agent == agent]
-                if len(filtered_uis)>0:
-                    ui = filtered_uis[0]
-                    new_delay = delays.get(move, 0)
-                    if current_delay < new_delay:
-                        # Delay becomes larger, thus the agent should wait here. Extend end of interval delay, start of interval is shifted by old delay
-                        ui.start += current_delay
-                        ui.end += new_delay
-                        current_delay = new_delay
-                        # As it's standing still here, it is gaining local recovery time by the difference in delay amount
-                        ui.local_recovery_time += new_delay - current_delay
-                    else:
-                        recovery_used = min(ui.local_recovery_time, current_delay)
-                        updated_delay = current_delay - recovery_used
-                        ui.start += current_delay
-                        ui.end += updated_delay
-                        ui.local_recovery_time -= recovery_used
-                        current_delay = updated_delay
+            if delays:
+                current_delay = 0
+                for move in agent.route:
+                    filtered_uis = [ui for ui in move.unsafe_intervals if ui.by_agent == agent]
+                    if len(filtered_uis)>0:
+                        ui = filtered_uis[0]
+                        new_delay = delays.get(move, 0)
+                        if current_delay < new_delay:
+                            # Delay becomes larger, thus the agent should wait here. Extend end of interval delay, start of interval is shifted by old delay
+                            # As it's standing still here, it is gaining local recovery time by the difference in delay amount
+                            new_ui = UnsafeInterval(ui.start + current_delay, ui.end + new_delay, ui.duration, ui.by_agent, ui.local_recovery_time + new_delay - current_delay)
+                            current_delay = new_delay
+                        else:
+                            recovery_used = min(ui.local_recovery_time, current_delay)
+                            updated_delay = current_delay - recovery_used
+                            new_ui = UnsafeInterval(ui.start + current_delay, ui.end + updated_delay, ui.duration, ui.by_agent, ui.local_recovery_time - recovery_used)
+                            current_delay = updated_delay
+                        move.remove_unsafe_interval(ui)
+                        move.add_unsafe_interval(new_ui)
+                    move.merge_unsafe_intervals()
 
     def update_unsafe_intervals(self, new_path=None, minimum_delays=None):
         if new_path is not None:
