@@ -61,6 +61,6 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end):
 
 
 if __name__ == "__main__":
-    # Run with 
+    # Run with data/mapf/corridor
     args = parser.parse_args()
     run_flexsipp(args.location_file, args.scenario_file, args.delay_agent, args.end_time)
