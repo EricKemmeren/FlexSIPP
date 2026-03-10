@@ -209,11 +209,18 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
                 if edge.to_node in allowed_nodes:
                     for edge_interval in edge.safe_intervals:
                         # Check for overlap with the from node and edge
-                        if (from_interval + from_interval.buffer_after) & (edge_interval + edge_interval.buffer_after):
+                        if from_interval.agent_before == edge_interval.agent_after:
+                            condition = from_interval & edge_interval
+                        else:
+                            condition = (from_interval + from_interval.buffer_after) & (edge_interval + edge_interval.buffer_after)
+                        if condition:
                             for to_interval in edge.to_node.safe_intervals:
                                 # Check for overlap with the edge en to node
-                                # TODO: figure out if overlap with from and to node is needed
-                                if (edge_interval + edge_interval.buffer_after) & (to_interval + to_interval.buffer_after):
+                                if edge_interval.agent_before == to_interval.agent_after:
+                                    condition = edge_interval & to_interval
+                                else:
+                                    condition = (edge_interval + edge_interval.buffer_after) & (to_interval + to_interval.buffer_after)
+                                if condition:
                                     safe_connections.append((from_interval, edge_interval, to_interval, edge))
         return safe_connections
 

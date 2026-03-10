@@ -128,7 +128,9 @@ class Agent(Generic[EdgeType, NodeType]):
         return f"{self.id}"
 
     def __eq__(self, other):
-        return self.id == other.id
+        if isinstance(other, self.__class__):
+            return self.id == other.id
+        return False
 
     def __hash__(self):
         return hash(self.id)
