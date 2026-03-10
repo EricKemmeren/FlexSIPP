@@ -31,8 +31,8 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     heuristic = graph.calculate_heuristic(delay_agent.destination)
     flexSIPP = FSIPP(graph, heuristic, agents)
     result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, 0)
-    for route in result.unique_path_eatfs:
-        for atf in result.unique_path_eatfs[route]:
+    for route in result.unique_routes:
+        for atf in result.unique_routes_eatfs[route]:
             print(f"Found route with atf", atf, route)
 
     fig, axs = plt.subplots(1,3, figsize = (15,5))
