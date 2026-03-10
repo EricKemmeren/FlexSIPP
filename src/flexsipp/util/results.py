@@ -99,7 +99,7 @@ class Results:
 
             line = None
             for (x0, x1, y0, y1) in self.segments:
-                if x0 == "-inf" and x1 != "inf" and y1 != "inf":
+                if x0 == float("-inf") and x1 != float("inf") and y1 != float("inf"):
                     ax.hlines(float(y1) + y_offset, 0, float(x1), colors=color, linestyle=linestyle)
                 line, = ax.plot([float(x0), float(x1)], [float(y0) + y_offset, float(y1) + y_offset], color=color,
                                 linestyle=linestyle)
