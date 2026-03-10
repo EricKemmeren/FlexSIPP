@@ -203,6 +203,8 @@ class Results:
                     best_arrival_time = arrival_time
                     best_route = route
                     best_atf = atf
+        if best_route is None:
+            return [], [], []
 
         minimum_delays = {}
         for agent in agents.values():
@@ -235,6 +237,9 @@ class Results:
                 delay_at_alpha += current_delay_at_alpha
                 delay_at_beta  += current_delay_at_beta
 
+            if beta - alpha == 0:
+                # Cannot construct line over same x coordinates
+                continue
             new_line = Line(alpha, beta, delay_at_alpha, delay_at_beta)
 
             if new_line in line_list:
@@ -253,7 +258,8 @@ class Results:
                         break
 
             line_list.append(new_line)
-        print(f"found tipping point on {tipping_points}")
+        if kwargs.get("print_tipping_points", True):
+            print(f"found tipping point on {tipping_points}")
         return tipping_points
 
 if __name__ == "__main__":

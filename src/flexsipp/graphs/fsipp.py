@@ -36,7 +36,6 @@ def suppress_cpp_output():
         os.close(old_stderr)
 
 class FSIPP(Generic[EdgeType, NodeType]):
-    @timing
     def __init__(self, g:Graph[EdgeType, NodeType], heuristic:dict[str, float], agents: dict[int, Agent], filter_nodes:Iterable[NodeType]=None, use_flexibility=True):
         """ Create a flexible safe interval any-start-time graph of the given graph, that can be used to run the search algorithm.
 
