@@ -224,6 +224,9 @@ class Results:
         line_list:list[Line] = []
         tipping_points = []
         original_arrival_time = kwargs.get("original_arrival_time", 0)
+
+        axis = kwargs.get("plot_on_axis", None)
+
         for atf, route in self.found_routes:
             zeta, alpha, beta, delta = atf
             delay_at_alpha = alpha + delta - original_arrival_time
@@ -252,10 +255,14 @@ class Results:
                     if kwargs.get("optimize_total_delay", True):
                         x_intersection = old_line.get_x_value(new_line.y0)
                         if x_intersection < float("inf"):
-                            tipping_points.append((x_intersection, new_line.x0, new_line.y0))
+                            tipping_points.append(x_intersection)
+                            if axis is not None:
+                                axis.plot([x_intersection, new_line.x0], [new_line.y0, new_line.y0], color="blue", linestyle="dashed")
                             break
                     else:
-                        tipping_points.append((old_line.x1, new_line.x0, new_line.y0))
+                        tipping_points.append(old_line.x1)
+                        if axis is not None:
+                            axis.plot([old_line.x1, new_line.x0], [new_line.y0, new_line.y0], color="blue")
                         break
 
             line_list.append(new_line)
