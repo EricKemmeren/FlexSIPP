@@ -35,7 +35,11 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, max_delay=1000, s
     gen_time_flexsipp_end = time.time()
     # Run FlexSIPP
     result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, agent_start_time, max_delay)
-    result.metadata.update({"gen_time": gen_time_flexsipp_end - gen_time_flexsipp_start, "tipping_points": result.find_tipping_points(print_tipping_points=False), "unique_routes_safe":  {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()}})
+    result.metadata.update({
+        "gen_time": gen_time_flexsipp_end - gen_time_flexsipp_start, 
+        # "tipping_points": result.find_tipping_points(agents, print_tipping_points=False), 
+        "unique_routes_safe":  {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()}
+    })
     
     data = {
         "@MAEDeR": maeder_result.metadata,
@@ -48,7 +52,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, max_delay=1000, s
 if __name__ == "__main__":
     # This is the number of time steps after the start time that can be searched. 
     timeout = 1000
-    config_name = "warehouse1"
+    config_name = "warehouse2"
     filename = os.path.join(os.path.dirname(__file__), "experiment_configurations_movingAI.json")
     configurations = json.load(open(filename, "r"))
     config = configurations[config_name]
@@ -56,10 +60,10 @@ if __name__ == "__main__":
     for scenario in config["files"]:
         scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, config["scenarios"], f"{scenario}.txt")
         k = int(scenario.split("-")[-1].split("_")[0].replace("k", ""))
-        config["results"][scenario] = {}
+        config["results"][scenario] = {agent: {} for agent in range(1, k)}
         max_delays = 1000
         for agent in range(1, k):
             print(f"Run FlexSIPP for {scenario} with delay agent {agent}")
             res = run_flexsipp(location, scenario_file, agent)
             config["results"][scenario][agent] = res
-        json.dump(configurations, open(filename, "w"), indent=4)
+            json.dump(configurations, open(filename, "w"), indent=4)
