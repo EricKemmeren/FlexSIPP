@@ -37,9 +37,10 @@ class IntervalStore(object):
         self.merged = True
         if len(self.unsafe_intervals) == 0:
             return
+        unmerged_intervals = SortedKeyList(self.unsafe_intervals, key=lambda x: (x.by_agent.id, x.start))
         merged_intervals = SortedKeyList(key=lambda x: x.start)
-        start = self.unsafe_intervals[0]
-        for next in self.unsafe_intervals[1:]:
+        start = unmerged_intervals[0]
+        for next in unmerged_intervals[1:]:
             # Check for overlap using intersection
             if start & next and start.by_agent == next.by_agent:
                 start = start | next
