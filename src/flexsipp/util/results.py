@@ -213,7 +213,8 @@ class Results:
             for delay_location, min_delay, min_gamma, max_gamma in best_route["delays"][agent.id]:
                 wait_location = agent.get_wait_location(delay_location, {node for node, interval in best_route["route"]})
                 delay = min_delay + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
-                print(f"Agent {agent} delayed at {delay_location}, should wait at {[x.name for x in wait_location if isinstance(x, Node)]} for at least {delay}")
+                if kwargs.get("print_agent_delays", True):
+                    print(f"Agent {agent} delayed at {delay_location}, should wait at {[x.name for x in wait_location if isinstance(x, Node)]} for at least {delay}")
                 for loc in wait_location:
                     minimum_delay[loc] = max(minimum_delay.get(loc, 0), delay)
             minimum_delays[agent] = minimum_delay
@@ -268,7 +269,7 @@ class Results:
             line_list.append(new_line)
         resulting_tipping_points = []
         for tipping_point in tipping_points:
-            atf, new_route, minimum_delays = self.get_fastest_route(tipping_point, agents, beta_inclusive=True)
+            atf, new_route, minimum_delays = self.get_fastest_route(tipping_point, agents, beta_inclusive=True, **kwargs)
             resulting_tipping_points.append((tipping_point, atf, new_route, minimum_delays))
             if kwargs.get("print_tipping_points", True):
                 for agent, delays in minimum_delays.items():

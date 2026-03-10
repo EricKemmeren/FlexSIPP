@@ -7,4 +7,4 @@ __pycache__/
 !/data/railways/prorail/scenarios/case_study
 /data/friso
 *.txt
-*.pdf
+**/output/
