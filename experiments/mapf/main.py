@@ -49,12 +49,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
 
     delay_agent.plot_route(axs[2])
 
-    tipping_points = result.find_tipping_points(original_arrival_time=original_arrival_time, optimize_total_delay=False)
-    for tipping_point in tipping_points:
-        atf, new_route, minimum_delays = result.get_fastest_route(tipping_point, agents, beta_inclusive=True)
-        for agent, delays in minimum_delays.items():
-            if delays:
-                print(f"Tipping point for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
+    tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=False)
 
     plt.show()
     plt.close()
@@ -64,7 +59,7 @@ def corridor_example():
     scenario_end = 20
     delay_agent_id = 1
     location_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "corridor", "corridor.map")
-    scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "corridor", "corridor-2agnets_paths.txt")
+    scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "corridor", "corridor-2agents_paths.txt")
 
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     delay_agent = agents[delay_agent_id]

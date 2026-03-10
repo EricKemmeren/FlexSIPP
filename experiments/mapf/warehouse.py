@@ -23,7 +23,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.CRITICAL)
 
 def run_flexsipp(location_file, scenario_file):
-    end_time = 20
+    end_time = 12
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, end_time)
 
     # Agent 1 (top left) breaks down, and is unable to move from (0,0)
@@ -64,14 +64,9 @@ def run_flexsipp(location_file, scenario_file):
     custom_lines = [Line2D([0], [0], color="blue"),
                     Line2D([0], [0], color="lightblue"),]
     axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
-    tipping_points = result.find_tipping_points(original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False)
-    for tipping_point in tipping_points:
-        atf, new_route, minimum_delays = result.get_fastest_route(tipping_point[0], agents, beta_inclusive=True)
-        x0, x1, y = tipping_point
-        axs[1,0].plot([x0, x1], [y, y], color="blue", linestyle=(0, (5, 5)))
-        for agent, delays in minimum_delays.items():
-            if delays:
-                print(f"Tipping point for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
+    
+    tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True)
+    optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True)
     
     found_flexibility_ranges = result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
     # create_paper_plot(result, found_flexibility_ranges, graph.global_end_time)
@@ -95,29 +90,6 @@ def run_flexsipp(location_file, scenario_file):
     del minimum_delays[rerouting_agent]
     graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
 
-    # Now set agent 1 to available again
-    restart_time = 3
-    print(f"Now restarting agent {broken_down_agent.id} at {restart_time}")
-    graph.nodes["(0,0)"].unsafe_intervals.remove(UnsafeInterval(0.1, graph.global_end_time, 0, broken_down_agent, 0))
-    graph.nodes["(0,0)"].add_unsafe_interval(UnsafeInterval(0.1, restart_time, 0, broken_down_agent, 0))
-    flexSIPP = FSIPP(graph, heuristic, agents)
-    update_result = flexSIPP.run_search(broken_down_agent.origin.name, broken_down_agent.destination.name, restart_time, graph.global_end_time)
-    print(f"FlexSIPP agent {broken_down_agent.id} Search time {result.metadata["Search Time Python"]:.2f} yields: ", update_result,)
-
-    update_result.plot(axs[0,3], linestyle=3)
-    axs[1,3].grid(alpha=0.3)
-    update_result.plot(axs[1,3], show_atf=False, show_additional_delays=True, show_total_delays=True, original_arrival_time=original_arrival_time_breakdown)
-
-    custom_lines = [Line2D([0], [0], color="blue"),
-                    Line2D([0], [0], color="lightblue"),]
-    axs[1,3].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
-    tipping_points = update_result.find_tipping_points(original_arrival_time=original_arrival_time_breakdown, optimize_total_delay=True)
-    for tipping_point in tipping_points:
-        atf, new_route, minimum_delays = update_result.get_fastest_route(tipping_point[0], agents, beta_inclusive=True)
-        for agent, delays in minimum_delays.items():
-            if delays:
-                print(f"Tipping point for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
-
     ax = axs[0,2]
     ax.grid(alpha=0.3)
     rerouting_agent.plot_route(ax, continues=continues, title=f"Unsafe Intervals Agent {rerouting_agent.id} when departing at {actual_departure_time}", show_buffer_time=True)
@@ -130,6 +102,25 @@ def run_flexsipp(location_file, scenario_file):
     ax.set_ylim(0, graph.global_end_time)
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
+    # Now set agent 1 to available again
+    restart_time = 2
+    new_goal = "(3,1)"
+    print(f"Now restarting agent {broken_down_agent.id} at {restart_time}")
+    graph.nodes["(0,0)"].unsafe_intervals.remove(UnsafeInterval(0.1, graph.global_end_time, 0, broken_down_agent, 0))
+    graph.nodes["(0,0)"].add_unsafe_interval(UnsafeInterval(0.1, restart_time, 0, broken_down_agent, 0))
+    flexSIPP = FSIPP(graph, heuristic, agents)
+    update_result = flexSIPP.run_search(broken_down_agent.origin.name, new_goal, restart_time, graph.global_end_time)
+    print(f"FlexSIPP agent {broken_down_agent.id} Search time {result.metadata["Search Time Python"]:.2f} yields: ", update_result,)
+
+    update_result.plot(axs[0,3], linestyle=3)
+    axs[1,3].grid(alpha=0.3)
+    update_result.plot(axs[1,3], show_atf=False, show_additional_delays=True, show_total_delays=True, original_arrival_time=original_arrival_time_breakdown)
+
+    custom_lines = [Line2D([0], [0], color="blue"),
+                    Line2D([0], [0], color="lightblue"),]
+    axs[1,3].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
+
+    tipping_points = update_result.find_tipping_points(agents, original_arrival_time=original_arrival_time_breakdown, optimize_total_delay=False)
 
     plt.show()
     plt.close()

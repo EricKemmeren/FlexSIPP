@@ -184,6 +184,7 @@ class Results:
 
     # TODO: get_best_route that takes into account the total delay
     def get_fastest_route(self, actual_departure_time: float, agents: dict[int, Agent], **kwargs):
+        # To get the correct times, as the continuous intervals are exclusive of the end
         if kwargs.get("discrete", False):
             delay_addition = 1
         else:
@@ -219,7 +220,7 @@ class Results:
 
         return best_atf, best_route["route"], minimum_delays
 
-    def find_tipping_points(self, **kwargs):
+    def find_tipping_points(self, agents, **kwargs):
         line_list:list[Line] = []
         tipping_points = []
         original_arrival_time = kwargs.get("original_arrival_time", 0)
@@ -258,9 +259,18 @@ class Results:
                         break
 
             line_list.append(new_line)
-        if kwargs.get("print_tipping_points", True):
-            print(f"found tipping point on {tipping_points}")
-        return tipping_points
+        resulting_tipping_points = []
+        for tipping_point in tipping_points:
+            atf, new_route, minimum_delays = self.get_fastest_route(tipping_point, agents, beta_inclusive=True)
+            resulting_tipping_points.append((tipping_point, atf, new_route, minimum_delays))
+            if kwargs.get("print_tipping_points", True):
+                for agent, delays in minimum_delays.items():
+                    if delays:
+                        if kwargs.get("optimize_total_delay", True):
+                            print(f"Optimal starting time for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
+                        else:
+                            print(f"Tipping point for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
+        return resulting_tipping_points
 
 if __name__ == "__main__":
     with open(r"C:\Users\eoss3\Documents\FlexSIPP\FlexSIPP\data\friso\demo_backup\update-00\results.pkl", "rb") as f:
