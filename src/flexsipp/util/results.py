@@ -251,10 +251,10 @@ class Results:
                     if kwargs.get("optimize_total_delay", True):
                         x_intersection = old_line.get_x_value(new_line.y0)
                         if x_intersection < float("inf"):
-                            tipping_points.append(x_intersection)
+                            tipping_points.append((x_intersection, new_line.x0, new_line.y0))
                             break
                     else:
-                        tipping_points.append(old_line.x1)
+                        tipping_points.append((old_line.x1, new_line.x0, new_line.y0))
                         break
 
             line_list.append(new_line)

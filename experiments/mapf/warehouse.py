@@ -23,7 +23,7 @@ logger = logging.getLogger()
 logger.setLevel(logging.CRITICAL)
 
 def run_flexsipp(location_file, scenario_file):
-    end_time = 12
+    end_time = 20
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, end_time)
 
     # Agent 1 (top left) breaks down, and is unable to move from (0,0)
@@ -66,19 +66,15 @@ def run_flexsipp(location_file, scenario_file):
     axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
     tipping_points = result.find_tipping_points(original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False)
     for tipping_point in tipping_points:
-        atf, new_route, minimum_delays = result.get_fastest_route(tipping_point, agents, beta_inclusive=True)
+        atf, new_route, minimum_delays = result.get_fastest_route(tipping_point[0], agents, beta_inclusive=True)
+        x0, x1, y = tipping_point
+        axs[1,0].plot([x0, x1], [y, y], color="blue", linestyle=(0, (5, 5)))
         for agent, delays in minimum_delays.items():
             if delays:
                 print(f"Tipping point for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
     
     found_flexibility_ranges = result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
-    create_paper_plot(result, found_flexibility_ranges, graph.global_end_time)
-
-    ax = axs[0,1]
-    ax.grid(alpha=0.3)
-    rerouting_agent.plot_route(ax, continues=continues, title="Unsafe interval on original path", show_buffer_time=show_buffer_time)
-    ax.set_ylim(0, graph.global_end_time)
-    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
+    # create_paper_plot(result, found_flexibility_ranges, graph.global_end_time)
 
     ax = axs[1,1]
     ax.grid(alpha=0.3)
@@ -88,24 +84,16 @@ def run_flexsipp(location_file, scenario_file):
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
     atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=True)
+
+    ax = axs[0,1]
+    ax.grid(alpha=0.3)
+    temp_agent = MapfAgent(0, [node for node, interval in graph._complete_new_route(new_route)], graph.global_end_time)
+    temp_agent.plot_route(ax, continues=continues, title="Original unsafe interval on found path", show_buffer_time=show_buffer_time)
+    ax.set_ylim(0, graph.global_end_time)
+    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
+
     del minimum_delays[rerouting_agent]
     graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
-
-    graph.reset_flexibility()
-    for agent in agents.values():
-        agent.calculate_flexibility()
-
-    ax = axs[0,2]
-    ax.grid(alpha=0.3)
-    rerouting_agent.plot_route(ax, continues=continues, title=f"Unsafe Intervals Agent {rerouting_agent.id} when departing at {actual_departure_time}", show_buffer_time=True)
-    ax.set_ylim(0, graph.global_end_time)
-    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
-
-    ax = axs[1,2]
-    ax.grid(alpha=0.3)
-    feasibility_agent.plot_route(ax, continues=continues, title="Agent 4 after", show_buffer_time=True)
-    ax.set_ylim(0, graph.global_end_time)
-    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     # Now set agent 1 to available again
     restart_time = 3
@@ -123,12 +111,26 @@ def run_flexsipp(location_file, scenario_file):
     custom_lines = [Line2D([0], [0], color="blue"),
                     Line2D([0], [0], color="lightblue"),]
     axs[1,3].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
-    tipping_points = update_result.find_tipping_points(original_arrival_time=original_arrival_time_breakdown, optimize_total_delay=False)
+    tipping_points = update_result.find_tipping_points(original_arrival_time=original_arrival_time_breakdown, optimize_total_delay=True)
     for tipping_point in tipping_points:
-        atf, new_route, minimum_delays = update_result.get_fastest_route(tipping_point, agents, beta_inclusive=True)
+        atf, new_route, minimum_delays = update_result.get_fastest_route(tipping_point[0], agents, beta_inclusive=True)
         for agent, delays in minimum_delays.items():
             if delays:
                 print(f"Tipping point for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
+
+    ax = axs[0,2]
+    ax.grid(alpha=0.3)
+    rerouting_agent.plot_route(ax, continues=continues, title=f"Unsafe Intervals Agent {rerouting_agent.id} when departing at {actual_departure_time}", show_buffer_time=True)
+    ax.set_ylim(0, graph.global_end_time)
+    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
+
+    ax = axs[1,2]
+    ax.grid(alpha=0.3)
+    feasibility_agent.plot_route(ax, continues=continues, title="Agent 4 after", show_buffer_time=True)
+    ax.set_ylim(0, graph.global_end_time)
+    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
+
+
     plt.show()
     plt.close()
                 
@@ -172,7 +174,8 @@ def create_paper_plot(result, flexibility_used, end_time):
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
     plt.legend(by_label.values(), by_label.keys(), title="Found path")
-    plt.savefig(os.path.join(os.path.dirname(__file__), "output", "warehouse.pdf"))
+    # plt.savefig(os.path.join(os.path.dirname(__file__), "warehouse.pdf"))
+    plt.show()
     plt.close()
 
 
