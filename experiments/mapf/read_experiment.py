@@ -58,7 +58,6 @@ def get_coordinate_list(node_list):
             coordinates.append(f"({x},{y})")
     return coordinates
 
-@timing
 def create_mapf_instance_from_paths(location_file, paths_file, scenario_end_time) -> Tuple[Grid, Dict[int, MapfAgent]]:
     grid = Grid.read_graph(location_file)
     agents = paths_to_unsafe_intervals(paths_file, grid, scenario_end_time)

@@ -45,7 +45,7 @@ def run_flexsipp(location_file, scenario_file):
     feasibility_agent = agents[4]
 
     continues = False
-    actual_departure_time = 1
+    actual_departure_time = 0
     start_time = 0
     show_buffer_time = True
 
