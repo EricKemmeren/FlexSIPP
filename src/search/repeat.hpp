@@ -75,11 +75,13 @@ namespace rePEAT{
     struct Open{
         Queue queue;
         std::unordered_map<GraphNode *, GraphNode *> parent;
+        std::unordered_map<GraphNode *, GraphEdge *> edge_to_parent;
         std::unordered_map<MapNode, handle_t> handles;
         std::unordered_map<MapNode, double> expanded;
 
-        inline Node emplace(EdgeATF e, double h, GraphNode * n, GraphNode * p){
+        inline Node emplace(EdgeATF e, double h, GraphNode * n, GraphNode * p, GraphEdge * ge){
             parent[n] = p;
+			edge_to_parent[n] = ge;
             Node new_node = Node(e, h, n);
             handles[MapNode(n)] = queue.push(new_node);
             return new_node;
@@ -99,8 +101,9 @@ namespace rePEAT{
             queue.pop();
         }
 
-        inline Node decrease_key(handle_t handle , EdgeATF e, double h, GraphNode * n, GraphNode * p){
+        inline Node decrease_key(handle_t handle , EdgeATF e, double h, GraphNode * n, GraphNode * p, GraphEdge * ge){
             parent[n] = p;
+			edge_to_parent[n] = ge;
             Node new_node = Node(e, h, n);
             queue.increase(handle, new_node);
             return new_node;
@@ -111,6 +114,6 @@ namespace rePEAT{
         }
     };
 
-    CompoundATF<std::vector<GraphNode *>> search(GraphNode * source, const Location& dest, MetaData & m, double start_time, gamma_t gamma, intervalTime_t search_duration);
+    CompoundATF<std::vector<GraphContainer>> search(GraphNode * source, const Location& dest, MetaData & m, double start_time, gamma_t gamma, intervalTime_t search_duration);
 }
 

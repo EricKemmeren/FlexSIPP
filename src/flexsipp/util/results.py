@@ -41,7 +41,7 @@ class Results:
             zeta, alpha, beta, delta = found_route["edge_atf"]["atf"]
             atf = (float(zeta), float(alpha), float(beta), float(delta))
 
-            path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"]]
+            path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"] if "state" in payload]
             # TODO: rewrite this, this does not make any sense tbh
             path_str = "->".join([node for node, interval in path])
             route_str = "->".join([f"({node}, {interval})" for node, interval in path])
