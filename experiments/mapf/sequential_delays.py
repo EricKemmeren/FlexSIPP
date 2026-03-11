@@ -17,7 +17,7 @@ parser.add_argument('-e', "--end-time", help="End time of the scenario, if None 
 def repeated_delays(location_file, scenario_file, delay_file, scenario_end):
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     delays = parse_delays(delay_file, graph)
-    fig, axs = plt.subplots(1, 2 * len(delays), figsize=(5 * len(delays), 5))
+    fig, axs = plt.subplots(len(delays), 2, figsize=(10, 5 * len(delays)))
     x = 0
     for delay_agent_id, origin, destination, start_time, actual_delay in delays:
         # Get the agent that requires replanning
@@ -25,10 +25,14 @@ def repeated_delays(location_file, scenario_file, delay_file, scenario_end):
         delay_agent = agents[delay_agent_id]
 
         # Plot the route of the delay_agent
-        ax = axs[x]
+        ax = axs[x, 0]
         ax.set_ylim((0, graph.global_end_time))
         ax.grid(alpha=0.3)
         ax.set_yticks(range(0, 20))
+
+        for agent in agents.values():
+            agent.calculate_flexibility()
+
         delay_agent.plot_route(ax)
 
         # Filter out that agents unsafe intervals
@@ -40,7 +44,7 @@ def repeated_delays(location_file, scenario_file, delay_file, scenario_end):
         # Create safe intervals and calculate the ATFs
         flexSIPP = FSIPP(graph, heuristic, agents)
         # Run the expansion A* search
-        result = flexSIPP.run_search(origin, destination, start_time)
+        result = flexSIPP.run_search(origin, destination, start_time, max_delay=start_time+0.1)
         print(result)
 
         # Pick a route from the results the agent will take, currently selecting a given amount of delay
@@ -50,13 +54,17 @@ def repeated_delays(location_file, scenario_file, delay_file, scenario_end):
         del minimum_delays[delay_agent]
         graph.update_unsafe_intervals(new_path=(delay_agent, new_route, actual_delay), minimum_delays=minimum_delays)
 
+        graph.reset_flexibility()
+        for agent in agents.values():
+            agent.calculate_flexibility()
+
         # Plot the route of the delay_agent after updating
-        ax = axs[x + 1]
+        ax = axs[x, 1]
         ax.set_ylim((0, graph.global_end_time))
         ax.grid(alpha=0.3)
         ax.set_yticks(range(0, 20))
         delay_agent.plot_route(ax)
-        x+=2
+        x+=1
     plt.show()
     plt.close()
     
