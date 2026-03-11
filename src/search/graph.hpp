@@ -4,9 +4,12 @@
 #include <boost/unordered/unordered_flat_map.hpp>
 #include "structs.hpp"
 #include "atf.hpp"
+#include <variant>
 
 struct GraphEdge;
 struct GraphNode;
+
+using GraphContainer = std::variant<GraphNode *, GraphEdge *>;
 
 struct GraphNode{
     State state;
@@ -38,7 +41,7 @@ struct GraphEdge{
         destination = nullptr;
     }
     inline friend std::ostream& operator<< (std::ostream& stream, const GraphEdge& ge){
-        stream << ge.edge << " " << *ge.source << "->" << *ge.destination;
+        stream << "{\"edge\": " << ge.edge << ", \"from\": " << *ge.source << ", \"to\": " << *ge.destination << "}";
         return stream;
     }
 

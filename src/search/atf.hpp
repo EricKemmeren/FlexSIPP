@@ -298,8 +298,19 @@ struct CompoundATF{
         stream << "], \"payloads\":[";
         for(const auto& segment : catf.segments){
             stream << "{\"payload\": [";
-            for (auto j : catf.payload[segment.payload]){
-                stream << *j << ",";
+            for (const auto& item : catf.payload[segment.payload]) {
+				try {
+					auto graph_node = std::get<0>(item);
+					if (graph_node != nullptr){
+						stream << *graph_node << ", ";
+					}
+				}
+				catch (std::bad_variant_access& e) {
+					auto graph_edge = std::get<1>(item);
+					if (graph_edge != nullptr){
+						stream << *graph_edge << ", ";
+					}
+				}
             }
             stream << "], \"edge_atf\":" << catf.edge_atfs[segment.payload] << "}, ";
         }
@@ -307,3 +318,4 @@ struct CompoundATF{
         return stream;
     }
 };
+

@@ -23,11 +23,12 @@ namespace asipp{
     }
 
     template <typename Node_t, typename Open_t>
-    std::vector<GraphNode *> backup(const Node_t& n, Open_t& open_list){
-        std::vector<GraphNode *> res;
+    std::vector<GraphContainer> backup(const Node_t& n, Open_t& open_list){
+        std::vector<GraphContainer> res;
         GraphNode* cur = n.node;
         while(cur != nullptr){
             res.push_back(cur);
+			res.push_back(open_list.edge_to_parent[cur]);
             cur = open_list.parent[cur];
         }
         std::reverse(res.begin(), res.end());
@@ -35,7 +36,7 @@ namespace asipp{
     }
 
     template <typename Node_t, typename Open_t>
-    inline void extendOpen(const Node_t& cur, Open_t& open_list, MetaData & m, GraphNode * source, GraphNode * destination, EdgeATF edge, gamma_t gamma) {
+    inline void extendOpen(const Node_t& cur, Open_t& open_list, MetaData & m, GraphNode * source, GraphNode * destination, EdgeATF edge, gamma_t gamma, GraphEdge * successor) {
         intervalTime_t zeta  = cur.g.zeta;
         intervalTime_t alpha = std::max(cur.g.alpha, edge.alpha - cur.g.delta);
         intervalTime_t beta  = std::min(cur.g.beta,  edge.beta  - cur.g.delta);
@@ -103,13 +104,13 @@ namespace asipp{
             if(arrival_time_function.earliest_arrival_time() < (*handle).g.earliest_arrival_time()){
                 m.decreased++;
                 double h = edge.heuristic;
-                Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source);
+                Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source, successor);
                 std::cerr << "Decreased with better arrival time: " << new_node << std::endl;
             } else if(arrival_time_function.beta > (*handle).g.beta) {
                 if (arrival_time_function.earliest_arrival_time() <= (*handle).g.earliest_arrival_time()) {
                     m.decreased++;
                     double h = edge.heuristic;
-                    // Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source);
+                    // Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source, successor);
                     // std::cerr << "Decreased with better longer available path: " << new_node << std::endl;
                 } else {
                 // std::cerr << "Already found destination, but is worse " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
@@ -121,7 +122,7 @@ namespace asipp{
         else{
             m.generated++;
             double h = edge.heuristic;
-            Node_t new_node = open_list.emplace(arrival_time_function, h, destination, source);
+            Node_t new_node = open_list.emplace(arrival_time_function, h, destination, source, successor);
             std::cerr << "Added: " << new_node << std::endl;
         }
     }
@@ -154,7 +155,7 @@ namespace asipp{
 
             gamma_t old_gamma = gamma_t(cur.g.gamma);
             old_gamma[successor->edge.agent_after.id] = gam_item_t(gamma_after.first, gamma_after.second,  gamma_after.last_recovery, gamma_after.incurred_delays);
-            extendOpen(cur, open_list, m, successor->source, successor->destination, edge, old_gamma);
+            extendOpen(cur, open_list, m, successor->source, successor->destination, edge, old_gamma, successor);
 
 //            If there is more buffer time available than is currently being used, use it.
             intervalTime_t available_buffer_time = edge.agent_after.max_buffer_time - gamma_after.second;
@@ -180,7 +181,7 @@ namespace asipp{
                                 incurred_delays);
 
                 std::cerr << "Additional edge " << extra_edge << ", " << new_gamma[successor->edge.agent_after.id] << std::endl;
-                extendOpen(cur, open_list, m, successor->source, successor->destination, extra_edge, new_gamma);
+                extendOpen(cur, open_list, m, successor->source, successor->destination, extra_edge, new_gamma, successor);
             }
         }
     }
@@ -197,7 +198,7 @@ namespace asipp{
     }
 
     template<typename Open_t>
-    inline std::pair<std::vector<GraphNode *>, EdgeATF> search_core(Open_t& open_list, const Location& dest, MetaData & m){
+    inline std::pair<std::vector<GraphContainer>, EdgeATF> search_core(Open_t& open_list, const Location& dest, MetaData & m){
         while(!open_list.empty()){
 //            std::cerr << "Queue has " << open_list.size() << " elements." << std::endl;
             auto cur = open_list.top();
@@ -211,8 +212,8 @@ namespace asipp{
             expand(cur, open_list, dest, m);
         }
         std::cerr << "No path found " << "\n";
-        return std::make_pair(std::vector<GraphNode *>(), EdgeATF());
+        return std::make_pair(std::vector<GraphContainer>(), EdgeATF());
     }
 
-   std::pair<std::vector<GraphNode *>, EdgeATF> search(GraphNode * source, const Location& dest, MetaData & m, double start_time);
+   	std::pair<std::vector<GraphNode *>, EdgeATF> search(GraphNode * source, const Location& dest, MetaData & m, double start_time);
 }
