@@ -139,7 +139,8 @@ class Grid(Graph[Edge, Node]):
 
                 recovery_time = earliest_departure - current_time
 
-                from_node.add_unsafe_interval(UnsafeInterval(current_time, earliest_departure + 1, 1, agent, recovery_time)) # TODO calculate local recovery
+                from_node.add_unsafe_interval(UnsafeInterval(current_time, earliest_departure + 1, recovery_time, agent, recovery_time)) # TODO calculate local recovery
+                agent.wait_time_at_location[from_node] = recovery_time
                 move.add_unsafe_interval(UnsafeInterval(earliest_departure, earliest_departure + move.length, move.length, agent, 0))
 
                 current_time = earliest_departure + move.length
@@ -151,9 +152,11 @@ class Grid(Graph[Edge, Node]):
                     if old_ui.by_agent == agent:
                         ui.start = old_ui.start
                         ui.local_recovery_time = ui.end - 1 - ui.start
+                        agent.wait_time_at_location[route_with_edges[0]] = ui.local_recovery_time
 
         # At the end of it's route the node stays unsafe
-        last_ui = UnsafeInterval(current_time, self.global_end_time, 1, agent, self.global_end_time - current_time)
+        last_ui = UnsafeInterval(current_time, self.global_end_time, self.global_end_time - current_time, agent, self.global_end_time - current_time)
+        agent.wait_time_at_location[route_with_edges[-1]] = self.global_end_time - current_time
         route_with_edges[-1].add_unsafe_interval(last_ui)
 
         agent.route = existing_route + list(route_with_edges)
