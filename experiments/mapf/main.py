@@ -1,3 +1,4 @@
+import os
 import argparse
 
 from matplotlib import pyplot as plt
@@ -50,7 +51,8 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     delay_agent.plot_route(axs[2])
 
     tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=False)
-
+    optimal_start_times = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=True)
+    
     plt.show()
     plt.close()
 
