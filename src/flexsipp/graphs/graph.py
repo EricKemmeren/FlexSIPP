@@ -443,12 +443,12 @@ class Graph(Generic[EdgeType, NodeType]):
                         if current_delay < new_delay:
                             # Delay becomes larger, thus the agent should wait here. Extend end of interval delay, start of interval is shifted by old delay
                             # As it's standing still here, it is gaining local recovery time by the difference in delay amount
-                            new_ui = UnsafeInterval(ui.start + current_delay, ui.end + new_delay, ui.duration, ui.by_agent, ui.local_recovery_time + new_delay - current_delay)
+                            new_ui = UnsafeInterval(ui.start + current_delay, ui.end + new_delay, ui.local_recovery_time + new_delay - current_delay, ui.by_agent, ui.local_recovery_time + new_delay - current_delay)
                             current_delay = new_delay
                         else:
                             recovery_used = min(ui.local_recovery_time, current_delay)
                             updated_delay = current_delay - recovery_used
-                            new_ui = UnsafeInterval(ui.start + current_delay, ui.end + updated_delay, ui.duration, ui.by_agent, ui.local_recovery_time - recovery_used)
+                            new_ui = UnsafeInterval(ui.start + current_delay, ui.end + updated_delay, ui.local_recovery_time - recovery_used, ui.by_agent, ui.local_recovery_time - recovery_used)
                             current_delay = updated_delay
                         move.remove_unsafe_interval(ui)
                         move.add_unsafe_interval(new_ui)
