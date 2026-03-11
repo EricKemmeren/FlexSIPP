@@ -45,7 +45,7 @@ def run_flexsipp(location_file, scenario_file):
     feasibility_agent = agents[4]
 
     continues = False
-    actual_departure_time = 0
+    actual_departure_time = 3
     start_time = 0
     show_buffer_time = True
 
@@ -64,9 +64,9 @@ def run_flexsipp(location_file, scenario_file):
     custom_lines = [Line2D([0], [0], color="blue"),
                     Line2D([0], [0], color="lightblue"),]
     axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
-    
-    tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True)
-    optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True)
+
+    tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
+    optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0])
     
     found_flexibility_ranges = result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
     # create_paper_plot(result, found_flexibility_ranges, graph.global_end_time)
@@ -78,7 +78,7 @@ def run_flexsipp(location_file, scenario_file):
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
-    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=True)
+    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=False)
 
     ax = axs[0,1]
     ax.grid(alpha=0.3)
@@ -89,6 +89,10 @@ def run_flexsipp(location_file, scenario_file):
 
     del minimum_delays[rerouting_agent]
     graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
+
+    graph.reset_flexibility()
+    for agent in agents.values():
+        agent.calculate_flexibility()
 
     ax = axs[0,2]
     ax.grid(alpha=0.3)
