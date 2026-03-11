@@ -171,7 +171,7 @@ namespace asipp{
 
                 gamma_t new_gamma = gamma_t(cur.g.gamma);
                 std::vector<incurred_delay_t> incurred_delays = gamma_after.incurred_delays;
-                incurred_delays.push_back(incurred_delay_t(cur.node->state.loc.name, gamma_after.second));
+                incurred_delays.push_back(incurred_delay_t(successor->destination->state.loc.name, gamma_after.second));
                 new_gamma[successor->edge.agent_after.id] =
                         gam_item_t(
                                 gamma_after.second,

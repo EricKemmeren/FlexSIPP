@@ -212,7 +212,7 @@ class Results:
             minimum_delay = {}
             for delay_location, min_delay, min_gamma, max_gamma in best_route["delays"][agent.id]:
                 wait_location = agent.get_wait_location(delay_location, {node for node, interval in best_route["route"]})
-                delay = min_delay + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
+                delay = min_gamma + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
                 if kwargs.get("print_agent_delays", True):
                     print(f"Agent {agent} delayed at {delay_location}, should wait at {[x.name for x in wait_location if isinstance(x, Node)]} for at least {delay}")
                 for loc in wait_location:
