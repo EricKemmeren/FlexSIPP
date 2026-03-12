@@ -98,7 +98,7 @@ class Agent(Generic[EdgeType, NodeType]):
             except AttributeError:
                 length = 0
                 color = "blue"
-                location_labels.append((x, move.name))
+                move.append_label(location_labels, x)
             move.plot_unsafe_interval(ax, x, x + length, **kwargs, edgecolor=color)
             x += length
         ticks, labels = list(zip(*location_labels))
