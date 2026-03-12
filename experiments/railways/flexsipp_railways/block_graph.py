@@ -17,11 +17,11 @@ logger = getLogger('__main__.' + __name__)
 class BlockNode(Node["BlockEdge", "BlockNode"]):
     def __init__(self, name):
         super().__init__(name)
-        self.include_in_plot = False
+        self.plot_name = None
 
     def append_label(self, labels: list[tuple[int, str]], x: int):
-        if self.include_in_plot:
-            labels.append((x, self.name))
+        if self.plot_name is not None:
+            labels.append((x, self.plot_name))
 
 class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
     def __init__(self, f, t, l, track_route: list[TrackEdge], direction, mv):
