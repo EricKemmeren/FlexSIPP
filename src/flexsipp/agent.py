@@ -121,7 +121,8 @@ class Agent(Generic[EdgeType, NodeType]):
                     if wait_location not in opposing_route:
                         return delayed_at
         except ValueError:
-            return delayed_at
+            pass
+        return delayed_at
 
 
     def __repr__(self):
