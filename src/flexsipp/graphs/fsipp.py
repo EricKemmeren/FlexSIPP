@@ -2,7 +2,7 @@ import os
 import io
 import time
 from logging import getLogger
-from typing import Generic, TextIO, Iterable
+from typing import Generic, TextIO, Iterable, Any
 
 from .. import search
 from .graph import Graph
@@ -36,7 +36,7 @@ def suppress_cpp_output():
         os.close(old_stderr)
 
 class FSIPP(Generic[EdgeType, NodeType]):
-    def __init__(self, g:Graph[EdgeType, NodeType], heuristic:dict[str, float], agents: dict[int, Agent], filter_nodes:Iterable[NodeType]=None, use_flexibility=True):
+    def __init__(self, g:Graph[EdgeType, NodeType], heuristic:dict[str, float], agents: dict[Any, Agent], filter_nodes:Iterable[NodeType]=None, use_flexibility=True):
         """ Create a flexible safe interval any-start-time graph of the given graph, that can be used to run the search algorithm.
 
         :param Graph g: Graph containing the nodes and edges with populated unsafe intervals. Edge length should be duration.
