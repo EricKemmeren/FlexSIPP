@@ -224,6 +224,9 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
                                     safe_connections.append((from_interval, edge_interval, to_interval, edge))
         return safe_connections
 
+    def append_label(self, labels:list[tuple[int, str]], x: int):
+        labels.append((x, self.name))
+
 
 class Edge(IntervalStore, Generic[EdgeType, NodeType]):
     """Edge in the @SIPP graph is an ATF describing safe traversal from the from_node to the to_node."""
