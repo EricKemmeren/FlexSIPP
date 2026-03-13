@@ -224,7 +224,8 @@ class TestSafeIntervals(unittest.TestCase):
         heuristic = {node.name: 0 for node in cls.bg.nodes.values()}
         new_agent = copy(scenario.agents[0])
         new_agent.id = -1
-        cls.fsipp = FSIPP(scenario.fsipp(new_agent), heuristic, len(scenario.agents))
+        agents = {agent.id: agent for agent in scenario.agents}
+        cls.fsipp = FSIPP(scenario.fsipp(new_agent), heuristic, agents)
 
 
     def test_safe_intervals(self):
