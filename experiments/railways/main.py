@@ -16,7 +16,7 @@ parser.add_argument('-e', "--end-time", help="End time of the scenario, if None 
 def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end):
     # TODO the merging of intervals is not from the same agent, so we get an assertion error
     railway_graph = graph_from_file(location_file)
-    scenario = scenario_from_file(scenario_file, railway_graph, agent_cls=train_agent_limited_flexibility_generator(railway_graph.global_end_time))
+    scenario = scenario_from_file(scenario_file, railway_graph)
     scenario.process()
     # TODO do we need to set up flexibility here?
     if delay_agent is None:

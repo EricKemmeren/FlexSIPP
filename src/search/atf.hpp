@@ -121,7 +121,7 @@ struct EdgeATF{
     inline intervalTime_t sum_of_minimum_delays() const{
         intervalTime_t total_delay = intervalTime_t();
         for (gam_item_t gam: gamma) {
-            total_delay += gam.first;
+            total_delay = total_delay + gam.first;
         }
         return total_delay;
     }
@@ -132,7 +132,7 @@ struct EdgeATF{
     
     inline friend std::ostream& operator<< (std::ostream& stream, const EdgeATF& eatf){
         stream << "{";
-        stream << "\"atf\": [\"" << eatf.zeta << "\",\"" << eatf.alpha << "\",\"" << eatf.beta << "\",\"" << eatf.delta << "\"], ";
+        stream << "\"atf\": [" << eatf.zeta << "," << eatf.alpha << "," << eatf.beta << "," << eatf.delta << "], ";
         stream << "\"gammas\": [";
         if (eatf.gamma.empty()) {
             stream << "{\"agent_before\":" << eatf.agent_before << ", \"agent_after\":" << eatf.agent_after << "}";

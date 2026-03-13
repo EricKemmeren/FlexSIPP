@@ -1,7 +1,9 @@
 #pragma once
 #include <vector>
 #include <cstdint>
+#include <functional>
 #include <boost/math/constants/constants.hpp>
+#include <boost/functional/hash.hpp>
 
 // BOOST_ENABLE_ASSERT_DEBUG_HANDLER is defined for the whole project
 
@@ -15,7 +17,57 @@ constexpr double sqrt2(){
 }
 
 using gIndex_t = uint16_t;
-using intervalTime_t = double;
+
+class intervalTime_t {
+    double interval_time;
+    public:
+    intervalTime_t() = default;
+    intervalTime_t(double x) : interval_time(x) {}
+    operator double() const { return interval_time; }
+
+    inline friend std::ostream& operator<< (std::ostream& stream, const intervalTime_t& n)
+    {
+        intervalTime_t zero = 0;
+        if (std::isinf(n) && n > zero)
+        {
+            stream << "Inf";
+        }
+        else if(std::isinf(n) && n < zero) {
+            stream << "-Inf";
+        }
+        else
+        {
+            stream << n.interval_time;
+        }
+        return stream;
+    }
+
+    bool operator<(const intervalTime_t& other) const {
+        return interval_time < static_cast<double>(other);
+    }
+    bool operator>(const intervalTime_t& other) const {
+        return interval_time > static_cast<double>(other);
+    }
+
+    intervalTime_t operator+(intervalTime_t x) {
+        return interval_time + x;
+    }
+
+    intervalTime_t operator-(intervalTime_t x) {
+        return interval_time - x;
+    }
+};
+
+template<>
+struct std::hash<intervalTime_t> {
+    std::size_t operator()(const intervalTime_t& t) const noexcept {
+        return std::hash<double>{}(static_cast<double>(t));
+    }
+};
+
+inline std::size_t hash_value(const intervalTime_t& t) {
+    return boost::hash<double>{}(static_cast<double>(t));
+}
 
 // Gamma is stored as <min_gamma, max_gamma>
 //using gam_item_t = std::pair<intervalTime_t, intervalTime_t>;
@@ -77,13 +129,14 @@ struct gam_item_t {
     }
 
     inline friend bool valid_gamma(const gam_item_t &gam) {
-        if(abs(gam.second) < epsilon()) {
+        intervalTime_t eps = epsilon();
+        if(abs(gam.second) < eps) {
             std::cerr << "Still zero" << std::endl;
             return true;
         }
         intervalTime_t diff = abs(gam.second - gam.first);
         std::cerr << "Difference " << diff << " of " << gam << std::endl;
-        return diff > epsilon();
+        return diff > eps;
     }
 };
 
@@ -101,4 +154,5 @@ namespace std {
             return seed;
         }
     };
+
 }
