@@ -19,7 +19,7 @@ class Results:
         self.unique_routes_eatfs = {}
     
     def __repr__(self):
-        return f"Found {len(self.found_routes)} start times with unique paths {list(self.unique_routes.keys())}"
+        return f"Found {len(self.found_routes)} start times with unique paths:{"\n    ".join([""] + list(self.unique_routes.keys()))}"
 
     @classmethod
     def parse_json(cls, s: str, g: Graph, search_time: float):
@@ -33,8 +33,15 @@ class Results:
         self.metadata["max_delay"] = input["max delay"]
         result = input["Result"]
 
+        longest_interval_string = len(str(g.global_end_time))
+        longest_node_name = max([len(name) for name in g.nodes.keys()])
+
+
         # json_decoder does not support direct conversion of -inf/inf to float, thus manual conversion is needed.
         self.segments = [(float(x0), float(x1), float(y0), float(y1)) for x0, x1, y0, y1 in result["segments"]]
+
+        def rjust_interval(l: list, width: int):
+            return "<" + " ".join([str(a).rjust(width) for a in l]) + ">"
 
         # Last found route is irrelevant
         for found_route in result["payloads"][0:-1]:
@@ -44,7 +51,7 @@ class Results:
             path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"] if "state" in payload]
             # TODO: rewrite this, this does not make any sense tbh
             path_str = "->".join([node for node, interval in path])
-            route_str = "->".join([f"({node}, {interval})" for node, interval in path])
+            route_str = "->".join([f"({str(node).rjust(longest_node_name)}, {rjust_interval(interval, longest_interval_string)})" for node, interval in path])
             if path_str in self.unique_paths:
                 self.unique_paths[path_str] += 1
                 if atf not in self.unique_path_eatfs[path_str]:
