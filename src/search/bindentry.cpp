@@ -12,7 +12,9 @@
 #include "repeat.hpp"
 #include "structs.hpp"
 
-std::string search(std::string start, std::string goal, std::string graph_str, intervalTime_t start_time=0, intervalTime_t max_search_time=1000) {
+std::string search(std::string start, std::string goal, std::string graph_str, double start_time_d=0, double max_search_time_d=1000) {
+    intervalTime_t start_time = start_time_d;
+    intervalTime_t max_search_time = max_search_time_d;
     Location source_loc(start);
     Location goal_loc(goal);
 

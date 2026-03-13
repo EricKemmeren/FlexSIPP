@@ -36,17 +36,14 @@ class Results:
         longest_interval_string = len(str(g.global_end_time))
         longest_node_name = max([len(name) for name in g.nodes.keys()])
 
-
-        # json_decoder does not support direct conversion of -inf/inf to float, thus manual conversion is needed.
-        self.segments = [(float(x0), float(x1), float(y0), float(y1)) for x0, x1, y0, y1 in result["segments"]]
+        self.segments = result["segments"]
 
         def rjust_interval(l: list, width: int):
             return "<" + " ".join([str(a).rjust(width) for a in l]) + ">"
 
         # Last found route is irrelevant
         for found_route in result["payloads"][0:-1]:
-            zeta, alpha, beta, delta = found_route["edge_atf"]["atf"]
-            atf = (float(zeta), float(alpha), float(beta), float(delta))
+            atf = found_route["edge_atf"]["atf"]
 
             path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"] if "state" in payload]
             # TODO: rewrite this, this does not make any sense tbh

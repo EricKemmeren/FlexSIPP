@@ -36,12 +36,12 @@ namespace rePEAT{
         EdgeATF g;
 
 //        Cost value for A*
-        double f;
+        intervalTime_t f;
 
 //        @SIPP graph node, with a single safe interval
         GraphNode * node;
         Node() = default;
-        Node(EdgeATF e, double _h, GraphNode * _node):g(e),f(e.earliest_arrival_time() + _h),node(_node){
+        Node(EdgeATF e, intervalTime_t _h, GraphNode * _node):g(e),f(e.earliest_arrival_time() + _h),node(_node){
             std::cerr << "Using eat " << e.earliest_arrival_time() << " and h " << _h << std::endl;
         }
 

@@ -97,10 +97,30 @@ struct Segment{
 
     inline friend std::ostream& operator<< (std::ostream& stream, const Segment& seg){
         stream << "[";
-        stream << "\"" << seg.x0 << "\", ";
-        stream << "\"" << seg.x1 << "\", ";
-        stream << "\"" << seg.y0 << "\", ";
-        stream << "\"" << seg.y1 << "\"";
+		if (std::isinf(seg.x0)) {
+		    stream << "-Inf, ";
+		}
+		else {
+        	stream << seg.x0 << ", ";
+		}
+        if (std::isinf(seg.x1)) {
+            stream << "Inf, ";
+        }
+        else {
+            stream << seg.x1 << ", ";
+        }
+        if (std::isinf(seg.y0)) {
+            stream << "Inf, ";
+        }
+        else {
+            stream << seg.y0 << ", ";
+        }
+        if (std::isinf(seg.y1)) {
+            stream << "Inf, ";
+        }
+        else {
+            stream << seg.y1 << ", ";
+        }
         stream << "]";
         return stream;
     }

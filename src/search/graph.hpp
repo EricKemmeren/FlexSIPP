@@ -45,7 +45,7 @@ struct GraphEdge{
         return stream;
     }
 
-    inline friend bool operator<(const GraphEdge& lhs, double rhs){
+    inline friend bool operator<(const GraphEdge& lhs, intervalTime_t rhs){
         return lhs.edge.earliest_arrival_time() < rhs;
     }
 

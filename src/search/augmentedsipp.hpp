@@ -37,6 +37,8 @@ namespace asipp{
 
     template <typename Node_t, typename Open_t>
     inline void extendOpen(const Node_t& cur, Open_t& open_list, MetaData & m, GraphNode * source, GraphNode * destination, EdgeATF edge, gamma_t gamma, GraphEdge * successor) {
+
+
         intervalTime_t zeta  = cur.g.zeta;
         intervalTime_t alpha = std::max(cur.g.alpha, edge.alpha - cur.g.delta);
         intervalTime_t beta  = std::min(cur.g.beta,  edge.beta  - cur.g.delta);
@@ -68,7 +70,7 @@ namespace asipp{
         intervalTime_t min_gamma = std::max(gam_after.first, alpha - (edge.beta - cur.g.delta - gam_after.second));
 
 //        intervalTime_t duration_available = beta-(edge.alpha - delta);
-        intervalTime_t duration_available = std::max(0.0, beta - alpha);
+        intervalTime_t duration_available = std::max(static_cast<intervalTime_t>(0.0), beta - alpha);
         intervalTime_t max_gamma = gam_after.second;
         // std::cerr << "Duration: " << duration_available << ", Max gamma before: " << max_gamma;
         max_gamma = std::min(duration_available + min_gamma, gam_after.second);
@@ -160,7 +162,8 @@ namespace asipp{
 //            If there is more buffer time available than is currently being used, use it.
             intervalTime_t available_buffer_time = edge.agent_after.max_buffer_time - gamma_after.second;
             std::cerr << "Available buffer time: " << available_buffer_time << ", from max: " << edge.agent_after.max_buffer_time << std::endl;
-            if (available_buffer_time > epsilon()) {
+            intervalTime_t eps = epsilon();
+            if (available_buffer_time > eps) {
                 // std::cerr << "Addition using " << available_buffer_time << " more buffer time" << std::endl;
 //                For this extra atf, alpha is the beta of the old edge
 //                  Beta is alpha + extra aviailable buffer time
