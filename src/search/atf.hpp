@@ -236,11 +236,11 @@ struct CompoundATF{
                 break;
             }
             it = std::prev(it);
-            if(it == segments.begin()){
-                std::cerr << "At begin 2: " << seg << std::endl;
-                segments.emplace_hint(it, seg);
-                break;
-            }
+            //if(it == segments.begin()){
+            //    std::cerr << "At begin 2: " << seg << std::endl;
+            //    segments.emplace_hint(it, seg);
+            //    break;
+            //}
         }        
     }
 
