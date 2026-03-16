@@ -75,19 +75,19 @@ if __name__ == "__main__":
     config_name = "maze1"
     filename = os.path.join(os.path.dirname(__file__), "experiment_configurations_movingAI.json")
     configurations = json.load(open(filename, "r"))
-    config = configurations[config_name]
-    location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, config["location"])
-    for scenario in config["files"]:
-        scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, config["scenarios"], f"{scenario}.txt")
-        date = datetime.datetime.now().strftime("%Y-%m-%d")
-        k = int(scenario.split("-")[-1].split("_")[0].replace("k", ""))
-        result_dir = os.path.join(os.path.dirname(__file__), "output", config_name)
-        result_file = os.path.join(result_dir, f"{scenario}_{date}_seed{random_seed}_k{k}.json")
-        if not os.path.isdir(result_dir):
-            os.mkdir(result_dir)
-        results = {f"delay_agent{agent}": {} for agent in range(1, k+1)}
-        max_delays = 1000
-        for agent in range(1, k+1):
-            print(f"Run FlexSIPP for {scenario} with delay agent {agent}")
-            results[f"delay_agent{agent}"] = run_flexsipp(location, scenario_file, agent)
-            json.dump(results, open(result_file, "w"), indent=4)
+    for config_name, config in configurations.items():
+        location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, config["location"])
+        for scenario in config["files"]:
+            scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, config["scenarios"], f"{scenario}.txt")
+            date = datetime.datetime.now().strftime("%Y-%m-%d")
+            k = int(scenario.split("-")[-1].split("_")[0].replace("k", ""))
+            result_dir = os.path.join(os.path.dirname(__file__), "output", config_name)
+            result_file = os.path.join(result_dir, f"{scenario}_{date}_seed{random_seed}_k{k}.json")
+            if not os.path.isdir(result_dir):
+                os.mkdir(result_dir)
+            results = {f"delay_agent{agent}": {} for agent in range(1, k+1)}
+            max_delays = 1000
+            for agent in range(1, k+1):
+                print(f"Run FlexSIPP for {scenario} with delay agent {agent}")
+                results[f"delay_agent{agent}"] = run_flexsipp(location, scenario_file, agent)
+                json.dump(results, open(result_file, "w"), indent=4)
