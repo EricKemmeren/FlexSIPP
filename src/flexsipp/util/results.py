@@ -48,7 +48,7 @@ class Results:
             path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"] if "state" in payload]
             # TODO: rewrite this, this does not make any sense tbh
             path_str = "->".join([node for node, interval in path])
-            route_str = "->".join([f"({str(node).rjust(longest_node_name)}, {rjust_interval(interval, longest_interval_string)})" for node, interval in path])
+            route_str = "->".join([f"({str(node)}, {str(interval)})" for node, interval in path])
             if path_str in self.unique_paths:
                 self.unique_paths[path_str] += 1
                 if atf not in self.unique_path_eatfs[path_str]:
