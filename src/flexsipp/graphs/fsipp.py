@@ -89,7 +89,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
             f.write(f"{repr(atf)}\n")
         f.write(f"num_trains {self.num_agents}\n")
 
-    def run_search(self, origin, destination, start_time, max_delay=1000) -> Results:
+    def run_search(self, origin, destination, start_time, max_delay=1000, **kwargs) -> Results:
         """ Search on the FSIPP graph.
 
         :param origin: Start location of the search.
@@ -101,7 +101,10 @@ class FSIPP(Generic[EdgeType, NodeType]):
         self._write(graph)
         graph = graph.getvalue()
         log_time_start = time.time()
-        with suppress_cpp_output():
+        if kwargs.get("suppress_cpp_output", True):
+            with suppress_cpp_output():
+                result = search.search(str(origin), str(destination), graph, start_time, max_delay)
+        else:
             result = search.search(str(origin), str(destination), graph, start_time, max_delay)
         log_time_end = time.time()
         return Results.parse_json(result, self.g, log_time_end - log_time_start)
