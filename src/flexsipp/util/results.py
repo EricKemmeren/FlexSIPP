@@ -208,10 +208,10 @@ class Results:
                     best_arrival_time = arrival_time
                     best_route = route
                     best_atf = atf
-        if best_route is None:
-            return [], [], []
-
+        
         minimum_delays = {}
+        if best_route is None:
+            return [0, 0, 0, 0], [], minimum_delays
         for agent in agents.values():
             minimum_delay = {}
             for delay_location, min_delay, min_gamma, max_gamma in best_route["delays"][agent.id]:
