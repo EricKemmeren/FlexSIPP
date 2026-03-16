@@ -60,6 +60,7 @@ def repeated_delays(location_file, scenario_file, num_delays, scenario_end=None)
         result.metadata.update({
             "delay_agent": delay_agent.id,
             "delay_at_time": delay_at_time,
+            "original_arrival_time": original_arrival_time,
             "epsilon": epsilon,
             "preprocess_time": gen_time_end - gen_time_start,
             "postprocess_time": post_time_end - post_time_start,
