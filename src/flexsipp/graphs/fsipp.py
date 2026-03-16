@@ -98,6 +98,9 @@ class FSIPP(Generic[EdgeType, NodeType]):
         :param destination: Location to search to.
         :param start_time: Time to start searching from. At start_time, the origin should be safe to visit.
         :param max_delay: Search for paths starting between start_time and start_time+max_delay (default=1000).
+        :param optimize_total_delay: If True, return the first path that optimizes the total delay for all agents in the simulation.
+        :param redirect_stdout: file to redirect the output stream from the c++ search to.
+        :param redirect_stderr: file to redirect the error output stream from the c++ search to.
         """
         graph = io.StringIO()
         self._write(graph)
