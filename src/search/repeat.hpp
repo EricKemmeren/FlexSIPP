@@ -41,7 +41,11 @@ namespace rePEAT{
 //        @SIPP graph node, with a single safe interval
         GraphNode * node;
         Node() = default;
-        Node(EdgeATF e, intervalTime_t _h, GraphNode * _node):g(e),f(e.earliest_arrival_time() + _h),node(_node){
+        Node(EdgeATF e, intervalTime_t _h, GraphNode * _node, bool optimize_total_delay):g(e),node(_node){
+			f = e.earliest_arrival_time() + _h;
+			if (optimize_total_delay) {
+				f = f + g.sum_of_minimum_delays();
+			}
             std::cerr << "Using eat " << e.earliest_arrival_time() << " and h " << _h << std::endl;
         }
 
@@ -78,11 +82,12 @@ namespace rePEAT{
         std::unordered_map<GraphNode *, GraphEdge *> edge_to_parent;
         std::unordered_map<MapNode, handle_t> handles;
         std::unordered_map<MapNode, double> expanded;
+		bool optimize_total_delay;
 
         inline Node emplace(EdgeATF e, double h, GraphNode * n, GraphNode * p, GraphEdge * ge){
             parent[n] = p;
 			edge_to_parent[n] = ge;
-            Node new_node = Node(e, h, n);
+            Node new_node = Node(e, h, n, optimize_total_delay);
             handles[MapNode(n)] = queue.push(new_node);
             return new_node;
         }
@@ -104,7 +109,7 @@ namespace rePEAT{
         inline Node decrease_key(handle_t handle , EdgeATF e, double h, GraphNode * n, GraphNode * p, GraphEdge * ge){
             parent[n] = p;
 			edge_to_parent[n] = ge;
-            Node new_node = Node(e, h, n);
+            Node new_node = Node(e, h, n, optimize_total_delay);
             queue.increase(handle, new_node);
             return new_node;
         }
@@ -114,6 +119,6 @@ namespace rePEAT{
         }
     };
 
-    CompoundATF<std::vector<GraphContainer>> search(GraphNode * source, const Location& dest, MetaData & m, double start_time, gamma_t gamma, intervalTime_t search_duration);
+    CompoundATF<std::vector<GraphContainer>> search(GraphNode * source, const Location& dest, MetaData & m, double start_time, gamma_t gamma, intervalTime_t search_duration, bool optimize_total_delay);
 }
 

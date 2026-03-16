@@ -104,6 +104,6 @@ class FSIPP(Generic[EdgeType, NodeType]):
         graph = graph.getvalue()
         log_time_start = time.time()
         with redirect_cpp_output(kwargs.get("redirect_stdout", os.devnull), kwargs.get("redirect_stderr", os.devnull)):
-            result = search.search(str(origin), str(destination), graph, start_time, max_delay)
+            result = search.search(str(origin), str(destination), graph, start_time, max_delay, kwargs.get("optimize_total_delay", False))
         log_time_end = time.time()
         return Results.parse_json(result, self.g, log_time_end - log_time_start)

@@ -12,7 +12,7 @@
 #include "repeat.hpp"
 #include "structs.hpp"
 
-std::string search(std::string start, std::string goal, std::string graph_str, double start_time_d=0, double max_search_time_d=1000) {
+std::string search(std::string start, std::string goal, std::string graph_str, double start_time_d=0, double max_search_time_d=1000, bool optimize_total_delay=false) {
     intervalTime_t start_time = start_time_d;
     intervalTime_t max_search_time = max_search_time_d;
     Location source_loc(start);
@@ -39,7 +39,7 @@ std::string search(std::string start, std::string goal, std::string graph_str, d
     gamma_t initial_gamma(g.n_agents + 1);
 
     auto search_start_time = std::chrono::high_resolution_clock::now();
-    auto res = rePEAT::search(source, goal_loc, m, start_time, initial_gamma, max_search_time);
+    auto res = rePEAT::search(source, goal_loc, m, start_time, initial_gamma, max_search_time, optimize_total_delay);
     auto search_time = std::chrono::high_resolution_clock::now();
     auto search_duration = std::chrono::duration_cast<std::chrono::milliseconds >(
             search_time - search_start_time);

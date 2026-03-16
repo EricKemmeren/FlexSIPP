@@ -57,7 +57,8 @@ double update_reference_time(const EdgeATF& path, rePEAT::Open& open_list){
 }
 
 CompoundATF<std::vector<GraphContainer>> rePEAT::search(GraphNode * source, const Location& dest, MetaData & m,
-                                                     double start_time, gamma_t gamma, intervalTime_t search_duration){
+                                                     double start_time, gamma_t gamma, intervalTime_t search_duration,
+                                                     bool optimize_total_delay){
     double t_ref = start_time;
     std::vector<GraphContainer> path;
     CompoundATF solutions(path);
@@ -65,12 +66,16 @@ CompoundATF<std::vector<GraphContainer>> rePEAT::search(GraphNode * source, cons
     while((t_ref < end(source->state.interval) + std::get<4>(source->state.interval)) && (t_ref < start_time + search_duration)){
         std::cerr << "tref: " << t_ref << "\n";
         Open open_list;
+        open_list.optimize_total_delay = optimize_total_delay;
         open_list.emplace(EdgeATF(-std::numeric_limits<double>::infinity(), t_ref, std::numeric_limits<double>::infinity(), 0.0, gamma), 0, source, nullptr, nullptr);
         auto res = asipp::search_core(open_list, dest, m);
         if(res.first.size() == 0){
             break;
         }
         solutions.add(res.second, res.first);
+        if (optimize_total_delay) {
+            break;
+        }
         t_ref = update_reference_time(res.second, open_list);
     }
     std::cerr << "At end of safe interval at start node at " << t_ref << "source int " << std::get<4>(source->state.interval) << std::endl;
