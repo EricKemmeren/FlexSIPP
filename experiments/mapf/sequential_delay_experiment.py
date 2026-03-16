@@ -4,6 +4,7 @@ import json
 import math
 import datetime
 import random
+from pathlib import Path
 
 from flexsipp.graphs.fsipp import FSIPP
 from read_experiment import create_mapf_instance_from_paths
@@ -43,7 +44,7 @@ def repeated_delays(location_file, scenario_file, num_delays, scenario_end=None)
         gen_time_end = time.time()
 
         # Run the expansion A* search
-        result = flexSIPP.run_search(delay_origin, delay_agent.destination, delay_at_time, max_delay=delay_at_time+epsilon, optimize_total_delay=True)
+        result = flexSIPP.run_search(delay_origin, delay_agent.destination, delay_at_time, max_delay=delay_at_time+epsilon, optimize_total_delay=True, redirect_stderr="stderr.txt")
 
         post_time_start = time.time()
         # Pick a route from the results the agent will take, currently selecting a given amount of delay
@@ -91,6 +92,6 @@ if __name__ == "__main__":
             result_dir = os.path.join(os.path.dirname(__file__), "output", config_name)
             result_file = os.path.join(result_dir, f"replan_{scenario}_{date}_seed{random_seed}_{num_delays}delays.json")
             if not os.path.isdir(result_dir):
-                os.mkdir(result_dir)
+                Path(result_dir).mkdir(parents=True)
             results[scenario] = repeated_delays(location, scenario_file, num_delays)
             json.dump(results, open(result_file, "w"), indent=4)

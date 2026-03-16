@@ -1,5 +1,5 @@
 from flexsipp.agent import Agent
-from flexsipp.graphs.graph import Node
+from flexsipp.graphs.graph import Node, Edge
 
 class MapfAgent(Agent):
     def __init__(self, id: int, route: list, global_end_time: int):
@@ -26,9 +26,11 @@ class MapfAgent(Agent):
         current_time = 0
         for loc in self.route:
             if isinstance(loc, Node):
-                if time_point >= current_time and time_point <= current_time + self.wait_time_at_location[loc]:
-                    return loc
                 current_time += self.wait_time_at_location[loc]
+                if current_time >= time_point:
+                    return loc
+            if isinstance(loc, Edge):
+                current_time += loc.length
         return self.destination
 
 
