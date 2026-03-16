@@ -127,7 +127,7 @@ class Results:
                     delay_at_alpha += current_delay_at_alpha
                     delay_at_beta  += current_delay_at_beta
 
-                ax.plot([alpha, beta], [delay_at_alpha, delay_at_beta], color="lightblue")
+                ax.plot([min(alpha, beta), beta], [delay_at_alpha, delay_at_beta], color="lightblue")
 
                 print(f"Found ATF {atf} with flexibility between {delay_at_alpha} and {delay_at_beta}")
                 return_values.append(((alpha, beta), (delay_at_alpha, delay_at_beta)))
@@ -150,7 +150,7 @@ class Results:
                     delay_at_alpha += current_delay_at_alpha
                     delay_at_beta  += current_delay_at_beta
 
-                ax.plot([alpha, beta], [delay_at_alpha, delay_at_beta], color="blue")
+                ax.plot([min(alpha, beta), beta], [delay_at_alpha, delay_at_beta], color="blue")
         return return_values
 
     def save(self, file):
