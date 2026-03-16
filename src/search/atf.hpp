@@ -219,6 +219,7 @@ struct CompoundATF{
         auto it = segments.lower_bound(segment);
         while(true){
             if(!overlap(seg, *it)){
+                std::cerr << "No overlap: " << seg << std::endl;
                 segments.emplace_hint(it, seg);
                 break;
             }
@@ -226,14 +227,17 @@ struct CompoundATF{
             seg = hull[0];
             it = segments.erase(it);
             for(int i = hull.size()-1; i > 0; i--){
+                std::cerr << "Part of LH: " << hull[i] << std::endl;
                 it = segments.emplace_hint(it, hull[i]);
             }
             if (it == segments.begin()) {
+                std::cerr << "At begin: " << seg << std::endl;
                 segments.emplace_hint(it, seg);
                 break;
             }
             it = std::prev(it);
             if(it == segments.begin()){
+                std::cerr << "At begin 2: " << seg << std::endl;
                 segments.emplace_hint(it, seg);
                 break;
             }
@@ -247,11 +251,6 @@ struct CompoundATF{
         for(auto segment: segments){
             segment.payload = edge_atfs.size()-1;
             std::cerr << "Adding segment " << segment << std::endl;
-            std::cerr << "  segment gamma ";
-            for (gam_item_t gam: e.gamma) {
-                std::cerr << gam << ", ";
-            }
-            std::cerr << std::endl;
             add_segment(segment);
         }
         // assert(bumper_to_bumper());
