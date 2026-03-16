@@ -34,24 +34,24 @@
 //}
 
 double update_reference_time(const EdgeATF& path, rePEAT::Open& open_list){
-    double upper_bound = path.beta;
-    double lower_bound = path.alpha;
+    intervalTime_t upper_bound = path.beta;
+    intervalTime_t lower_bound = path.alpha;
     std::cerr << "Starting update tref with alpha " << lower_bound << " beta " << upper_bound << " delta " << path.delta << std::endl;
     // return upper_bound;
-    // while(lower_bound < upper_bound){
-    //     if(open_list.empty()){
-    //         return std::numeric_limits<double>::infinity();
-    //     }
-    //     auto n = open_list.top();
-    //     open_list.pop();
-    //     std::cerr << "popped " << n.g;
-    //     lower_bound = n.f - path.delta;
-    //     std::cerr << ", new lb " << lower_bound << std::endl;
-    //     if (n.g.alpha > (lower_bound + epsilon())){
-    //         std::cerr << "Result from lb ";
-    //         return std::max(std::min(path.alpha, upper_bound), lower_bound) + epsilon();
-    //     }
-    // }
+     while(lower_bound < upper_bound){
+         if(open_list.empty()){
+             return upper_bound;
+         }
+         auto n = open_list.top();
+         open_list.pop();
+         std::cerr << "popped " << n.g;
+         lower_bound = n.g.alpha + n.g.delta - path.delta;
+         std::cerr << ", new lb " << lower_bound << std::endl;
+         if (n.g.alpha > lower_bound){
+             std::cerr << "Result from lb ";
+             return std::min(upper_bound, lower_bound);
+         }
+     }
     std::cerr << "Result from ub ";
     return upper_bound;
 }
