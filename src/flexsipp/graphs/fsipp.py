@@ -18,20 +18,22 @@ import os
 from contextlib import contextmanager
 
 @contextmanager
-def suppress_cpp_output():
-    devnull = os.open(os.devnull, os.O_WRONLY)
+def redirect_cpp_output(stdout_path, stderr_path):
+    stdout_fd = os.open(stdout_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND)
+    stderr_fd = os.open(stderr_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND)
     old_stdout = os.dup(1)
     old_stderr = os.dup(2)
 
-    os.dup2(devnull, 1)
-    os.dup2(devnull, 2)
+    os.dup2(stdout_fd, 1)
+    os.dup2(stderr_fd, 2)
 
     try:
         yield
     finally:
         os.dup2(old_stdout, 1)
         os.dup2(old_stderr, 2)
-        os.close(devnull)
+        os.close(stdout_fd)
+        os.close(stderr_fd)
         os.close(old_stdout)
         os.close(old_stderr)
 
@@ -101,10 +103,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
         self._write(graph)
         graph = graph.getvalue()
         log_time_start = time.time()
-        if kwargs.get("suppress_cpp_output", True):
-            with suppress_cpp_output():
-                result = search.search(str(origin), str(destination), graph, start_time, max_delay)
-        else:
+        with redirect_cpp_output(kwargs.get("redirect_stdout", os.devnull), kwargs.get("redirect_stderr", os.devnull)):
             result = search.search(str(origin), str(destination), graph, start_time, max_delay)
         log_time_end = time.time()
         return Results.parse_json(result, self.g, log_time_end - log_time_start)
