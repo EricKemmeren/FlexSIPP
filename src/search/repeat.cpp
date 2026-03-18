@@ -44,8 +44,9 @@ double update_reference_time(const EdgeATF& path, rePEAT::Open& open_list){
          }
          auto n = open_list.top();
          open_list.pop();
-         std::cerr << "popped " << n.g;
-         lower_bound = n.g.alpha + n.g.delta - path.delta;
+         std::cerr << "popped " << n.g << std::endl;
+         std::cerr << "f: " << n.f << std::endl;
+         lower_bound = n.f - path.delta;
          std::cerr << ", new lb " << lower_bound << std::endl;
          if (n.g.alpha > lower_bound){
              std::cerr << "Result from lb ";
