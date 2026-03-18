@@ -40,11 +40,15 @@ def repeated_delays(location_file, scenario_file, num_delays, scenario_end=None)
         heuristic = graph.calculate_heuristic(delay_agent.destination)
 
         # Create safe intervals and calculate the ATFs
-        flexSIPP = FSIPP(graph, heuristic, agents)
+        flexSIPP = FSIPP(graph, heuristic, agents, use_flexibility=False)
         gen_time_end = time.time()
 
         # Run the expansion A* search
-        result = flexSIPP.run_search(delay_origin, delay_agent.destination, delay_at_time, max_delay=delay_at_time+epsilon, optimize_total_delay=True, redirect_stderr="stderr.txt")
+        try:
+            result = flexSIPP.run_search(delay_origin, delay_agent.destination, delay_at_time, max_delay=delay_at_time+epsilon, optimize_total_delay=True, redirect_stderr="stderr.txt")
+        except RuntimeError:
+            print(f"Could not find safe starting state at {delay_origin} at time {delay_at_time} for agent {delay_agent_id}")
+            continue
 
         post_time_start = time.time()
         # Pick a route from the results the agent will take, currently selecting a given amount of delay
@@ -90,7 +94,7 @@ if __name__ == "__main__":
             num_delays = int(math.floor(k / 3))
             print("Run scenario", scenario, "with", num_delays, "delays")
             result_dir = os.path.join(os.path.dirname(__file__), "output", config_name)
-            result_file = os.path.join(result_dir, f"replan_{scenario}_{date}_seed{random_seed}_{num_delays}delays.json")
+            result_file = os.path.join(result_dir, f"replan_maeder_{scenario}_{date}_seed{random_seed}_{num_delays}delays.json")
             if not os.path.isdir(result_dir):
                 Path(result_dir).mkdir(parents=True)
             results[scenario] = repeated_delays(location, scenario_file, num_delays)

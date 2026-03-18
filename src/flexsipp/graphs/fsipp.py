@@ -19,8 +19,8 @@ from contextlib import contextmanager
 
 @contextmanager
 def redirect_cpp_output(stdout_path, stderr_path):
-    stdout_fd = os.open(stdout_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND)
-    stderr_fd = os.open(stderr_path, os.O_WRONLY | os.O_CREAT | os.O_APPEND)
+    stdout_fd = os.open(stdout_path, os.O_WRONLY | os.O_CREAT)
+    stderr_fd = os.open(stderr_path, os.O_WRONLY | os.O_CREAT)
     old_stdout = os.dup(1)
     old_stderr = os.dup(2)
 
