@@ -12,7 +12,7 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.CRITICAL)
 
-def run_flexsipp(location_file, scenario_file, delay_agent_id, seed, max_delay=1000, scenario_end=None):
+def run_flexsipp(location_file, scenario_file, delay_agent_id, seed, max_delay=1000, scenario_end=None, cpp_error=None):
     random.seed(seed)
 
     # Set up @SIPP graph without flexibility
@@ -52,7 +52,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, seed, max_delay=1
     flexSIPP = FSIPP(graph, heuristic, agents, use_flexibility=True)
     gen_time_flexsipp_end = time.time()
     # Run FlexSIPP
-    result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delayed_start_time, max_delay)
+    result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delayed_start_time, max_delay, redirect_stderr=f"{cpp_error}_agent-{delay_agent_id}.txt")
     result.metadata.update({
         "gen_time": gen_time_flexsipp_end - gen_time_flexsipp_start,
         "tipping_points": [(w, str(x), '->'.join([f"({n.name}, {m})" for (n,m) in y]), {a.id: {n.name: m for (n,m) in v.items() if isinstance(n, GridCell)} for (a,v) in z.items()}) for (w,x,y,z) in result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=True, print_tipping_points=False, print_agent_delays=False)],
@@ -84,11 +84,14 @@ if __name__ == "__main__":
             k = int(scenario.split("-")[-1].split("_")[0].replace("k", ""))
             result_dir = os.path.join(os.path.dirname(__file__), "output", config_name)
             result_file = os.path.join(result_dir, f"tippingpoints_{config_name}_{date}_seed{random_seed}.json")
+            cpp_eror_file = os.path.join(result_dir, "cpp_error", f"{config_name}_{date}_seed{random_seed}")
             if not os.path.isdir(result_dir):
                 os.mkdir(result_dir)
+            if not os.path.isdir(os.path.join(result_dir, "cpp_error")):
+                os.mkdir(os.path.join(result_dir, "cpp_error"))
             results = {f"delay_agent{agent}": {} for agent in range(1, k+1)}
             max_delays = 1000
             for agent in range(1, k+1):
                 print(f"Run FlexSIPP for {scenario} with delay agent {agent}")
-                results[f"delay_agent{agent}"] = run_flexsipp(location, scenario_file, agent, random_seed)
+                results[f"delay_agent{agent}"] = run_flexsipp(location, scenario_file, agent, random_seed, cpp_error=cpp_eror_file)
                 json.dump(results, open(result_file, "w"), indent=4)
