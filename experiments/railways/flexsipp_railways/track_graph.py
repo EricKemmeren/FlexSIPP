@@ -4,6 +4,7 @@ from logging import getLogger
 from typing import Tuple
 
 from flexsipp.graphs.graph import Graph, Node, Edge, IntervalStore
+from flexsipp.util.intervals import UnsafeInterval
 from flexsipp.util.plotting_info import PlottingStore
 from flexsipp.util.util import angle_to_speed
 
@@ -22,6 +23,20 @@ class TrackNode(Node["TrackEdge", "TrackNode"]):
         if self.direction != "A" and self.direction != "B":
             raise ValueError("Direction must be either A or B")
 
+    def add_unsafe_interval(self, interval: UnsafeInterval):
+        for block in self.blocks:
+            if isinstance(block, Edge):
+                super(Edge, block).add_unsafe_interval(interval)
+            else:
+                super(Node, block).add_unsafe_interval(interval)
+
+    def remove_unsafe_interval(self, interval: UnsafeInterval):
+        for block in self.blocks:
+            if isinstance(block, Edge):
+                super(Edge, block).remove_unsafe_interval(interval)
+            # else:
+            #     super(Node, block).remove_unsafe_interval(interval)
+
 class TrackEdge(Edge["TrackEdge", "TrackNode"], PlottingStore):
     def __init__(self, f, t, l, switch_angle=None):
         super().__init__(f, t, l, angle_to_speed(switch_angle))
@@ -34,7 +49,11 @@ class TrackEdge(Edge["TrackEdge", "TrackNode"], PlottingStore):
         # if self.direction != "A" and self.direction != "B":
         #     raise ValueError("Direction must be either A or B")
 
+    def add_unsafe_interval(self, interval: UnsafeInterval):
+        super().add_unsafe_interval(interval)
 
+    def remove_unsafe_interval(self, interval: UnsafeInterval):
+        super().remove_unsafe_interval(interval)
 
     def set_plotting_info(self, agent, cur_time, end_time, block_edge):
         self.plotting_info[agent] = {
