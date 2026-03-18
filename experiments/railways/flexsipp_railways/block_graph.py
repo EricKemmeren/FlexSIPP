@@ -7,7 +7,8 @@ from copy import copy
 from tqdm import tqdm
 
 from flexsipp.agent import Agent
-from flexsipp.graphs.graph import Graph, Node, Edge
+from flexsipp.graphs.graph import Graph, Node, Edge, IntervalStore
+from flexsipp.util.intervals import UnsafeInterval
 from flexsipp.util.plotting_info import PlottingStore
 
 from .track_graph import TrackEdge, TrackNode, TrackGraph, Signal
@@ -39,6 +40,14 @@ class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
                 interval_store.blocks.add(self)
             for interval_store in track.opposites:
                 interval_store.blocks.add(self)
+
+    def add_unsafe_interval(self, interval: UnsafeInterval):
+        for track in self.track_route:
+            track.add_unsafe_interval(interval)
+
+    def remove_unsafe_interval(self, interval: UnsafeInterval):
+        for track in self.track_route:
+            track.remove_unsafe_interval(interval)
 
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
         # Store the buffer and crt

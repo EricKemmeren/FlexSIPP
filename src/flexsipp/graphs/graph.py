@@ -31,8 +31,35 @@ class IntervalStore(object):
         self.unsafe_intervals.add(interval)
 
     def remove_unsafe_interval(self, interval: UnsafeInterval):
-        if interval in self.unsafe_intervals:
-            self.unsafe_intervals.remove(interval)
+        """Remove the unsafe interval from this node/edge. Will split the existing unsafe intervals to remove only the given interval. Assumes self.unsafe_intervals are merged.
+        :param interval: Unsafe interval to remove.
+        """
+        uis = SortedKeyList(self.unsafe_intervals, key=lambda x: (x.by_agent.id, x.start))
+        if len(uis) == 0:
+            return
+        index = uis.bisect_left(interval)
+        interval_left = uis[index]
+        interval_right = uis[index + 1] if index < len(uis)-1 else None
+        if interval_left & interval and interval_left.by_agent == interval.by_agent:
+            # Interval_left has a start earlier than interval, can overlap in two ways: encompassing the whole interval or only a part.
+            self.unsafe_intervals.remove(interval_left)
+            if interval_left.start < interval.start:
+                new_ui = UnsafeInterval(interval_left.start, interval.start, interval_left.duration, interval_left.by_agent, interval_left.local_recovery_time)
+                self.unsafe_intervals.add(new_ui)
+            if interval_left.end > interval.end:
+                new_ui = UnsafeInterval(interval.end, interval_left.end, interval_left.duration, interval_left.by_agent, interval_left.local_recovery_time)
+                self.unsafe_intervals.add(new_ui)
+
+        if interval_right and interval_right & interval and interval_right.by_agent == interval.by_agent:
+            self.unsafe_intervals.remove(interval_right)
+            if interval_right.start < interval.start:
+                new_ui = UnsafeInterval(interval_right.start, interval.start, interval_right.duration, interval_right.by_agent, interval_right.local_recovery_time)
+                self.unsafe_intervals.add(new_ui)
+            if interval_right.end > interval.end:
+                new_ui = UnsafeInterval(interval.end, interval_right.end, interval_right.duration, interval_right.by_agent, interval_right.local_recovery_time)
+                self.unsafe_intervals.add(new_ui)
+
+        assert interval not in self.unsafe_intervals
 
     def merge_unsafe_intervals(self):
         self.merged = True
@@ -202,12 +229,12 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
             logger.error(f"##### ERROR ### No path was found between {self.name} and {to.name}")
         return path
 
-    def get_safe_connections(self, allowed_nodes: set[NodeType]) -> list[Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
+    def get_safe_connections(self, allowed_nodes: set[NodeType], allowed_edges: set[EdgeType]) -> list[Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
         assert len(self.safe_intervals) > 0
         safe_connections = []
         for from_interval in self.safe_intervals:
             for edge in self.outgoing:
-                if edge.to_node in allowed_nodes:
+                if edge in allowed_edges and edge.to_node in allowed_nodes:
                     for edge_interval in edge.safe_intervals:
                         # Check for overlap with the from node and edge
                         if from_interval.agent_before == edge_interval.agent_after:
@@ -251,7 +278,7 @@ class Edge(IntervalStore, Generic[EdgeType, NodeType]):
 
     def __eq__(self, other):
         if isinstance(other, Edge):
-            return self.from_node == other.from_node and self.to_node == other.to_node
+            return self.id == other.id
         return False
 
     def __hash__(self):
@@ -454,6 +481,7 @@ class Graph(Generic[EdgeType, NodeType]):
                             updated_delay = current_delay - recovery_used
                             new_ui = UnsafeInterval(ui.start + current_delay, ui.end + updated_delay, ui.local_recovery_time - recovery_used, ui.by_agent, ui.local_recovery_time - recovery_used)
                             current_delay = updated_delay
+                        # TODO: for railways, overwrite remove_unsafE_interval to remove all unsafe intervals of all blocks on the track route of a move
                         move.remove_unsafe_interval(ui)
                         move.add_unsafe_interval(new_ui)
                     move.merge_unsafe_intervals()
