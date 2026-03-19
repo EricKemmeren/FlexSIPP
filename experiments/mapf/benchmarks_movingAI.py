@@ -52,16 +52,26 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, seed, max_delay=1
     flexSIPP = FSIPP(graph, heuristic, agents, use_flexibility=True)
     gen_time_flexsipp_end = time.time()
     # Run FlexSIPP
-    result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delayed_start_time, max_delay, redirect_stderr=f"{cpp_error}_agent-{delay_agent_id}.txt")
-    result.metadata.update({
-        "gen_time": gen_time_flexsipp_end - gen_time_flexsipp_start,
-        "tipping_points": [(w, str(x), '->'.join([f"({n.name}, {m})" for (n,m) in y]), {a.id: {n.name: m for (n,m) in v.items() if isinstance(n, GridCell)} for (a,v) in z.items()}) for (w,x,y,z) in result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=True, print_tipping_points=False, print_agent_delays=False)],
-        "unique_routes_safe":  {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()}
-    })
+    meta_data = {}
+    try:
+        result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delayed_start_time, max_delay, redirect_stderr=f"{cpp_error}_agent-{delay_agent_id}.txt")
+        result.metadata.update({
+            "gen_time": gen_time_flexsipp_end - gen_time_flexsipp_start,
+            "tipping_points": [(w, str(x), '->'.join([f"({n.name}, {m})" for (n,m) in y]), {a.id: {n.name: m for (n,m) in v.items() if isinstance(n, GridCell)} for (a,v) in z.items()}) for (w,x,y,z) in result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=True, print_tipping_points=False, print_agent_delays=False)],
+            "unique_routes_safe":  {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()}
+        })
+        meta_data = result.metadata
+    except RuntimeError:
+        print(f"Could not find safe starting state at {delay_agent.origin.name} at time {delayed_start_time} for agent {delay_agent_id}")
+        meta_data = {
+            "gen_time": gen_time_flexsipp_end - gen_time_flexsipp_start,
+            "tipping_points": [],
+            "unique_routes_safe": {}
+        }
     
     data = {
         # "@MAEDeR": maeder_result.metadata,
-        "FlexSIPP": result.metadata,
+        "FlexSIPP": meta_data,
         "original_departure_time": original_departure_time,
         "original_arrival_time": original_arrival_time,
         "delay_search_start_time": delayed_start_time,
