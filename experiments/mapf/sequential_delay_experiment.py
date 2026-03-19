@@ -6,7 +6,7 @@ import datetime
 import random
 from pathlib import Path
 
-from agent import GridCell
+from graph import GridCell
 from flexsipp.graphs.fsipp import FSIPP
 from read_experiment import create_mapf_instance_from_paths
 
@@ -19,11 +19,17 @@ def get_delays_from_seed(location_file, scenario_file, num_delays, seed=123, sce
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     delays = []
     for idx in range(num_delays):
-        a = random.choice(list(agents.keys()))
-        t = random.uniform(agents[a].origin.unsafe_intervals[0].end, agents[a].destination.unsafe_intervals[-1].start-1)
-        delays.append((t, a))
+        # Get a random agent
+        a = random.choice(list(agents.values()))
+        # Get a random node on this agent's path
+        loc: GridCell = random.choice([node for node in a.route if isinstance(node, GridCell)])
+        ui_a_end = max([ui for ui in loc.unsafe_intervals if ui.by_agent == a])
+        index = loc.unsafe_intervals.bisect_right(ui_a_end)
+        safe_end = loc.unsafe_intervals[index].start - 10 if index < len(loc.unsafe_intervals) else 100
+        delay = random.uniform(max(0, min(10, safe_end)), min(100, safe_end))
+        delays.append((a.id, loc, delay))
     # Sort delays by time
-    delays.sort(key=lambda x: x[0])
+    delays.sort(key=lambda x: x[2])
     return delays
 
 
@@ -36,12 +42,11 @@ def repeated_delays(location_file, scenario_file, delays, scenario_end=None, use
             "departure": (agent.origin.name, agent.origin.unsafe_intervals[0].end),
             "arrival": (agent.destination.name, agent.destination.unsafe_intervals[-1].start)
         } for id, agent in agents.items()}
-    for delay_idx, (delay_at_time, delay_agent_id) in enumerate(delays):
-        gen_time_start = time.time()
+    for delay_idx, (delay_agent_id, delay_origin, delay_at_time) in enumerate(delays):
         delay_agent = agents[delay_agent_id]
+        gen_time_start = time.time()
         original_arrival_time = delay_agent.destination.unsafe_intervals[-1].start
-        delay_origin = delay_agent.get_location_at_time(delay_at_time)
-        print(f"Now {delay_idx} delaying agent {delay_agent_id} at time {delay_at_time} at node {delay_origin} using flexibility: {use_flexibility}")
+        print(f"Now {delay_idx} delaying agent {delay_agent} at time {delay_at_time} at node {delay_origin} using flexibility: {use_flexibility}")
 
         # Filter out that agents unsafe intervals
         graph.filter_out_agent(delay_agent)
@@ -58,7 +63,7 @@ def repeated_delays(location_file, scenario_file, delays, scenario_end=None, use
         try:
             result = flexSIPP.run_search(delay_origin, delay_agent.destination, delay_at_time, max_delay=delay_at_time+epsilon, optimize_total_delay=True, redirect_stderr="stderr.txt")
         except RuntimeError:
-            print(f"Could not find safe starting state at {delay_origin} at time {delay_at_time} for agent {delay_agent_id}")
+            print(f"Could not find safe starting state at {delay_origin} at time {delay_at_time} for agent {delay_agent}")
             failure = True
 
         post_time_start = time.time()
@@ -66,9 +71,14 @@ def repeated_delays(location_file, scenario_file, delays, scenario_end=None, use
             # Pick a route from the results the agent will take, currently selecting a given amount of delay
             atf, new_route, minimum_delays = result.get_fastest_route(delay_at_time, agents, discrete=True, print_agent_delays=False)
 
+        if not failure:
+            path_differences = result.compare_paths([str(node) for node in delay_agent.route if isinstance(node, GridCell)])
+        else:
+            path_differences = "{}"
+
         # Update the unsafe intervals such that it can be used again
         if failure or not new_route:
-            print(f"Could not find a route for agent {delay_agent_id} starting at time {delay_at_time}")
+            print(f"Could not find a route for agent {delay_agent} starting at time {delay_at_time}")
             graph.update_unsafe_intervals(new_path=(delay_agent, [(delay_agent.destination, (0, graph.global_end_time))], delay_at_time), minimum_delays={})
         else:
             del minimum_delays[delay_agent]
@@ -85,7 +95,8 @@ def repeated_delays(location_file, scenario_file, delays, scenario_end=None, use
             "preprocess_time": gen_time_end - gen_time_start,
             "postprocess_time": post_time_end - post_time_start,
             "tipping_points": [(w, str(x), '->'.join([f"({n.name}, {m})" for (n,m) in y]), {a.id: {n.name: m for (n,m) in v.items() if isinstance(n, GridCell)} for (a,v) in z.items()}) for (w,x,y,z) in result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=True, print_tipping_points=False, print_agent_delays=False)],
-            "unique_routes_safe":  {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()}
+            "unique_routes_safe":  {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()},
+            "path_differences": path_differences,
         })
         complete_result[f"delay{delay_idx}"] = result.metadata
     complete_result[f"delay0"]["initial_paths"] = initial_paths
@@ -110,7 +121,7 @@ if __name__ == "__main__":
             scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, config["scenarios"], f"{scenario}.txt")
             date = datetime.datetime.now().strftime("%Y-%m-%d")
             k = int(scenario.split("-")[-1].split("_")[0].replace("k", ""))
-            num_delays = int(math.floor(k / 3))
+            num_delays = 1
             print("Run scenario", scenario, "with", num_delays, "delays")
             result_dir = os.path.join(os.path.dirname(__file__), "output", config_name)
             result_file = os.path.join(result_dir, f"replan_maeder_{scenario}_{date}_seed{random_seed}_{num_delays}delays.json")
