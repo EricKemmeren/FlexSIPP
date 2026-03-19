@@ -83,8 +83,8 @@ if __name__ == "__main__":
             date = datetime.datetime.now().strftime("%Y-%m-%d")
             k = int(scenario.split("-")[-1].split("_")[0].replace("k", ""))
             result_dir = os.path.join(os.path.dirname(__file__), "output", config_name)
-            result_file = os.path.join(result_dir, f"tippingpoints_{config_name}_{date}_seed{random_seed}.json")
-            cpp_eror_file = os.path.join(result_dir, "cpp_error", f"{config_name}_{date}_seed{random_seed}")
+            result_file = os.path.join(result_dir, f"tippingpoints_{scenario}_{date}_seed{random_seed}.json")
+            cpp_eror_file = os.path.join(result_dir, "cpp_error", f"{scenario}_{date}_seed{random_seed}")
             if not os.path.isdir(result_dir):
                 os.mkdir(result_dir)
             if not os.path.isdir(os.path.join(result_dir, "cpp_error")):

@@ -6,6 +6,7 @@ import datetime
 import random
 from pathlib import Path
 
+from agent import GridCell
 from flexsipp.graphs.fsipp import FSIPP
 from read_experiment import create_mapf_instance_from_paths
 
@@ -83,6 +84,7 @@ def repeated_delays(location_file, scenario_file, delays, scenario_end=None, use
             "epsilon": epsilon,
             "preprocess_time": gen_time_end - gen_time_start,
             "postprocess_time": post_time_end - post_time_start,
+            "tipping_points": [(w, str(x), '->'.join([f"({n.name}, {m})" for (n,m) in y]), {a.id: {n.name: m for (n,m) in v.items() if isinstance(n, GridCell)} for (a,v) in z.items()}) for (w,x,y,z) in result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=True, print_tipping_points=False, print_agent_delays=False)],
             "unique_routes_safe":  {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()}
         })
         complete_result[f"delay{delay_idx}"] = result.metadata
