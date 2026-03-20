@@ -28,7 +28,7 @@ def get_delays_from_seed(location_file, scenario_file, num_delays, seed=123, sce
         loc: GridCell = random.choice([node for node in a.route if isinstance(node, GridCell)])
         ui_a_end = max([ui for ui in loc.unsafe_intervals if ui.by_agent == a])
         index = loc.unsafe_intervals.bisect_right(ui_a_end)
-        safe_end = loc.unsafe_intervals[index].start - 10 if index < len(loc.unsafe_intervals) else 100
+        safe_end = loc.unsafe_intervals[index].start if index < len(loc.unsafe_intervals) else 100
         delayed_start_time = random.uniform(max(0, ui_a_end.start), max(0, safe_end))
         delays.append((a.id, loc, delayed_start_time, ui_a_end.start))
     # Sort delays by time
@@ -49,7 +49,7 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
         delay_agent = agents[delay_agent_id]
         gen_time_start = time.time()
         original_arrival_time = delay_agent.destination.unsafe_intervals[-1].start
-        print(f"Now {delay_idx} delaying agent {delay_agent} at time {delayed_start_time} at node {delay_origin} that had orignal start time of {original_start_time} using flexibility: {use_flexibility}")
+        print(f"Now {delay_idx} delaying agent {delay_agent} at time {delayed_start_time} at node {delay_origin} that had original start time of {original_start_time} using flexibility: {use_flexibility}")
 
         # Filter out that agents unsafe intervals
         graph.filter_out_agent(delay_agent)
