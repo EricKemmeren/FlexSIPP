@@ -7,6 +7,8 @@ import random
 import numpy as np
 from pathlib import Path
 
+from matplotlib import pyplot as plt
+
 from graph import GridCell
 from flexsipp.graphs.fsipp import FSIPP
 from read_experiment import create_mapf_instance_from_paths
@@ -25,7 +27,7 @@ def get_delays_from_seed(location_file, scenario_file, num_delays, seed=123, sce
         # Get a random agent
         a = chosen_agents[idx]
         # Get a random node on this agent's path
-        loc: GridCell = random.choice([node for node in a.route if isinstance(node, GridCell)])
+        loc: GridCell = random.choice([node for node in a.route[:len(a.route)//4] if isinstance(node, GridCell)])
         ui_a_end = max([ui for ui in loc.unsafe_intervals if ui.by_agent == a])
         # Get the first unsafe interval at the delay location after the delayed agent visits
         index = loc.unsafe_intervals.bisect_right(ui_a_end)
@@ -81,6 +83,12 @@ def repeated_delays(location_file, scenario_file, delays, scenario_end=None, use
                 "path_differences": result.compare_paths([str(node) for node in delay_agent.route if isinstance(node, GridCell)])
             })
             meta_data = result.metadata
+
+        # fig, ax = plt.subplots()
+        # delay_agent.plot_route(ax)
+        # ax.set_ylim(0, graph.global_end_time)
+        # plt.show()
+        # plt.close()
 
         # Update the unsafe intervals such that it can be used again
         if failure or not new_route:
