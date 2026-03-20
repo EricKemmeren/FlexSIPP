@@ -28,7 +28,7 @@ def get_delays_from_seed(location_file, scenario_file, num_delays, seed=123, sce
         loc: GridCell = random.choice([node for node in a.route if isinstance(node, GridCell)])
         ui_a_end = max([ui for ui in loc.unsafe_intervals if ui.by_agent == a])
         index = loc.unsafe_intervals.bisect_right(ui_a_end)
-        safe_end = loc.unsafe_intervals[index].start if index < len(loc.unsafe_intervals) else 100
+        safe_end = loc.unsafe_intervals[index].start if index < len(loc.unsafe_intervals) else graph.global_end_time
         delayed_start_time = random.uniform(max(0, ui_a_end.start), max(0, safe_end))
         delays.append((a.id, loc, delayed_start_time, ui_a_end.start))
     # Sort delays by time
