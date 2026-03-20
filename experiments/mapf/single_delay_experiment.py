@@ -4,6 +4,7 @@ import json
 import math
 import datetime
 import random
+import numpy as np
 from pathlib import Path
 
 from graph import GridCell
@@ -28,7 +29,7 @@ def get_delays_from_seed(location_file, scenario_file, num_delays, seed=123, sce
         ui_a_end = max([ui for ui in loc.unsafe_intervals if ui.by_agent == a])
         # Get the first unsafe interval at the delay location after the delayed agent visits
         index = loc.unsafe_intervals.bisect_right(ui_a_end)
-        safe_end = loc.unsafe_intervals[index].start - 10 if index < len(loc.unsafe_intervals) else 100
+        safe_end = loc.unsafe_intervals[index].start if index < len(loc.unsafe_intervals) else graph.global_end_time
         delayed_start_time = random.uniform(max(0, ui_a_end.start), max(0, safe_end))
         delays.append((a.id, loc, delayed_start_time, ui_a_end.start))
     # Sort delays by time
@@ -118,7 +119,7 @@ if __name__ == "__main__":
     # This is the number of time steps after the start time that can be searched. 
     filename = os.path.join(os.path.dirname(__file__), "experiment_configurations_movingAI.json")
     configurations = json.load(open(filename, "r"))
-    random_seed = 123
+    random_seed = 42
     random.seed(random_seed)
     results_flexsipp = {}
     results_maeder = {}
