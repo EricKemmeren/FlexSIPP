@@ -27,6 +27,7 @@ def get_delays_from_seed(location_file, scenario_file, num_delays, seed=123, sce
         # Get a random node on this agent's path
         loc: GridCell = random.choice([node for node in a.route if isinstance(node, GridCell)])
         ui_a_end = max([ui for ui in loc.unsafe_intervals if ui.by_agent == a])
+        # Get the first unsafe interval at the delay location after the delayed agent visits
         index = loc.unsafe_intervals.bisect_right(ui_a_end)
         safe_end = loc.unsafe_intervals[index].start if index < len(loc.unsafe_intervals) else graph.global_end_time
         delayed_start_time = random.uniform(max(0, ui_a_end.start), max(0, safe_end))
@@ -49,7 +50,7 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
         delay_agent = agents[delay_agent_id]
         gen_time_start = time.time()
         original_arrival_time = delay_agent.destination.unsafe_intervals[-1].start
-        print(f"Now {delay_idx} delaying agent {delay_agent} at time {delayed_start_time} at node {delay_origin} that had original start time of {original_start_time} using flexibility: {use_flexibility}")
+        print(f"Now {delay_idx} delaying agent {delay_agent} at time {delayed_start_time} at node {delay_origin} with original start time {original_start_time}  using flexibility: {use_flexibility}")
 
         # Filter out that agents unsafe intervals
         graph.filter_out_agent(delay_agent)
@@ -62,26 +63,23 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
         gen_time_end = time.time()
 
         failure = False
-        meta_data = {}
         # Run the expansion A* search
         try:
             result = flexSIPP.run_search(delay_origin, delay_agent.destination, delayed_start_time, max_delay=delayed_start_time+epsilon, optimize_total_delay=True, redirect_stderr="stderr.txt")
-            result.metadata.update({
-                "unique_routes_safe":  {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()}
-            })
-            meta_data = result.metadata
         except RuntimeError:
             print(f"Could not find safe starting state at {delay_origin} at time {delayed_start_time} for agent {delay_agent}")
             failure = True
 
+        meta_data = {}
         post_time_start = time.time()
         if not failure:
             # Pick a route from the results the agent will take, currently selecting a given amount of delay
             atf, new_route, minimum_delays = result.get_fastest_route(delayed_start_time, agents, discrete=True, print_agent_delays=False)
-            meta_data.update({
-                "path_differences": result.compare_paths([str(node) for node in delay_agent.route if isinstance(node, GridCell)]),
-                "delays": {a.id: {n.name: m for (n,m) in v.items() if isinstance(n, GridCell)} for (a,v) in minimum_delays.items()}
+            result.metadata.update({
+                "unique_routes_safe":  {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()},
+                "path_differences": result.compare_paths([str(node) for node in delay_agent.route if isinstance(node, GridCell)])
             })
+            meta_data = result.metadata
 
         # Update the unsafe intervals such that it can be used again
         if failure or not new_route:
@@ -92,11 +90,15 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
             graph.update_unsafe_intervals(new_path=(delay_agent, new_route, delayed_start_time), minimum_delays=minimum_delays)
             for agent, flexibility_used in minimum_delays.items():
                 agent.update_wait_time_with_flexibility(flexibility_used)
+            meta_data.update({
+                "delays": {a.id: {n.name: m for (n,m) in v.items() if isinstance(n, GridCell)} for (a,v) in minimum_delays.items()}
+            })
         post_time_end = time.time()
         
         result.metadata.update({
             "delay_agent": delay_agent.id,
             "delayed_start_time": delayed_start_time,
+            "original_start_time": original_start_time,
             "original_arrival_time": original_arrival_time,
             "epsilon": epsilon,
             "preprocess_time": gen_time_end - gen_time_start,
