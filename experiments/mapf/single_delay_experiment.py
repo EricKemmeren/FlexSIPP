@@ -17,17 +17,17 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.CRITICAL)
 
-def get_delays_from_seed(location_file, scenario_file, num_delays, seed=123, scenario_end=None):
-    random.seed(seed)
+def get_delays_from_seed(location_file, scenario_file, num_delays, scenario_end=None):
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     delays = []
-    random_gen = np.random.default_rng(seed)
-    chosen_agents = random_gen.permutation(np.array(list(agents.values())))
+    agent_list = list(agents.values())
+    random.shuffle(agent_list)
     for idx in range(num_delays):
         # Get a random agent
-        a = chosen_agents[idx]
+        a = agent_list[idx]
         # Get a random node on this agent's path
-        loc: GridCell = random.choice([node for node in a.route[:len(a.route)//4] if isinstance(node, GridCell)])
+        available_route = a.route[:len(a.route)//4] if len(a.route) > 10 else a.route
+        loc: GridCell = random.choice([node for node in available_route if isinstance(node, GridCell)])
         ui_a_end = max([ui for ui in loc.unsafe_intervals if ui.by_agent == a])
         # Get the first unsafe interval at the delay location after the delayed agent visits
         index = loc.unsafe_intervals.bisect_right(ui_a_end)
@@ -127,24 +127,30 @@ if __name__ == "__main__":
     # This is the number of time steps after the start time that can be searched. 
     filename = os.path.join(os.path.dirname(__file__), "experiment_configurations_movingAI.json")
     configurations = json.load(open(filename, "r"))
-    random_seed = 42
+    random_seed = 43
     random.seed(random_seed)
     results_flexsipp = {}
     results_maeder = {}
-    date = datetime.datetime.now().strftime("%Y-%m-%d")
-    result_file_maeder = os.path.join(os.path.dirname(__file__), "output", f"optimal_@MAEDeR_{date}_seed{random_seed}.json")
-    result_file_flexsipp = os.path.join(os.path.dirname(__file__), "output", f"optimal_FlexSIPP_{date}_seed{random_seed}.json")
-    for config_name, config in configurations.items():
-        location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, config["location"])
-        for scenario in config["files"]:
-            scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, config["scenarios"], f"{scenario}.txt")
-            num_delays = 1
-            print("Run scenario", scenario, "with", num_delays, "delays")
+    date = datetime.datetime.now().strftime("%Y-%m-%d-%H:%M")
+    config_name = "maze1"
+    folder = "scen-even"
 
-            delays = get_delays_from_seed(location, scenario_file, num_delays, random_seed)
+    result_file_maeder = os.path.join(os.path.dirname(__file__), "output", f"optimal_{config_name}_@MAEDeR_{date}_seed{random_seed}.json")
+    result_file_flexsipp = os.path.join(os.path.dirname(__file__), "output", f"optimal_{config_name}_FlexSIPP_{date}_seed{random_seed}.json")
 
-            results_flexsipp.update({scenario: repeated_delays(location, scenario_file, delays, use_flexibility=True)})
-            json.dump(results_flexsipp, open(result_file_flexsipp, "w"), indent=4)
+    location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, configurations[config_name]["location"])
+    for scenario in os.listdir(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, folder)):
+        if ".txt" in scenario:
+            scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, folder, scenario)
+            scenario = scenario.replace("_paths.txt", "_paths_0").replace(".txt", "")
+            for x in range(3):
+                num_delays = 1
+                print("Run scenario", scenario, x, "with", num_delays, "delays")
 
-            results_maeder.update({scenario: repeated_delays(location, scenario_file, delays, use_flexibility=False)})
-            json.dump(results_maeder, open(result_file_maeder, "w"), indent=4)
+                delays = get_delays_from_seed(location, scenario_file, num_delays)
+
+                results_flexsipp.update({f"{scenario}_{x}": repeated_delays(location, scenario_file, delays, use_flexibility=True)})
+                json.dump(results_flexsipp, open(result_file_flexsipp, "w"), indent=4)
+
+                results_maeder.update({f"{scenario}_{x}": repeated_delays(location, scenario_file, delays, use_flexibility=False)})
+                json.dump(results_maeder, open(result_file_maeder, "w"), indent=4)
