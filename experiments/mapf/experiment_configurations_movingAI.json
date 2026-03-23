@@ -8,7 +8,15 @@
             "maze-128-128-1-even-3-k20_paths",
             "maze-128-128-1-even-4-k50_paths",
             "maze-128-128-1-even-5-k50_paths",
-            "maze-128-128-1-even-6-k50_paths"
+            "maze-128-128-1-even-6-k50_paths",
+            "maze-128-128-1-even-7-k20_paths",
+            "maze-128-128-1-even-8-k20_paths",
+            "maze-128-128-1-even-9-k20_paths",
+            "maze-128-128-1-even-10-k20_paths",
+            "maze-128-128-1-even-11-k50_paths",
+            "maze-128-128-1-even-13-k50_paths",
+            "maze-128-128-1-even-14-k50_paths",
+            "maze-128-128-1-even-15-k50_paths"
         ]
     },
     "warehouse1": {
@@ -18,39 +26,13 @@
             "warehouse-20-40-10-2-1-random-1-k50_paths",
             "warehouse-20-40-10-2-1-random-2-k50_paths",
             "warehouse-20-40-10-2-1-random-3-k50_paths",
-            "warehouse-20-40-10-2-1-random-4-k100_paths",
-            "warehouse-20-40-10-2-1-random-5-k100_paths",
-            "warehouse-20-40-10-2-1-random-8-k100_paths",
-            "warehouse-20-40-10-2-1-random-9-k200_paths",
-            "warehouse-20-40-10-2-1-random-12-k200_paths",
-            "warehouse-20-40-10-2-1-random-13-k200_paths"
-        ]
-    },
-    "warehouse2": {
-        "location": "warehouse-20-40-10-2-2.map",
-        "scenarios": "scen-random",
-        "files": [
-            "warehouse-20-40-10-2-2-random-1-k100_paths",
-            "warehouse-20-40-10-2-2-random-2-k100_paths",
-            "warehouse-20-40-10-2-2-random-3-k100_paths",
-            "warehouse-20-40-10-2-2-random-4-k200_paths",
-            "warehouse-20-40-10-2-2-random-5-k200_paths",
-            "warehouse-20-40-10-2-2-random-6-k200_paths",
-            "warehouse-20-40-10-2-2-random-7-k300_paths",
-            "warehouse-20-40-10-2-2-random-8-k300_paths",
-            "warehouse-20-40-10-2-2-random-9-k300_paths"
-        ]
-    },
-    "rooms": {
-        "location": "room-64-64-8.map",
-        "scenarios": "scen-even",
-        "files": [
-            "room-64-64-8-even-1-k50_paths",
-            "room-64-64-8-even-2-k50_paths",
-            "room-64-64-8-even-3-k50_paths",
-            "room-64-64-8-even-4-k100_paths",
-            "room-64-64-8-even-5-k100_paths",
-            "room-64-64-8-even-6-k100_paths"
+            "warehouse-20-40-10-2-1-random-4-k50_paths",
+            "warehouse-20-40-10-2-1-random-5-k50_paths",
+            "warehouse-20-40-10-2-1-random-6-k50_paths",
+            "warehouse-20-40-10-2-1-random-7-k50_paths",
+            "warehouse-20-40-10-2-1-random-8-k50_paths",
+            "warehouse-20-40-10-2-1-random-9-k50_paths",
+            "warehouse-20-40-10-2-1-random-10-k50_paths"
         ]
     }
 }

@@ -230,7 +230,7 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
         return path
 
     def get_safe_connections(self, allowed_nodes: set[NodeType], allowed_edges: set[EdgeType]) -> list[Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
-        assert len(self.safe_intervals) > 0
+        # assert len(self.safe_intervals) > 0
         safe_connections = []
         for from_interval in self.safe_intervals:
             for edge in self.outgoing:
