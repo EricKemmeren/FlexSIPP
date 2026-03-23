@@ -1,3 +1,5 @@
+import json
+
 from matplotlib.axis import Axis
 import pickle
 from rapidjson import Decoder, PM_TRAILING_COMMAS
@@ -162,7 +164,7 @@ class Results:
         with open(file, "wb") as outp:
             pickle.dump(self, outp, pickle.HIGHEST_PROTOCOL)
 
-    def compare_paths(self, f, original_path:list[str]):
+    def compare_paths(self, original_path:list[str]) -> str:
         paths:list[str] = [key.split("->") for key in self.unique_paths.keys()]
         def split_list_on_gaps(path: list[int]) -> list[list[int]]:
             if not path:
@@ -175,6 +177,8 @@ class Results:
                 else:
                     result.append([p])
             return result
+
+        out = {}
         
         for path in paths:
             # Find differences in the paths between original and new
@@ -182,14 +186,17 @@ class Results:
             diff_index = [path.index(i) for i in differences]
             diff_index.sort()
 
-            largest_beta = max([b for z,a,b,d,g in self.unique_path_eatfs[";".join(path)]])
+            largest_beta = max([b for z,a,b,d in self.unique_path_eatfs["->".join(path)]])
 
-            f.write(f"Path differences when departing before {largest_beta}\n")
+            temp = []
+            f"Path differences when departing before {largest_beta}"
             for diffs in split_list_on_gaps(diff_index):
                 differences = [path[i] for i in diffs]
-                f.write(", ".join(differences))
-                f.write("\n")
-            f.write("\n")
+                temp.append(", ".join(differences))
+
+            out[largest_beta] = temp
+
+        return json.dumps(out)
 
     # TODO: get_best_route that takes into account the total delay
     def get_fastest_route(self, actual_departure_time: float, agents: dict[int, Agent], **kwargs):
