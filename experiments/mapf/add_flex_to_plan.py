@@ -32,7 +32,10 @@ if __name__ == "__main__":
 
     location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, configurations[config_name]["location"])
     for scenario in os.listdir(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, configurations[config_name]["scenarios"])):
-        if ".txt" in scenario and ("k200" in scenario or "k50" in scenario):
+        scenario_names = scenario.split("_")[0].split("-")
+        agent_nums = ["k50", "k100", "k200"]
+        scenario_nums = [str(x) for x in range(1, 11)]
+        if ".txt" in scenario and scenario_names[7] in scenario_nums and scenario_names[8] in agent_nums:
             scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, configurations[config_name]["scenarios"], scenario)
             print(scenario)
             gaps = [3, 8]
