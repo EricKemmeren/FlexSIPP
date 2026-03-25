@@ -77,10 +77,15 @@ class Results:
                     max_gamma = gamma["max_gamma"]
                     delays[agent].append((location, min_delay, min_gamma, max_gamma))
 
-            # TODO: make this a route, including the exact edges taken
-            node_route = [(g.nodes[node], interval) for node, interval in path]
+            route = []
+            for pl in found_route["payload"]:
+                if "state" in pl:
+                    s = pl["state"]
+                    route.append((g.nodes[s["loc"]], s["interval"]))
+                elif "edge" in pl:
+                    route.append(pl["edge"]["atf"])
 
-            self.found_routes.append((atf, {"route": node_route, "delays": delays}))
+            self.found_routes.append((atf, {"route": route, "delays": delays}))
         return self
 
     linestyles = [
@@ -222,7 +227,7 @@ class Results:
         for agent in agents.values():
             minimum_delay = {}
             for delay_location, min_delay, min_gamma, max_gamma in best_route["delays"][agent.id]:
-                wait_location = agent.get_wait_location(delay_location, {node for node, interval in best_route["route"]})
+                wait_location = agent.get_wait_location(delay_location, {tup[0] for tup in best_route["route"] if isinstance(tup[0], Node)})
                 delay = min_gamma + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
                 if kwargs.get("print_agent_delays", True):
                     print(f"Agent {agent} delayed at {delay_location}, should wait at {[x.name for x in wait_location if isinstance(x, Node)]} for at least {delay}")
