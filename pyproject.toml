@@ -4,7 +4,7 @@ build-backend = "mesonpy"
 
 [project]
 name = "FlexSIPP"
-version = "0.1.11"
+version = "1.0.0"
 dependencies = [
     "numpy>=2.4.2",
     "matplotlib>=3.10.8",
@@ -12,3 +12,12 @@ dependencies = [
     "tqdm>=4.67.3",
     "python-rapidjson>=1.23"
 ]
+readme = "README.md"
+authors = [
+    {name = "Eric Kemmeren"},
+    {name = "Issa Hanou"}
+]
+description = "Implementation of Flexibile Any-Start-Time Safe Interval Path Planning"
+
+[project.urls]
+Repository = "https://github.com/EricKemmeren/FlexSIPP"
