@@ -54,7 +54,7 @@ class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
         for tr in self.track_route:
             # blocks = tr.blocks.union(tr.from_node.blocks)
             for block in tr.blocks:
-                super(type(block), block).add_flexibility(agent, bt, crt)
+                IntervalStore.add_flexibility(self, agent, bt, crt)
 
 
 class TqdmLogger:
