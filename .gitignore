@@ -2,8 +2,9 @@ __pycache__/
 .idea/
 .venv/
 *.egg-info/
-/data/prorail/*
 /experiments/railways/flexsipp_railways/experiment_generation/donna_parsing/log.txt
-!/data/prorail/scenarios
+/data/railways/prorail/*
+!/data/railways/prorail/scenarios/case_study
 /data/friso
 *.txt
+**/output/

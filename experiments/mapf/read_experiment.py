@@ -3,6 +3,7 @@ from typing import Tuple, Dict
 from graph import Grid
 from agent import MapfAgent
 from flexsipp.util.intervals import UnsafeInterval
+from flexsipp.util.timing import timing
 
 def paths_to_unsafe_intervals(path_file, grid, scenario_end):
     with open(path_file, "r") as f:
@@ -14,7 +15,7 @@ def paths_to_unsafe_intervals(path_file, grid, scenario_end):
         agents: dict[int, MapfAgent] = {}
         for line in lines:
             name, path = line.strip().split(": ")
-            id = int(name.split("Agent ")[1])
+            id = int(name.split("Agent ")[1])+1
             node_list = get_coordinate_list(path)
             current_flexibility = 0
             agent = MapfAgent(id, [], grid.global_end_time)
@@ -27,6 +28,7 @@ def paths_to_unsafe_intervals(path_file, grid, scenario_end):
                     edge_interval = UnsafeInterval(i-1, i, 1, agent, 0)
                     node_interval = UnsafeInterval(i-1-current_flexibility, i, current_flexibility+1, agent, current_flexibility)
                     grid.nodes[node_list[i-1]].add_unsafe_interval(node_interval)
+                    agent.wait_time_at_location[grid.nodes[node_list[i-1]]] = current_flexibility
 
                     edge = None
                     for e in grid.nodes[node_list[i-1]].outgoing:
@@ -42,6 +44,7 @@ def paths_to_unsafe_intervals(path_file, grid, scenario_end):
                 if i == len(node_list) - 1:
                     node_interval = UnsafeInterval(i - current_flexibility, grid.global_end_time, grid.global_end_time - i, agent, grid.global_end_time - i + current_flexibility)
                     grid.nodes[node_list[i]].add_unsafe_interval(node_interval)
+                    agent.wait_time_at_location[grid.nodes[node_list[i]]] = grid.global_end_time - i
                     agent.route.append(grid.nodes[node_list[i]])
             agents[id] = agent
         return agents

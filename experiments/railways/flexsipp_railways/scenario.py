@@ -91,7 +91,7 @@ class Scenario:
         assert agent is not None
         uis:list[IntervalStore] = list(g.nodes.values()) + g.edges
         for ui in uis:
-            ui.unsafe_intervals = ui.filter_out_agent(agent)
+            ui.filter_out_agent(agent)
         for e in g.edges:
             e.length = e.length / agent.measures.train_speed
 

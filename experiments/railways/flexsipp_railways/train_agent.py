@@ -92,12 +92,12 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
         approach_blocks: set[IntervalStore] = set()
         # TODO make variable and fix values > 2 in regards to station time, or even better:
         #  change it to actually use the breaking distance of the train at the current time.
-        n_blocks = 0
+        n_blocks = 1
 
         if current_path_index is not None:
             for path_block in self.route[current_path_index:current_path_index + n_blocks]:
                 for path_edge in path_block.track_route:
-                    approach_blocks.union(path_edge.blocks)
+                    approach_blocks = approach_blocks.union(path_edge.blocks)
 
         return interval, approach_blocks
 

@@ -30,15 +30,20 @@ class IntervalStore(object):
     def add_unsafe_interval(self, interval: UnsafeInterval):
         self.unsafe_intervals.add(interval)
 
+    def remove_unsafe_interval(self, interval: UnsafeInterval):
+        if interval in self.unsafe_intervals:
+            self.unsafe_intervals.remove(interval)
+
     def merge_unsafe_intervals(self):
         self.merged = True
         if len(self.unsafe_intervals) == 0:
             return
+        unmerged_intervals = SortedKeyList(self.unsafe_intervals, key=lambda x: (x.by_agent.id, x.start))
         merged_intervals = SortedKeyList(key=lambda x: x.start)
-        start = self.unsafe_intervals[0]
-        for next in self.unsafe_intervals[1:]:
+        start = unmerged_intervals[0]
+        for next in unmerged_intervals[1:]:
             # Check for overlap using intersection
-            if start & next:
+            if start & next and start.by_agent == next.by_agent:
                 start = start | next
             else:
                 merged_intervals.add(start)
@@ -104,17 +109,32 @@ class IntervalStore(object):
             self.safe_intervals.append(last_interval)
 
     def plot_unsafe_interval(self, ax, x1, x2, **kwargs):
+        continues = kwargs.get("continues", False)
         for ui in self.unsafe_intervals:
-            blocking_time = patches.Rectangle((x1, ui.start), x2 - x1, ui.end - ui.start,
+            c = kwargs.get("bt_color", "lightblue")
+            bt, _ = self.get_flexibility(ui.by_agent)
+
+            if not continues:
+                blocking_time = patches.Rectangle((x1, ui.start), x2 - x1, ui.end - ui.start,
+                                                    linewidth=1, edgecolor=kwargs.get("edgecolor", "red"),
+                                                    facecolor="none")
+                buffer_time = patches.Rectangle((x1, ui.end), x2 - x1, bt,
+                                                    linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
+            else:
+                x = [x1, x1, x2, x2]
+                # x = [x2, x2, x1, x1]
+                y = [ui.start, ui.end, ui.end + (x2 - x1), ui.start + (x2 - x1)]
+                blocking_time = patches.Polygon(xy=list(zip(x,y)),
                                                 linewidth=1, edgecolor=kwargs.get("edgecolor", "red"),
                                                 facecolor="none")
-            ax.add_patch(blocking_time)
+                x = [x1, x1, x2, x2]
+                y = [ui.end, ui.end + bt, ui.end + bt + (x2 - x1), ui.end + (x2 - x1)]
+                buffer_time = patches.Polygon(xy=list(zip(x,y)),
+                                              linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
 
-            # c = color_map.get(ui.by_agent.id, None)
-            # bt, _ = self.get_flexibility(ui.by_agent)
-            # buffer_time = patches.Rectangle((x1, ui.end), x2 - x1, bt,
-            #                                     linewidth=1, edgecolor=c, facecolor=c, alpha=0.5)
-            # ax.add_patch(buffer_time)
+            ax.add_patch(blocking_time)
+            if kwargs.get("show_buffer_time", True):
+                ax.add_patch(buffer_time)
 
 
 class Node(IntervalStore, Generic[EdgeType, NodeType]):
@@ -183,20 +203,30 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
         return path
 
     def get_safe_connections(self, allowed_nodes: set[NodeType]) -> list[Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
-        assert len(self.safe_intervals) > 0
+        # assert len(self.safe_intervals) > 0
         safe_connections = []
         for from_interval in self.safe_intervals:
             for edge in self.outgoing:
                 if edge.to_node in allowed_nodes:
                     for edge_interval in edge.safe_intervals:
                         # Check for overlap with the from node and edge
-                        if from_interval & edge_interval:
+                        if from_interval.agent_before == edge_interval.agent_after:
+                            condition = from_interval & edge_interval
+                        else:
+                            condition = (from_interval + from_interval.buffer_after) & (edge_interval + edge_interval.buffer_after)
+                        if condition:
                             for to_interval in edge.to_node.safe_intervals:
                                 # Check for overlap with the edge en to node
-                                # TODO: figure out if overlap with from and to node is needed
-                                if edge_interval & to_interval:
+                                if edge_interval.agent_before == to_interval.agent_after:
+                                    condition = edge_interval & to_interval
+                                else:
+                                    condition = (edge_interval + edge_interval.buffer_after) & (to_interval + to_interval.buffer_after)
+                                if condition:
                                     safe_connections.append((from_interval, edge_interval, to_interval, edge))
         return safe_connections
+
+    def append_label(self, labels:list[tuple[int, str]], x: int):
+        labels.append((x, self.name))
 
 
 class Edge(IntervalStore, Generic[EdgeType, NodeType]):
@@ -407,26 +437,26 @@ class Graph(Generic[EdgeType, NodeType]):
 
     def _update_using_minimum_delays(self, minimum_delays):
         for agent, delays in minimum_delays.items():
-            current_delay = 0
-            for move in agent.route:
-                filtered_uis = [ui for ui in move.unsafe_intervals if ui.by_agent == agent]
-                if len(filtered_uis)>0:
-                    ui = filtered_uis[0]
-                    new_delay = delays.get(move, 0)
-                    if current_delay < new_delay:
-                        # Delay becomes larger, thus the agent should wait here. Extend end of interval delay, start of interval is shifted by old delay
-                        ui.start += current_delay
-                        ui.end += new_delay
-                        current_delay = new_delay
-                        # As it's standing still here, it is gaining local recovery time by the difference in delay amount
-                        ui.local_recovery_time += new_delay - current_delay
-                    else:
-                        recovery_used = min(ui.local_recovery_time, current_delay)
-                        updated_delay = current_delay - recovery_used
-                        ui.start += current_delay
-                        ui.end += updated_delay
-                        ui.local_recovery_time -= recovery_used
-                        current_delay = updated_delay
+            if delays:
+                current_delay = 0
+                for move in agent.route:
+                    filtered_uis = [ui for ui in move.unsafe_intervals if ui.by_agent == agent]
+                    if len(filtered_uis)>0:
+                        ui = filtered_uis[0]
+                        new_delay = delays.get(move, 0)
+                        if current_delay < new_delay:
+                            # Delay becomes larger, thus the agent should wait here. Extend end of interval delay, start of interval is shifted by old delay
+                            # As it's standing still here, it is gaining local recovery time by the difference in delay amount
+                            new_ui = UnsafeInterval(ui.start + current_delay, ui.end + new_delay, ui.local_recovery_time + new_delay - current_delay, ui.by_agent, ui.local_recovery_time + new_delay - current_delay)
+                            current_delay = new_delay
+                        else:
+                            recovery_used = min(ui.local_recovery_time, current_delay)
+                            updated_delay = current_delay - recovery_used
+                            new_ui = UnsafeInterval(ui.start + current_delay, ui.end + updated_delay, ui.local_recovery_time - recovery_used, ui.by_agent, ui.local_recovery_time - recovery_used)
+                            current_delay = updated_delay
+                        move.remove_unsafe_interval(ui)
+                        move.add_unsafe_interval(new_ui)
+                    move.merge_unsafe_intervals()
 
     def update_unsafe_intervals(self, new_path=None, minimum_delays=None):
         if new_path is not None:

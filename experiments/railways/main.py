@@ -1,5 +1,7 @@
 import argparse
 
+from flexsipp_railways.train_agents.train_agent_limited_flexibility import \
+    train_agent_limited_flexibility_generator
 from flexsipp_railways.generate import graph_from_file, scenario_from_file
 from flexsipp.graphs.fsipp import FSIPP
 
@@ -21,10 +23,11 @@ def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end):
         delay_agent = scenario.agents[0]
     else:
         delay_agent = scenario.get_replanning_agent(int(delay_agent))
+    agents = {agent.id: agent for agent in scenario.agents}
     graph = scenario.fsipp(delay_agent)
     heuristic = {node.name: 0 for node in graph.nodes.values()}
-    flexSIPP = FSIPP(graph, heuristic, len(scenario.agents))
-    result = flexSIPP.run_search(1000, delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time)
+    flexSIPP = FSIPP(graph, heuristic, agents)
+    result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time)
     # TODO readable output
     print(result)
 
