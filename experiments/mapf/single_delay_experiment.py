@@ -127,30 +127,37 @@ if __name__ == "__main__":
     # This is the number of time steps after the start time that can be searched. 
     filename = os.path.join(os.path.dirname(__file__), "experiment_configurations_movingAI.json")
     configurations = json.load(open(filename, "r"))
-    random_seed = 43
+    random_seed = 42
     random.seed(random_seed)
     results_flexsipp = {}
     results_maeder = {}
     date = datetime.datetime.now().strftime("%Y-%m-%d-%H:%M")
-    config_name = "maze1"
-    folder = "scen-even"
+    config_name = "warehouse1"
+    folder = "generated"
+    scenario_name_base = "warehouse-20-40-10-2-1-random"
 
     result_file_maeder = os.path.join(os.path.dirname(__file__), "output", f"optimal_{config_name}_@MAEDeR_{date}_seed{random_seed}.json")
     result_file_flexsipp = os.path.join(os.path.dirname(__file__), "output", f"optimal_{config_name}_FlexSIPP_{date}_seed{random_seed}.json")
 
     location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, configurations[config_name]["location"])
-    for scenario in os.listdir(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, folder)):
-        if ".txt" in scenario:
-            scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, folder, scenario)
-            scenario = scenario.replace("_paths.txt", "_paths_0").replace(".txt", "")
-            for x in range(3):
-                num_delays = 1
-                print("Run scenario", scenario, x, "with", num_delays, "delays")
+    for agent_num in ["k50"]:
+        for scenario_num in range(1, 11):
+            for f_num in [0, 3, 5, 8]:
+                if f_num == 0:
+                    scenario = f"{scenario_name_base}-{scenario_num}-{agent_num}_paths.txt"
+                    scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, "scen-random", scenario)
+                    scenario = f"{scenario.replace('.txt', '')}_0"
+                else:
+                    scenario = f"{scenario_name_base}-{scenario_num}-{agent_num}_paths_{f_num}"
+                    scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config_name, folder, f"{scenario}.txt")
+                for x in range(3):
+                    num_delays = 1
+                    print("Run scenario", scenario, x, "with", num_delays, "delays")
 
-                delays = get_delays_from_seed(location, scenario_file, num_delays)
+                    delays = get_delays_from_seed(location, scenario_file, num_delays)
 
-                results_flexsipp.update({f"{scenario}_{x}": repeated_delays(location, scenario_file, delays, use_flexibility=True)})
-                json.dump(results_flexsipp, open(result_file_flexsipp, "w"), indent=4)
+                    results_flexsipp.update({f"{scenario}_{x}": repeated_delays(location, scenario_file, delays, use_flexibility=True)})
+                    json.dump(results_flexsipp, open(result_file_flexsipp, "w"), indent=4)
 
-                results_maeder.update({f"{scenario}_{x}": repeated_delays(location, scenario_file, delays, use_flexibility=False)})
-                json.dump(results_maeder, open(result_file_maeder, "w"), indent=4)
+                    results_maeder.update({f"{scenario}_{x}": repeated_delays(location, scenario_file, delays, use_flexibility=False)})
+                    json.dump(results_maeder, open(result_file_maeder, "w"), indent=4)
