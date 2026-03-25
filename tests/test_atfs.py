@@ -18,7 +18,8 @@ class TestFSIPP(unittest.TestCase):
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         new_agent = copy(scenario.agents[0])
         new_agent.id = -1
-        cls.flexSIPP = FSIPP(scenario.fsipp(new_agent), heuristic, len(scenario.agents))
+        agents = {agent.id: agent for agent in scenario.agents}
+        cls.flexSIPP = FSIPP(scenario.fsipp(new_agent), heuristic, agents)
 
     def test_atf_node_reference(self):
         safe_node_interval_ids: set[int] = {si.index for node in self.flexSIPP.nodes for si in node.safe_intervals}
@@ -38,7 +39,8 @@ class TestLimitedFlexibilityGenerator(unittest.TestCase):
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         new_agent = copy(scenario.agents[0])
         new_agent.id = -1
-        return FSIPP(scenario.fsipp(new_agent), heuristic, len(scenario.agents))
+        agents = {agent.id: agent for agent in scenario.agents}
+        return FSIPP(scenario.fsipp(new_agent), heuristic, agents)
 
     def test_no_flexibility(self):
         flexSIPP = self.setUpScenario(0, 0)

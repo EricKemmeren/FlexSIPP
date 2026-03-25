@@ -26,7 +26,7 @@ class Interval:
         Check if the current interval is valid
         @return: true iff start < end
         """
-        return self.start < self.end
+        return self.start <= self.end
 
     def __or__(self, other):
         """
@@ -34,9 +34,7 @@ class Interval:
         @param other: An overlapping interval
         @return: an Interval encompassing both the current and the other interval
         """
-        if self & other:
-            return Interval(min(self.start, other.start), max(self.end, other.end))
-        raise ValueError
+        return Interval(min(self.start, other.start), max(self.end, other.end))
 
     def __and__(self, other):
         return Interval(max(self.start, other.start), min(self.end, other.end))
@@ -108,6 +106,12 @@ class SafeInterval(Interval):
     def __repr__(self):
         return f'{super().__repr__()} {self.agent_before} {self.crt_before} {self.agent_after} {self.buffer_after} {self.crt_after}'
 
+    def __add__(self, other):
+        try:
+            # Add other to the end of the interval
+            return SafeInterval(self.start, self.end + other, self.agent_before, self.crt_before, self.agent_after, self.buffer_after, self.crt_after)
+        except TypeError:
+            return self
 
 class ArrivalTimeFunction:
     def __init__(self, from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, delta: float):
@@ -171,6 +175,9 @@ class FlexibleArrivalTimeFunction(ArrivalTimeFunction):
 
     def __repr__(self):
         return f"{self.from_id} {self.to_id} {self.zeta} {self.alpha} {self.beta} {self.delta} {self.train_before} {self.crt_before} {self.train_after} {self.buffer_after} {self.crt_after} {self.heuristic}"
+
+    def __bool__(self) -> bool:
+        return self.zeta <= self.alpha < (self.beta + self.buffer_after)
 
     def replace_index(self, interval_index_map: dict[int, int]) -> "FlexibleArrivalTimeFunction":
         new_atf = copy(self)

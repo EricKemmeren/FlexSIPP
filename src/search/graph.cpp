@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
+#include <stdexcept>
 #include <boost/iostreams/device/file.hpp>
 #include <boost/iostreams/stream_buffer.hpp>
 #include "constants.hpp"
@@ -114,7 +115,7 @@ GraphNode *  find_earliest(Graph& g, Location loc, double start_time){
     if(cur == nullptr){
         std::cerr << "Error: unable to find safe starting state: tried to find ";
         std::cerr << loc << " at time t=" << start_time << "\n";
-        exit(-1);
+        throw std::runtime_error("Unable to find safe starting state");
     }
     return cur;
 }

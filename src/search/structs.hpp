@@ -6,7 +6,7 @@
 #include <boost/functional/hash.hpp>
 #include "constants.hpp"
 
-
+// Safe interval in the form start, end, train_before, train_after, buffer_after
 using SafeInterval = std::tuple<intervalTime_t, intervalTime_t, int, int, intervalTime_t>;
 
 inline intervalTime_t begin(const SafeInterval& si){
@@ -18,7 +18,7 @@ inline intervalTime_t end(const SafeInterval& si){
 }
 
 inline bool contains(const SafeInterval& si, intervalTime_t t){
-    return begin(si) <= t && t < end(si);
+    return begin(si) <= t && t < (end(si) + std::get<4>(si));
 }
 
 inline bool overlap(const SafeInterval& left, const SafeInterval& right){

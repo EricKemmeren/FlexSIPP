@@ -12,8 +12,6 @@ class TestInterval(unittest.TestCase):
     def test_union(self):
         self.assertEqual(Interval(1, 2) | Interval(2, 3), Interval(1, 3))
         self.assertEqual(Interval(1, 2) | Interval(0, 3), Interval(0, 3))
-        with self.assertRaises(ValueError):
-            Interval(1, 2) | Interval(5, 10)
 
     def test_intersection(self):
         self.assertTrue(Interval(1, 2) & Interval(2, 3))

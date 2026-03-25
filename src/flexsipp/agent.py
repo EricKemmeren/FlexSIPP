@@ -1,8 +1,11 @@
+import logging
 from typing import Generic
 
 from matplotlib.axis import Axis
 
 from .util.types import EdgeType, NodeType
+
+logger = logging.getLogger('__main__.' + __name__)
 
 class Agent(Generic[EdgeType, NodeType]):
 
@@ -70,12 +73,13 @@ class Agent(Generic[EdgeType, NodeType]):
         last_buffer_time = self.max_buffer
         for move in self.route[::-1]:
             local_buffer, local_recovery = self._get_local_flexibility(move)
+            logger.info(f"Agent {self.id} with move {move} has local buffer {local_buffer} and recovery {local_recovery}")
 
-            # TODO: check order of these operations
+            # TODO: local buffer can be negative because agents can both have an unsafe interval on a node.
             # Because we are going backwards over the route,
             # the buffer time cannot be larger than the buffer time in the future
             # (if ignoring recovery time)
-            last_buffer_time = min(last_buffer_time, local_buffer)
+            last_buffer_time = min(last_buffer_time, max(0, local_buffer))
 
             # Buffer time can increase by recovery time if it would fit
             compound_recovery_time += local_recovery
@@ -94,7 +98,7 @@ class Agent(Generic[EdgeType, NodeType]):
             except AttributeError:
                 length = 0
                 color = "blue"
-                location_labels.append((x, move.name))
+                move.append_label(location_labels, x)
             move.plot_unsafe_interval(ax, x, x + length, **kwargs, edgecolor=color)
             x += length
         ticks, labels = list(zip(*location_labels))
@@ -117,14 +121,17 @@ class Agent(Generic[EdgeType, NodeType]):
                     if wait_location not in opposing_route:
                         return delayed_at
         except ValueError:
-            return delayed_at
+            pass
+        return delayed_at
 
 
     def __repr__(self):
         return f"{self.id}"
 
     def __eq__(self, other):
-        return self.id == other.id
+        if isinstance(other, self.__class__):
+            return self.id == other.id
+        return False
 
     def __hash__(self):
         return hash(self.id)

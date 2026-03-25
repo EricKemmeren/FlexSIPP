@@ -64,7 +64,7 @@ segments_small_container fixup(segments_small_container segs){
 }
 
 segments_small_container lowerHull(const Segment& a, const Segment& b){
-    std::cout << a << " " << b << "\n";
+    std::cerr << a << " " << b << "\n";
     assert(overlap(a, b));
     segments_small_container res;
     std::array<double, 4> breakpoints = {a.x0, a.x1, b.x0, b.x1};

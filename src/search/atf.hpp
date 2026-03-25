@@ -121,7 +121,7 @@ struct EdgeATF{
     inline intervalTime_t sum_of_minimum_delays() const{
         intervalTime_t total_delay = intervalTime_t();
         for (gam_item_t gam: gamma) {
-            total_delay += gam.first;
+            total_delay = total_delay + gam.first;
         }
         return total_delay;
     }
@@ -132,7 +132,7 @@ struct EdgeATF{
     
     inline friend std::ostream& operator<< (std::ostream& stream, const EdgeATF& eatf){
         stream << "{";
-        stream << "\"atf\": [\"" << eatf.zeta << "\",\"" << eatf.alpha << "\",\"" << eatf.beta << "\",\"" << eatf.delta << "\"], ";
+        stream << "\"atf\": [" << eatf.zeta << "," << eatf.alpha << "," << eatf.beta << "," << eatf.delta << "], ";
         stream << "\"gammas\": [";
         if (eatf.gamma.empty()) {
             stream << "{\"agent_before\":" << eatf.agent_before << ", \"agent_after\":" << eatf.agent_after << "}";
@@ -219,6 +219,7 @@ struct CompoundATF{
         auto it = segments.lower_bound(segment);
         while(true){
             if(!overlap(seg, *it)){
+                std::cerr << "No overlap: " << seg << std::endl;
                 segments.emplace_hint(it, seg);
                 break;
             }
@@ -226,17 +227,20 @@ struct CompoundATF{
             seg = hull[0];
             it = segments.erase(it);
             for(int i = hull.size()-1; i > 0; i--){
+                std::cerr << "Part of LH: " << hull[i] << std::endl;
                 it = segments.emplace_hint(it, hull[i]);
             }
             if (it == segments.begin()) {
+                std::cerr << "At begin: " << seg << std::endl;
                 segments.emplace_hint(it, seg);
                 break;
             }
             it = std::prev(it);
-            if(it == segments.begin()){
-                segments.emplace_hint(it, seg);
-                break;
-            }
+            //if(it == segments.begin()){
+            //    std::cerr << "At begin 2: " << seg << std::endl;
+            //    segments.emplace_hint(it, seg);
+            //    break;
+            //}
         }        
     }
 
@@ -247,11 +251,6 @@ struct CompoundATF{
         for(auto segment: segments){
             segment.payload = edge_atfs.size()-1;
             std::cerr << "Adding segment " << segment << std::endl;
-            std::cerr << "  segment gamma ";
-            for (gam_item_t gam: e.gamma) {
-                std::cerr << gam << ", ";
-            }
-            std::cerr << std::endl;
             add_segment(segment);
         }
         // assert(bumper_to_bumper());
@@ -298,8 +297,19 @@ struct CompoundATF{
         stream << "], \"payloads\":[";
         for(const auto& segment : catf.segments){
             stream << "{\"payload\": [";
-            for (auto j : catf.payload[segment.payload]){
-                stream << *j << ",";
+            for (const auto& item : catf.payload[segment.payload]) {
+				try {
+					auto graph_node = std::get<0>(item);
+					if (graph_node != nullptr){
+						stream << *graph_node << ", ";
+					}
+				}
+				catch (std::bad_variant_access& e) {
+					auto graph_edge = std::get<1>(item);
+					if (graph_edge != nullptr){
+						stream << *graph_edge << ", ";
+					}
+				}
             }
             stream << "], \"edge_atf\":" << catf.edge_atfs[segment.payload] << "}, ";
         }
@@ -307,3 +317,4 @@ struct CompoundATF{
         return stream;
     }
 };
+

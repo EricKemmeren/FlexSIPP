@@ -36,22 +36,26 @@ namespace rePEAT{
         EdgeATF g;
 
 //        Cost value for A*
-        double f;
+        intervalTime_t f;
 
 //        @SIPP graph node, with a single safe interval
         GraphNode * node;
         Node() = default;
-        Node(EdgeATF e, double _h, GraphNode * _node):g(e),f(e.earliest_arrival_time() + _h),node(_node){
+        Node(EdgeATF e, intervalTime_t _h, GraphNode * _node, bool optimize_total_delay):g(e),node(_node){
+			f = e.earliest_arrival_time() + _h;
+			if (optimize_total_delay) {
+				f = f + g.sum_of_minimum_delays();
+			}
             std::cerr << "Using eat " << e.earliest_arrival_time() << " and h " << _h << std::endl;
         }
 
         inline friend bool operator>(const Node& a, const Node& b){
             if(a.f == b.f){
                 if (a.g.sum_of_minimum_delays() == b.g.sum_of_minimum_delays()) {
-//                    if (a.g.alpha == b.g.alpha) {
+                    if (a.g.alpha == b.g.alpha) {
                         return a.g.beta < b.g.beta;
-//                    }
-//                    return a.g.alpha < b.g.alpha;
+                    }
+                    return a.g.alpha < b.g.alpha;
                 }
                 return a.g.sum_of_minimum_delays() > b.g.sum_of_minimum_delays();
             }
@@ -75,12 +79,15 @@ namespace rePEAT{
     struct Open{
         Queue queue;
         std::unordered_map<GraphNode *, GraphNode *> parent;
+        std::unordered_map<GraphNode *, GraphEdge *> edge_to_parent;
         std::unordered_map<MapNode, handle_t> handles;
         std::unordered_map<MapNode, double> expanded;
+		bool optimize_total_delay;
 
-        inline Node emplace(EdgeATF e, double h, GraphNode * n, GraphNode * p){
+        inline Node emplace(EdgeATF e, double h, GraphNode * n, GraphNode * p, GraphEdge * ge){
             parent[n] = p;
-            Node new_node = Node(e, h, n);
+			edge_to_parent[n] = ge;
+            Node new_node = Node(e, h, n, optimize_total_delay);
             handles[MapNode(n)] = queue.push(new_node);
             return new_node;
         }
@@ -99,9 +106,10 @@ namespace rePEAT{
             queue.pop();
         }
 
-        inline Node decrease_key(handle_t handle , EdgeATF e, double h, GraphNode * n, GraphNode * p){
+        inline Node decrease_key(handle_t handle , EdgeATF e, double h, GraphNode * n, GraphNode * p, GraphEdge * ge){
             parent[n] = p;
-            Node new_node = Node(e, h, n);
+			edge_to_parent[n] = ge;
+            Node new_node = Node(e, h, n, optimize_total_delay);
             queue.increase(handle, new_node);
             return new_node;
         }
@@ -111,6 +119,6 @@ namespace rePEAT{
         }
     };
 
-    CompoundATF<std::vector<GraphNode *>> search(GraphNode * source, const Location& dest, MetaData & m, double start_time, gamma_t gamma, intervalTime_t search_duration);
+    CompoundATF<std::vector<GraphContainer>> search(GraphNode * source, const Location& dest, MetaData & m, double start_time, gamma_t gamma, intervalTime_t search_duration, bool optimize_total_delay);
 }
 
