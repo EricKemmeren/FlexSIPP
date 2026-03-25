@@ -38,14 +38,13 @@ def redirect_cpp_output(stdout_path, stderr_path):
         os.close(old_stderr)
 
 class FSIPP(Generic[EdgeType, NodeType]):
-    def __init__(self, g:Graph[EdgeType, NodeType], heuristic:dict[str, float], agents: dict[Any, Agent], filter_nodes:Iterable[NodeType]=None, filter_edges:Iterable[EdgeType]=None, use_flexibility=True):
+    def __init__(self, g:Graph[EdgeType, NodeType], heuristic:dict[str, float], agents: dict[Any, Agent], filter_nodes:Iterable[NodeType]=None, use_flexibility=True):
         """ Create a flexible safe interval any-start-time graph of the given graph, that can be used to run the search algorithm.
 
         :param Graph g: Graph containing the nodes and edges with populated unsafe intervals. Edge length should be duration.
         :param dict heuristic: Dictionary that maps node name to a value, this value is used as the heuristic in the A* search.
         :param Iterable agents: Number of agents present is the graph.
         :param Iterable, optional filter_nodes: Optional argument to specify the allowed nodes the new agent is able to find a new path over.
-        :param Iterable, optional filter_edges: Optional argument to specify the allowed edges the new agent is able to find a new path over.
         :param Bool use_flexibility: when set to False, the agents do not have any flexibility and regular @MAEDeR search is performed.
         :return: A FlexSIPP graph with SafeIntervals on the nodes, and FlexibleArrivalTimeFunctions between these nodes as edges.
         """
@@ -62,6 +61,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
             self.nodes = filter_nodes
         else:
             self.nodes = set(g.nodes.values())
+        # TODO: maybe force self.nodes to be a set(), does remove ordering making manual reading of file more difficult
 
         for node in self.nodes:
             def create_atf(from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, edge):
@@ -70,7 +70,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
                 if flex_atf:
                     logger.debug(f"Node {node.name} has flex ATF zeta {flex_atf.zeta} alpha {flex_atf.alpha}, beta {flex_atf.beta}, delta {flex_atf.delta}  Before agent {flex_atf.train_before} crt {flex_atf.crt_before} and after agent {flex_atf.train_after} buffer {flex_atf.buffer_after} and crt {flex_atf.crt_after}")
                     self.atfs.append(flex_atf)
-            [create_atf(*c) for c in node.get_safe_connections(self.nodes, filter_edges)]
+            [create_atf(*c) for c in node.get_safe_connections(self.nodes)]
 
     def _write(self, f:TextIO):
         f.write(f"vertex count: {str(len([x for node in self.nodes for x in node.safe_intervals]))}\n")
