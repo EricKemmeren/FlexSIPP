@@ -41,6 +41,11 @@ class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
             for interval_store in track.opposites:
                 interval_store.blocks.add(self)
 
+    def merge_unsafe_intervals(self):
+        IntervalStore.merge_unsafe_intervals(self)
+        for track in self.track_route:
+            track.merge_unsafe_intervals()
+
     def add_unsafe_interval(self, interval: UnsafeInterval):
         for track in self.track_route:
             track.add_unsafe_interval(interval)
@@ -54,7 +59,7 @@ class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
         for tr in self.track_route:
             # blocks = tr.blocks.union(tr.from_node.blocks)
             for block in tr.blocks:
-                IntervalStore.add_flexibility(self, agent, bt, crt)
+                IntervalStore.add_flexibility(block, agent, bt, crt)
 
 
 class TqdmLogger:

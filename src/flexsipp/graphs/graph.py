@@ -37,10 +37,10 @@ class IntervalStore(object):
         uis = SortedKeyList(self.unsafe_intervals, key=lambda x: (x.by_agent.id, x.start))
         if len(uis) == 0:
             return
-        index = uis.bisect_left(interval)
-        interval_left = uis[index]
+        index = uis.bisect_left(interval) - 1
+        interval_left = uis[index] if index > 0 else None
         interval_right = uis[index + 1] if index < len(uis)-1 else None
-        if interval_left & interval and interval_left.by_agent == interval.by_agent:
+        if interval_left and interval_left & interval and interval_left.by_agent == interval.by_agent:
             # Interval_left has a start earlier than interval, can overlap in two ways: encompassing the whole interval or only a part.
             self.unsafe_intervals.remove(interval_left)
             if interval_left.start < interval.start:

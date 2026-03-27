@@ -23,6 +23,10 @@ class TrackNode(Node["TrackEdge", "TrackNode"]):
         if self.direction != "A" and self.direction != "B":
             raise ValueError("Direction must be either A or B")
 
+    def merge_unsafe_intervals(self):
+        for block in self.blocks:
+            IntervalStore.merge_unsafe_intervals(block)
+
     def add_unsafe_interval(self, interval: UnsafeInterval):
         for block in self.blocks:
             if isinstance(block, Edge):
@@ -49,11 +53,17 @@ class TrackEdge(Edge["TrackEdge", "TrackNode"], PlottingStore):
         # if self.direction != "A" and self.direction != "B":
         #     raise ValueError("Direction must be either A or B")
 
+    def merge_unsafe_intervals(self):
+        for block in self.blocks:
+            IntervalStore.merge_unsafe_intervals(block)
+
     def add_unsafe_interval(self, interval: UnsafeInterval):
-        super().add_unsafe_interval(interval)
+        for block in self.blocks:
+            IntervalStore.add_unsafe_interval(block, interval)
 
     def remove_unsafe_interval(self, interval: UnsafeInterval):
-        super().remove_unsafe_interval(interval)
+        for block in self.blocks:
+            IntervalStore.remove_unsafe_interval(block, interval)
 
     def set_plotting_info(self, agent, cur_time, end_time, block_edge):
         self.plotting_info[agent] = {
