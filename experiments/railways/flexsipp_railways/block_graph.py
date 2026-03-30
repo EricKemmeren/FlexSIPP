@@ -42,24 +42,36 @@ class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
                 interval_store.blocks.add(self)
 
     def merge_unsafe_intervals(self):
-        IntervalStore.merge_unsafe_intervals(self)
+        interval_stores: set[IntervalStore] = {self}
         for track in self.track_route:
-            track.merge_unsafe_intervals()
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.merge_unsafe_intervals(store)
 
     def add_unsafe_interval(self, interval: UnsafeInterval):
+        interval_stores: set[IntervalStore] = {self}
         for track in self.track_route:
-            track.add_unsafe_interval(interval)
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.add_unsafe_interval(store, interval)
 
     def remove_unsafe_interval(self, interval: UnsafeInterval):
+        interval_stores: set[IntervalStore] = {self}
         for track in self.track_route:
-            track.remove_unsafe_interval(interval)
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.remove_unsafe_interval(store, interval)
 
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
-        # Store the buffer and crt
-        for tr in self.track_route:
-            # blocks = tr.blocks.union(tr.from_node.blocks)
-            for block in tr.blocks:
-                IntervalStore.add_flexibility(block, agent, bt, crt)
+        interval_stores: set[IntervalStore] = {self}
+        for track in self.track_route:
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.add_flexibility(store, agent, bt, crt)
 
 
 class TqdmLogger:
