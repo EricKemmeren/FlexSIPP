@@ -69,7 +69,7 @@ class Scenario:
             agent.calculate_blocking_times()
         merge_list: list[IntervalStore] = list(self.g.nodes.values()) + self.g.edges
         for node in merge_list:
-            node.merge_unsafe_intervals()
+            IntervalStore.merge_unsafe_intervals(node)
         for agent in self.agents.values():
             agent.calculate_flexibility()
 
