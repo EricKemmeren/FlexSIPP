@@ -92,7 +92,7 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
                     b.canReverse = True
                 # A/B nodes are opposite because they have opposite edges attaches
             # Nodes on the same side of a switch are not associated -> they do not have same intervals, but the edges do
-            elif track["type"] == "Switch" or side_switch_switch_side:
+            elif track["type"] == "Switch" or side_switch_switch_side or track["type"] == "EnglishSwitch":
                 if len(track["aSide"]) > len(track["bSide"]):
                     a = g.add_node(TrackNode(track["name"] + "A", track["type"]))
                     b = g.add_node(TrackNode(track["name"] + "B", track["type"]))
@@ -103,8 +103,6 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
                     b = g.add_node(TrackNode(track["name"] + "B", track["type"]))
                     nodes_per_id_A[track["id"]] = track["name"] + "A"
                     nodes_per_id_B[track["id"]] = track["name"] + "B"
-            elif track["type"] == "EnglishSwitch":
-                assert False
 
         # All nodes are created in the track graph, create the edges between the nodes
         for track in data["trackParts"]:
@@ -172,8 +170,8 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
 
             # If it is a double-ended (not dead-end) track where parking is allowed, then we can go from A->B and B->A
             if track["type"] == "RailRoad" and track["sawMovementAllowed"] and not bumper_aside and not bumper_bside:
-                g.add_edge(TrackEdge(g.nodes[nodes_per_id_A[track["id"]][i]], g.nodes[nodes_per_id_B[track["id"]][i]], 0))
-                g.add_edge(TrackEdge(g.nodes[nodes_per_id_B[track["id"]][i]], g.nodes[nodes_per_id_A[track["id"]][i]], 0))
+                g.add_edge(TrackEdge(g.nodes[nodes_per_id_A[track["id"]]], g.nodes[nodes_per_id_B[track["id"]]], 0))
+                g.add_edge(TrackEdge(g.nodes[nodes_per_id_B[track["id"]]], g.nodes[nodes_per_id_A[track["id"]]], 0))
             # Assign the associated edges (same side of switch)
             # for x in a_edges:
             #     for y in a_edges:
@@ -244,8 +242,6 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
 
         stations = data["stations"] if "stations" in data else []
         for station in stations:
-            if len(nodes_per_id_A[station["trackId"]]) != 1 or len(nodes_per_id_B[station["trackId"]]) != 1:
-                logger.error(f'Found platform {station["stationName"].upper()}|{station["platform"]} on a switch: A: {nodes_per_id_A[station["trackId"]]} or B: {nodes_per_id_B[station["trackId"]]}')
             track_a_str = nodes_per_id_A[station["trackId"]]
             track_b_str = nodes_per_id_B[station["trackId"]]
             g.stations[f"{station['stationName'].upper()}|{station['platform']}"] = (g.nodes[track_a_str], g.nodes[track_b_str])
