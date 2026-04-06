@@ -8,6 +8,29 @@
     "trains": [
         {
             "movements": {
+                "endLocation": "SHL|1",
+                "endTime": 4646,
+                "startLocation": "RTD|12",
+                "startTime": 780.0,
+                "stops": [
+                    {
+                        "expected_arrival": 2340.0,
+                        "location": "SHL|1",
+                        "time": 4646.0
+                    }
+                ]
+            },
+            "trainNumber": "1867",
+            "trainUnitTypes": [
+                "ICNG"
+            ],
+            "trainUnits": [
+                "3138",
+                "3206"
+            ]
+        },
+        {
+            "movements": {
                 "endLocation": "VS|2",
                 "endTime": 9360.0,
                 "startLocation": "LEDN|9b",
@@ -4496,6 +4519,14 @@
             "length": 138,
             "minimum_station_time": 120,
             "name": "EUROSTAR",
+            "speed": 200
+        },
+        {
+            "acceleration": 0.5,
+            "deceleration": 1.1,
+            "length": 138,
+            "minimum_station_time": 120,
+            "name": "EUROCITY",
             "speed": 200
         },
         {
