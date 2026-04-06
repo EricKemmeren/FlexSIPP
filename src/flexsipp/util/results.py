@@ -1,4 +1,5 @@
 import json
+from typing import Any
 
 from matplotlib.axis import Axis
 import pickle
@@ -199,7 +200,7 @@ class Results:
         return json.dumps(out)
 
     # TODO: get_best_route that takes into account the total delay
-    def get_fastest_route(self, actual_departure_time: float, agents: dict[int, Agent], **kwargs):
+    def get_fastest_route(self, actual_departure_time: float, agents: dict[Any, Agent], **kwargs):
         # To get the correct times, as the continuous intervals are exclusive of the end
         if kwargs.get("discrete", False):
             delay_addition = 1
