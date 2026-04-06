@@ -328,6 +328,8 @@ class Graph(Generic[EdgeType, NodeType]):
         return time_distances
 
     def distance_between_nodes(self, start: NodeType, end: NodeType, agent_velocity):
+        if start is None or end is None:
+            return sys.maxsize
         time_distances = {n: sys.maxsize for n in self.nodes}
         pq = Q.PriorityQueue()
         time_distances[start.name] = 0
