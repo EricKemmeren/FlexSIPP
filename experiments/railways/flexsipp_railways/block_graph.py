@@ -93,9 +93,27 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
         return super().__eq__(other)
 
     def get_block_from_station(self, station: str) -> Tuple[BlockNode, BlockNode]:
-        track_a, track_b = self.tg.stations[station]
-        block_a = next(iter([block for block in track_a.blocks if block.name[-1] == "A"]))
-        block_b = next(iter([block for block in track_b.blocks if block.name[-1] == "B"]))
+        if station in self.tg.stations:
+            track_a, track_b = self.tg.stations[station]
+        elif station + "a" in self.tg.stations:
+            track_a, track_b = self.tg.stations[station + "a"]
+        elif station + "b" in self.tg.stations:
+            track_a, track_b = self.tg.stations[station + "b"]
+        else:
+            assert False, f"{station} not in stations"
+
+        def get_block_from_track(track, direction):
+            n = 2 if direction == "A" else 0
+            block_name = "|".join(track.name.split("-")[0].split("|")[n:n+2])
+            if block_name not in self.nodes:
+                return None
+            block = self.nodes[block_name]
+            if block in track.blocks:
+                return block
+            return get_block_from_track(track.outgoing[0].to_node, direction)
+
+        block_a = get_block_from_track(track_a, direction="A")
+        block_b = get_block_from_track(track_b, direction="B")
         return block_a, block_b
 
     def generate_signal_blocks(self, from_signal: Signal, signals: list[Signal]) \
@@ -133,7 +151,7 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
                     croute.append(next_track)
 
                     cvisited = copy(visited)
-                    cvisited.add(next_track)
+                    cvisited.add(route[-1])
 
                     cedge_route = copy(edge_route)
                     cedge_route.append(e)
