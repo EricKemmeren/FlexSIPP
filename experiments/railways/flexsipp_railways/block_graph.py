@@ -90,30 +90,26 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
         super().__init__()
         self.tg = g
 
-    @classmethod
-    def from_track_graph(cls, g: TrackGraph):
-        g_block = cls(g)
         track_to_signal = {signal.track: signal for signal in g.signals}
         for signal in g.signals:
-            block = g_block.add_node(BlockNode(f"{signal.id}"))
+            block = self.add_node(BlockNode(f"{signal.id}"))
             signal.track.blocks.add(block)
             for out_e in signal.track.outgoing:
                 for opp in out_e.to_node.opposites:
                     opp.blocks.add(block)
         for signal in tqdm(g.signals, file=TqdmLogger(logger), mininterval=1, ascii=False):
-            blocks = g_block.generate_signal_blocks(signal, g.signals)
+            blocks = self.generate_signal_blocks(signal, g.signals)
             for idx, (block, route, length, max_velocity) in enumerate(blocks):
 
-                # Create edges in g_block
-                from_signal_node = g_block.nodes[f"{signal.id}"]
+                # Create edges in self
+                from_signal_node = self.nodes[f"{signal.id}"]
 
                 # Only add edge if a signal is found at the end of the route
                 to_signal = track_to_signal[block[-1]]
-                to_signal_node = g_block.nodes[f"{to_signal.id}"]
+                to_signal_node = self.nodes[f"{to_signal.id}"]
                 direction = "".join(set(signal.direction + to_signal.direction))
-                e = g_block.add_edge(BlockEdge(from_signal_node, to_signal_node, length, route, direction, max_velocity))
+                e = self.add_edge(BlockEdge(from_signal_node, to_signal_node, length, route, direction, max_velocity))
                 logger.debug(f"Found block {e} with length {length} and max velocity {max_velocity}")
-        return g_block
 
     def __eq__(self, other):
         return super().__eq__(other)
