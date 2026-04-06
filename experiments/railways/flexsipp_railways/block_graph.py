@@ -7,7 +7,8 @@ from copy import copy
 from tqdm import tqdm
 
 from flexsipp.agent import Agent
-from flexsipp.graphs.graph import Graph, Node, Edge
+from flexsipp.graphs.graph import Graph, Node, Edge, IntervalStore
+from flexsipp.util.intervals import UnsafeInterval
 from flexsipp.util.plotting_info import PlottingStore
 
 from .track_graph import TrackEdge, TrackNode, TrackGraph, Signal
@@ -40,12 +41,37 @@ class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
             for interval_store in track.opposites:
                 interval_store.blocks.add(self)
 
+    def merge_unsafe_intervals(self):
+        interval_stores: set[IntervalStore] = {self}
+        for track in self.track_route:
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.merge_unsafe_intervals(store)
+
+    def add_unsafe_interval(self, interval: UnsafeInterval):
+        interval_stores: set[IntervalStore] = {self}
+        for track in self.track_route:
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.add_unsafe_interval(store, interval)
+
+    def remove_unsafe_interval(self, interval: UnsafeInterval):
+        interval_stores: set[IntervalStore] = {self}
+        for track in self.track_route:
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.remove_unsafe_interval(store, interval)
+
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
-        # Store the buffer and crt
-        for tr in self.track_route:
-            # blocks = tr.blocks.union(tr.from_node.blocks)
-            for block in tr.blocks:
-                super(type(block), block).add_flexibility(agent, bt, crt)
+        interval_stores: set[IntervalStore] = {self}
+        for track in self.track_route:
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.add_flexibility(store, agent, bt, crt)
 
 
 class TqdmLogger:
