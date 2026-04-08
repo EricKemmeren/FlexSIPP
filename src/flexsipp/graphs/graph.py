@@ -110,26 +110,21 @@ class IntervalStore(object):
         agent_before = 0
         # Each tuple is (start, end, duration, train, recovery_time)
         for start, end, dur, agent, recovery in self.unsafe_intervals:
-            if current > start:
-                bt_b, crt_b = self.get_flexibility(agent_before)
-                bt_a, crt_a = self.get_flexibility(agent)
-                interval = SafeInterval(current, start, agent_before, crt_b, agent, bt_a, crt_a)
-                agent_before = agent
-                logger.error(
-                    f"INTERVAL ERROR safe node interval {interval} on node {self} has later end than start.")
-            elif current == start:
-                # Don't add safe intervals like (0,0), but do update for the next interval
-                logger.error(f"INTERVAL ERROR current == end.")
+            if start == 0:
                 agent_before = agent
                 current = end
+                logger.warning(f"INTERVAL WARNING start == 0.")
             else:
                 bt_b, crt_b = self.get_flexibility(agent_before)
                 bt_a, crt_a = self.get_flexibility(agent)
                 interval = SafeInterval(current, start, agent_before, crt_b, agent, bt_a, crt_a)
+                if current < start + bt_a:
+                    # Dictionary with node keys, each entry has a dictionary with interval keys and then the index value
+                    self.safe_intervals.append(interval)
+                else:
+                    logger.error(f"INTERVAL ERROR: interval {interval} is wrong on node {self}")
                 agent_before = agent
                 current = end
-                # Dictionary with node keys, each entry has a dictionary with interval keys and then the index value
-                self.safe_intervals.append(interval)
         if current < global_end_time:
             bt_b, crt_b = self.get_flexibility(agent_before)
             last_interval = SafeInterval(current, global_end_time, agent_before, crt_b, 0, 0, 0)
@@ -231,26 +226,29 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
             logger.error(f"##### ERROR ### No path was found between {self.name} and {to.name}")
         return path
 
-    def get_safe_connections(self, allowed_nodes: set[NodeType], allowed_edges: set[EdgeType]) -> list[Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
-        # assert len(self.safe_intervals) > 0
+    def get_safe_connections(self, allowed_nodes: set["FrisoBlockNode"], allowed_edges: set[FrisoBlockEdge]) -> list[
+        Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
         safe_connections = []
+
+        def check_interval_overlap(l: SafeInterval, r: SafeInterval) -> bool:
+            return bool((l + from_interval.buffer_after) & (r + r.buffer_after))
+
+        def check_interval_agent(l: SafeInterval, r: SafeInterval) -> bool:
+            if (l.agent_before == 0 and r.agent_after == 0) or (l.agent_after == 0 and r.agent_before == 0):
+                return True
+            if (l.agent_before != r.agent_after) and (
+                    l.agent_after != r.agent_before):
+                return True
+            return False
+
+
         for from_interval in self.safe_intervals:
             for edge in self.outgoing:
                 if edge in allowed_edges and edge.to_node in allowed_nodes:
                     for edge_interval in edge.safe_intervals:
-                        # Check for overlap with the from node and edge
-                        if from_interval.agent_before == edge_interval.agent_after:
-                            condition = from_interval & edge_interval
-                        else:
-                            condition = (from_interval + from_interval.buffer_after) & (edge_interval + edge_interval.buffer_after)
-                        if condition:
+                        if check_interval_agent(from_interval, edge_interval) & check_interval_overlap(from_interval, edge_interval):
                             for to_interval in edge.to_node.safe_intervals:
-                                # Check for overlap with the edge en to node
-                                if edge_interval.agent_before == to_interval.agent_after:
-                                    condition = edge_interval & to_interval
-                                else:
-                                    condition = (edge_interval + edge_interval.buffer_after) & (to_interval + to_interval.buffer_after)
-                                if condition:
+                                if check_interval_agent(edge_interval, to_interval) & check_interval_overlap(edge_interval, to_interval):
                                     safe_connections.append((from_interval, edge_interval, to_interval, edge))
         return safe_connections
 
