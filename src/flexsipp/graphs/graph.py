@@ -226,7 +226,7 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
             logger.error(f"##### ERROR ### No path was found between {self.name} and {to.name}")
         return path
 
-    def get_safe_connections(self, allowed_nodes: set["FrisoBlockNode"], allowed_edges: set[FrisoBlockEdge]) -> list[
+    def get_safe_connections(self, allowed_nodes: set[NodeType], allowed_edges: set[EdgeType]) -> list[
         Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
         safe_connections = []
 
