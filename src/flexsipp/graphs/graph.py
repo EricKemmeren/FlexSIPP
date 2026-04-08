@@ -221,9 +221,11 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
         current = previous[to.name]
         if found:
             while current != self:
-                for x in current.incoming:
+                sorted_inc = sorted(current.incoming, key=lambda x: x.length)
+                for x in sorted_inc:
                     if x.from_node == previous[current.name]:
                         path.insert(0, x)
+                        break
                 current = previous[current.name]
         else:
             logger.error(f"##### ERROR ### No path was found between {self.name} and {to.name}")
