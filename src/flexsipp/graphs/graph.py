@@ -404,9 +404,11 @@ class Graph(Generic[EdgeType, NodeType]):
         current = end
         try:
             while current != start:
-                for x in current.incoming:
+                sorted_inc = sorted(current.incoming, key=lambda x: x.length)
+                for x in sorted_inc:
                     if x.from_node == previous[current.name]:
                         path.insert(0, x)
+                        break
                 current = previous[current.name]
         except Exception as e:
             logger.error(f"##### ERROR ### {e} No path was found between {start.name} and {end.name}")
