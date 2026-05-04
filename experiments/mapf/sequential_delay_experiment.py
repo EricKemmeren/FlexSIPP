@@ -4,10 +4,8 @@ import json
 import math
 import datetime
 import random
-from pathlib import Path
-import numpy as np
 
-from graph import GridCell
+from flexsipp_mapf.graph import GridCell
 from flexsipp.graphs.fsipp import FSIPP
 from read_experiment import create_mapf_instance_from_paths
 

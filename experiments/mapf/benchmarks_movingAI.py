@@ -4,7 +4,7 @@ import json
 import datetime
 import random
 
-from graph import GridCell
+from flexsipp_mapf.graph import GridCell
 from flexsipp.graphs.fsipp import FSIPP
 from read_experiment import create_mapf_instance_from_paths
 

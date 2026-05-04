@@ -13,7 +13,7 @@ if shutil.which('pdflatex'):
         'pgf.rcfonts': False,
     })
 
-from agent import MapfAgent
+from flexsipp_mapf.agent import MapfAgent
 from flexsipp.graphs.fsipp import FSIPP
 from flexsipp.util.intervals import UnsafeInterval
 from read_experiment import create_mapf_instance_from_paths
