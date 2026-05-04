@@ -62,6 +62,8 @@ class FSIPP(Generic[EdgeType, NodeType]):
             self.nodes = filter_nodes
         else:
             self.nodes = set(g.nodes.values())
+        if not filter_edges:
+            filter_edges = set(g.edges)
 
         for node in self.nodes:
             def create_atf(from_interval: SafeInterval, edge_interval: SafeInterval, to_interval: SafeInterval, edge):
