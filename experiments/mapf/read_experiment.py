@@ -1,9 +1,9 @@
 from typing import Tuple, Dict
 
-from graph import Grid
-from agent import MapfAgent
+from flexsipp_mapf.graph import Grid
+from flexsipp_mapf.agent import MapfAgent
 from flexsipp.util.intervals import UnsafeInterval
-from flexsipp.util.timing import timing
+
 
 def paths_to_unsafe_intervals(path_file, grid, scenario_end):
     with open(path_file, "r") as f:
