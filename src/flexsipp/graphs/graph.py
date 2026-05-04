@@ -236,12 +236,14 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
             return bool((l + from_interval.buffer_after) & (r + r.buffer_after))
 
         def check_interval_agent(l: SafeInterval, r: SafeInterval) -> bool:
-            if (l.agent_before == 0 and r.agent_after == 0) or (l.agent_after == 0 and r.agent_before == 0):
+            if (l.agent_before == 0 and r.agent_after == 0) and (l.agent_after == 0 and r.agent_before == 0):
                 return True
-            if (l.agent_before != r.agent_after) and (
-                    l.agent_after != r.agent_before):
-                return True
-            return False
+            if l.agent_before == 0 and r.agent_after == 0:
+                return l.agent_after != r.agent_before
+            if l.agent_after == 0 and r.agent_before == 0:
+                return l.agent_before != r.agent_after
+            return (l.agent_before != r.agent_after) and (
+                    l.agent_after != r.agent_before)
 
 
         for from_interval in self.safe_intervals:
