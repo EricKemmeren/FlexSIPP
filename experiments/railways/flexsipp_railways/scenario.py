@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Union, Tuple, Any
 
 import numpy as np
@@ -12,7 +13,7 @@ from .block_graph import BlockGraph, BlockNode, BlockEdge
 from .train_agent import TrainItem, TrainAgent
 
 class Scenario:
-    @timing
+    @timing(Path(__file__).parent)
     def __init__(self, data, g_block: BlockGraph, agent_cls):
         self.types = {x["name"]: x for x in data["types"]}
         self.g = g_block
@@ -63,7 +64,7 @@ class Scenario:
             agent = agent_cls(id, agent_cls.calculate_route(stops[0], stops[1:]), measures)
             self.agents[train['trainNumber']] = agent
 
-    @timing
+    @timing(Path(__file__).parent)
     def process(self):
         for agent in self.agents.values():
             agent.calculate_blocking_times()
@@ -80,7 +81,7 @@ class Scenario:
             return list(self.agents.values())[a - 1]
         return a
 
-    @timing
+    @timing(Path(__file__).parent)
     def fsipp(self, agent: Union[TrainAgent, int, str]) -> BlockGraph:
         """
         Create a BlockGraph that can be used by FSIPP.
