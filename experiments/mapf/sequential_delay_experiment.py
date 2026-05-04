@@ -121,7 +121,7 @@ if __name__ == "__main__":
     config = ("maze1", "maze-128-128-1.map", "maze-128-128-1-even-1-k50", "scen-even")
     location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config[0], config[1])
     scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config[0], config[3], f"{config[2]}_paths.txt")
-    date = datetime.datetime.now().strftime("%Y-%m-%d-%H:%M")
+    date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
     k = int(config[2].split("-")[-1].replace("k", ""))
     num_delays = int(math.floor(k / 2))
     print("Run scenario", config[2], "with", num_delays, "delays")

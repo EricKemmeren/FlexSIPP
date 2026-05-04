@@ -126,7 +126,7 @@ if __name__ == "__main__":
     random.seed(random_seed)
     results_flexsipp = {}
     results_maeder = {}
-    date = datetime.datetime.now().strftime("%Y-%m-%d-%H:%M")
+    date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
     config_name = "warehouse1"
     folder = "generated"
     scenario_name_base = "warehouse-20-40-10-2-1-random"
