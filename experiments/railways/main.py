@@ -14,21 +14,19 @@ parser.add_argument('-a', "--delay-agent", help="Identifier (int) of the agent i
 parser.add_argument('-e', "--end-time", help="End time of the scenario, if None is given", required=False, default=None)
 
 def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end):
-    # TODO the merging of intervals is not from the same agent, so we get an assertion error
     railway_graph = graph_from_file(location_file)
     scenario = scenario_from_file(scenario_file, railway_graph)
     scenario.process()
-    # TODO do we need to set up flexibility here?
     if delay_agent is None:
         delay_agent = scenario.agents[0]
     else:
         delay_agent = scenario.get_replanning_agent(int(delay_agent))
     agents = {agent.id: agent for agent in scenario.agents}
     graph = scenario.fsipp(delay_agent)
-    heuristic = {node.name: 0 for node in graph.nodes.values()}
+    heuristic = graph.calculate_heuristic(delay_agent.destination)
+    # TODO: filter on agent route, not allowing major reroutes
     flexSIPP = FSIPP(graph, heuristic, agents)
-    result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time)
-    # TODO readable output
+    result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time, redirect_stderr="stderr.txt")
     print(result)
 
 if __name__ == "__main__":

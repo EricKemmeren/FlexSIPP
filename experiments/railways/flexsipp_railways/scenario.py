@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Union, Tuple, Any
 
 import numpy as np
@@ -12,14 +13,14 @@ from .block_graph import BlockGraph, BlockNode, BlockEdge
 from .train_agent import TrainItem, TrainAgent
 
 class Scenario:
-    @timing
+    @timing(Path(__file__).parent)
     def __init__(self, data, g_block: BlockGraph, agent_cls):
         self.types = {x["name"]: x for x in data["types"]}
         self.g = g_block
 
         self.g.global_end_time = max([2 * entry["movements"]["endTime"] for entry in data["trains"]])
         self.g.tg.global_end_time = self.g.global_end_time
-        self.agents: list[TrainAgent] = []
+        self.agents: dict[str, TrainAgent] = {}
 
         # Calculate routes for all trains
         for id, train in enumerate(data["trains"], start=1):
@@ -41,8 +42,9 @@ class Scenario:
             start = g_block.get_block_from_station(movements["startLocation"])
             stops: list[BlockNode] = []
 
-            for stop, time in movements["stops"].items():
-                next = g_block.get_block_from_station(stop)
+            for stop in movements["stops"]:
+                loc = stop["location"]
+                next = g_block.get_block_from_station(loc)
                 direction = g_block.get_initial_direction(start, next, measures.train_speed)
                 stops.append(start[direction])
                 start = next
@@ -60,25 +62,27 @@ class Scenario:
                 direction = 1
             stops.append(end[direction])
             agent = agent_cls(id, agent_cls.calculate_route(stops[0], stops[1:]), measures)
-            self.agents.append(agent)
+            self.agents[train['trainNumber']] = agent
 
-    @timing
+    @timing(Path(__file__).parent)
     def process(self):
-        for agent in self.agents:
+        for agent in self.agents.values():
             agent.calculate_blocking_times()
         merge_list: list[IntervalStore] = list(self.g.nodes.values()) + self.g.edges
         for node in merge_list:
-            node.merge_unsafe_intervals()
-        for agent in self.agents:
+            IntervalStore.merge_unsafe_intervals(node)
+        for agent in self.agents.values():
             agent.calculate_flexibility()
 
-    def get_replanning_agent(self, a: Union[TrainAgent, int]) -> TrainAgent:
+    def get_replanning_agent(self, a: Union[TrainAgent, int, str]) -> TrainAgent:
+        if isinstance(a, str):
+            return self.agents[a]
         if isinstance(a, int):
-            return self.agents[a - 1]
+            return list(self.agents.values())[a - 1]
         return a
 
-    @timing
-    def fsipp(self, agent: Union[TrainAgent, int]) -> BlockGraph:
+    @timing(Path(__file__).parent)
+    def fsipp(self, agent: Union[TrainAgent, int, str]) -> BlockGraph:
         """
         Create a BlockGraph that can be used by FSIPP.
         First filter out the unsafe intervals for the agent that we want to run flexSIPP on.
@@ -97,7 +101,7 @@ class Scenario:
 
         return g
 
-    def plot_blocking_staircase(self, ax: Axis, agent: Union[TrainAgent, int], **kwargs):
+    def plot_blocking_staircase(self, ax: Axis, agent: Union[TrainAgent, int, str], **kwargs):
         agent = self.get_replanning_agent(agent)
         track_edges_to_plot: dict[TrackEdge, Tuple[float, float]] = {}
         block_edges_to_plot: dict[BlockEdge, Tuple[float, float]] = {}
