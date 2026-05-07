@@ -4,6 +4,7 @@ import json
 import math
 import datetime
 import random
+from pathlib import Path
 
 from flexsipp_mapf.graph import GridCell
 from flexsipp.graphs.fsipp import FSIPP
@@ -113,22 +114,36 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
 
 
 if __name__ == "__main__":
-    # This is the number of time steps after the start time that can be searched. 
-    filename = os.path.join(os.path.dirname(__file__), "experiment_configurations_movingAI.json")
-    configurations = json.load(open(filename, "r"))
-    random_seed = 123
-    config = ("warehouse1", "warehouse-20-40-10-2-1.map", "warehouse-20-40-10-2-1-random-1-k200", "scen-random")
-    config = ("maze1", "maze-128-128-1.map", "maze-128-128-1-even-1-k50", "scen-even")
-    location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config[0], config[1])
-    scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config[0], config[3], f"{config[2]}_paths.txt")
+    random_seed = 42
     date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
-    k = int(config[2].split("-")[-1].replace("k", ""))
-    num_delays = int(math.floor(k / 2))
-    print("Run scenario", config[2], "with", num_delays, "delays")
-    result_dir = os.path.join(os.path.dirname(__file__), "output", config[0])
 
-    delays = get_delays_from_seed(location, scenario_file, num_delays, random_seed)
+    # Folder in data/mapf folder waarin de gegevens staan
+    config = "maze1"
+    scenario_number = 1
+    # Kan 0, 3, 5 of 8 zijn.
+    instance = 0
+    # Ook wel k{num_agents} in de namen van de bestanden
+    num_agents = 50
 
-    for algorithm in ["@MAEDeR", "FlexSIPP"]:
-        result_file = os.path.join(result_dir, f"replan_{algorithm}_{config[2]}_{date}_seed{random_seed}_{num_delays}delays.json")
-        repeated_delays(location, scenario_file, delays, result_file, use_flexibility=algorithm == "FlexSIPP")
+    instance = "" if instance == 0 else f"_{instance}"
+    # Store files in ./output/{config}
+    result_dir = Path(__file__).parent / "output" / config
+    result_dir.mkdir(exist_ok=True, parents=True)
+    # It is expected that data is found in ../../../data/mapf/{config}, edit this if the file structure is updated.
+    data_dir = Path(__file__).parent.parent.parent / "data" / "mapf" / config
+
+    # Get location files in the current directory, these files end with .map
+    locations = data_dir.glob("*.map")
+    for location in locations:
+        # The scenario files start with the name of the location, and include more info and are found in the subdirectories.
+        scenario_files = data_dir.rglob(f"{location.stem}*{scenario_number}-k{num_agents}_paths{instance}.txt")
+        for scenario_file in scenario_files:
+            scenario = scenario_file.stem.split("_paths")[0]
+            num_delays = int(math.floor(num_agents / 2))
+            print("Run scenario", scenario, "with", num_delays, "delays")
+
+            delays = get_delays_from_seed(location, scenario_file, num_delays, random_seed)
+
+            for algorithm in ["@MAEDeR", "FlexSIPP"]:
+                result_file = result_dir / f"replan_{algorithm}_{scenario}_{date}_seed{random_seed}_{num_delays}delays.json"
+                repeated_delays(location, scenario_file, delays, result_file, use_flexibility=algorithm == "FlexSIPP")
