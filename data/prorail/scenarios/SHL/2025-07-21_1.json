@@ -5259,6 +5259,22 @@
             "speed": 200
         },
         {
+            "acceleration": 0.7,
+            "deceleration": 1.1,
+            "length": 138,
+            "minimum_station_time": 54,
+            "name": "ICD",
+            "speed": 140
+        },
+        {
+            "acceleration": 0.5,
+            "deceleration": 1.1,
+            "length": 138,
+            "minimum_station_time": 120,
+            "name": "EUROCITY",
+            "speed": 200
+        },
+        {
             "acceleration": 0.5,
             "deceleration": 1.1,
             "length": 138,
