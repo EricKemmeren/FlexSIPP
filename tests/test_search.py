@@ -3,8 +3,8 @@ import unittest
 from copy import copy
 
 from flexsipp.graphs.fsipp import FSIPP
-from flexsipp_railways.generate import graph_from_file, scenario_from_file
-from flexsipp_railways.train_agents.train_agent_limited_flexibility import train_agent_limited_flexibility_generator
+from experiments.railways.flexsipp_railways.generate import graph_from_file, scenario_from_file
+from experiments.railways.flexsipp_railways.train_agents.train_agent_limited_flexibility import train_agent_limited_flexibility_generator
 
 
 class TestSearch(unittest.TestCase):
@@ -14,10 +14,9 @@ class TestSearch(unittest.TestCase):
         scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), bg, train_agent_limited_flexibility_generator(max_buffer, max_crt))
         scenario.process()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
-        agents = {agent.id: agent for agent in scenario.agents}
-        self.new_agent = copy(scenario.agents[0])
+        self.new_agent = copy(scenario.agents["1"])
         self.new_agent.id = -1
-        self.flexSIPP = FSIPP(scenario.fsipp(self.new_agent), heuristic, agents)
+        self.flexSIPP = FSIPP(scenario.fsipp(self.new_agent), heuristic, scenario.agents)
         self.scenario = scenario
 
     def test_no_flexibility(self):

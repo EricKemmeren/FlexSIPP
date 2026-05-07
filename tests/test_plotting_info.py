@@ -1,7 +1,7 @@
 import os
 import unittest
 
-from flexsipp_railways.generate import graph_from_file, scenario_from_file
+from experiments.railways.flexsipp_railways.generate import graph_from_file, scenario_from_file
 
 
 class TestPlottingInfo(unittest.TestCase):
