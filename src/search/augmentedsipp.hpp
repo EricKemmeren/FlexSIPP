@@ -44,6 +44,11 @@ namespace asipp{
         intervalTime_t beta  = std::min(cur.g.beta,  edge.beta  - cur.g.delta);
         intervalTime_t delta = cur.g.delta + edge.delta;
 
+        if (cur.g.earliest_arrival_time() > edge.beta) {
+            std::cerr << "cur.alpha + cur.delta > edge.beta" << cur.g << " > " << edge.beta << std::endl;
+            return;
+        }
+
         gam_item_t gam_after = gamma[edge.agent_after.id];
 
         // Check how much recovery time is used by checking the next agent visiting the current configuration
