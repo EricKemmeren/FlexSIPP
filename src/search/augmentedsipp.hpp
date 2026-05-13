@@ -60,11 +60,6 @@ namespace asipp{
 
         std::cerr << "Created catf " << arrival_time_function << std::endl;
 
-        intervalTime_t eat = arrival_time_function.earliest_arrival_time();
-        if (eat > edge.beta) {
-            std::cerr << "cur.alpha + cur.delta > edge.beta" << eat << " > " << edge.beta << std::endl;
-            return;
-        }
 
         // Enqueue the destination node 
         if (open_list.handles.contains(MapNode(destination))){
