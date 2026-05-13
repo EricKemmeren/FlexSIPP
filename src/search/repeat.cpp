@@ -2,43 +2,12 @@
 #include "augmentedsipp.hpp"
 #include "repeat.hpp"
 
-//double update_reference_time(const EdgeATF& path, rePEAT::Open& open_list){
-//    intervalTime_t upper_bound = path.beta;
-//    intervalTime_t lower_bound = path.alpha;
-////    std::cerr << "Starting update tref with alpha " << lower_bound << " beta " << upper_bound << " delta " << path.delta << " gamma [";
-////    for (gam_item_t gamma : path.gamma) {
-////        std::cerr << "<" << gamma.first << ", " << gamma.second << ">, ";
-////    }
-////    std::cerr << "]\n";
-////    std::cerr << "Queue has " << open_list.size() << " elements." << std::endl;
-//    while(lower_bound < upper_bound){
-//        if(open_list.empty()){
-//            return std::numeric_limits<double>::infinity();
-//        }
-//        auto n = open_list.top();
-//        open_list.pop();
-////        std::cerr << "popped " << n << std::endl;
-//        lower_bound = n.g.alpha;
-////        std::cerr << "new lb " << lower_bound << std::endl;
-//        if (lower_bound > path.alpha + epsilon()){
-//            if (lower_bound > upper_bound) {
-//                break;
-//            }
-////            std::cerr << "Result from lb ";
-//            return n.g.alpha;
-//        }
-//
-//    }
-////    std::cerr << "Result from ub ";
-//    return upper_bound;
-//}
 
 double update_reference_time(const EdgeATF& path, rePEAT::Open& open_list){
     intervalTime_t upper_bound = path.beta;
     intervalTime_t lower_bound = path.alpha;
     intervalTime_t absolute_lower_bound = std::min(lower_bound + intervalTime_t(15), upper_bound);
     std::cerr << "Starting update tref with alpha " << lower_bound << " beta " << upper_bound << " delta " << path.delta << std::endl;
-    // return upper_bound;
      while(lower_bound < upper_bound){
          if(open_list.empty()){
              return upper_bound;

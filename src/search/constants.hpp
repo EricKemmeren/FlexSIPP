@@ -69,9 +69,6 @@ inline std::size_t hash_value(const intervalTime_t& t) {
     return boost::hash<double>{}(static_cast<double>(t));
 }
 
-// Gamma is stored as <min_gamma, max_gamma>
-//using gam_item_t = std::pair<intervalTime_t, intervalTime_t>;
-
 struct incurred_delay_t;
 
 struct incurred_delay_t {
@@ -148,7 +145,6 @@ namespace std {
         std::size_t operator()(gamma_t const &vec) const {
             std::size_t seed = vec.size();
             for (gam_item_t x: vec) {
-//                seed ^= std::hash<intervalTime_t>()(x.first);
                 seed ^= std::hash<intervalTime_t>()(x.second);
             }
             return seed;
