@@ -7,6 +7,7 @@ __pycache__/
 /data/railways/prorail/*
 /data/friso
 /data/**/generated-old/
-*.txt
 **/output/
 *.zip
+*.txt
+!/data/**/*_paths*.txt
