@@ -10,14 +10,15 @@ dependencies = [
     "matplotlib>=3.10.8",
     "sortedcontainers>=2.4.0",
     "tqdm>=4.67.3",
-    "python-rapidjson>=1.23"
+    "python-rapidjson>=1.23",
+    "pandas>=3.0.3"
 ]
 readme = "README.md"
 authors = [
     {name = "Eric Kemmeren"},
     {name = "Issa Hanou"}
 ]
-description = "Implementation of Flexibile Any-Start-Time Safe Interval Path Planning"
+description = "Implementation of Precomputing Multi-Agent Path Replanning using Temporal Flexibility"
 
 [project.urls]
 Repository = "https://github.com/EricKemmeren/FlexSIPP"

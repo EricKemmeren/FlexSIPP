@@ -18,14 +18,13 @@ def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end):
     scenario = scenario_from_file(scenario_file, railway_graph)
     scenario.process()
     if delay_agent is None:
-        delay_agent = scenario.agents[0]
+        delay_agent = scenario.agents['1']
     else:
         delay_agent = scenario.get_replanning_agent(int(delay_agent))
-    agents = {agent.id: agent for agent in scenario.agents}
     graph = scenario.fsipp(delay_agent)
     heuristic = graph.calculate_heuristic(delay_agent.destination)
-    # TODO: filter on agent route, not allowing major reroutes
-    flexSIPP = FSIPP(graph, heuristic, agents)
+    # Currently takes in complete graph, not filtered to the agents original route
+    flexSIPP = FSIPP(graph, heuristic, scenario.agents)
     result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time, redirect_stderr="stderr.txt")
     print(result)
 

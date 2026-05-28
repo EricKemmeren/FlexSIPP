@@ -10,10 +10,11 @@ class TestFSIPP(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
-        scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"),
-                                      bg,
-                                      train_agent_limited_flexibility_generator(0, 0))
+        bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
+        scenario = scenario_from_file(
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"),
+            bg,
+            train_agent_limited_flexibility_generator(0, 0))
         scenario.process()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         new_agent = copy(scenario.agents["1"])
@@ -30,10 +31,11 @@ class TestLimitedFlexibilityGenerator(unittest.TestCase):
 
     @staticmethod
     def setUpScenario(max_buffer, max_crt):
-        bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
-        scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"),
-                                      bg,
-                                      train_agent_limited_flexibility_generator(max_buffer, max_crt))
+        bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
+        scenario = scenario_from_file(
+            os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"),
+            bg,
+            train_agent_limited_flexibility_generator(max_buffer, max_crt))
         scenario.process()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         new_agent = copy(scenario.agents["1"])

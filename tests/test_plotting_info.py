@@ -8,8 +8,8 @@ class TestPlottingInfo(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
-        cls.scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), bg)
+        bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
+        cls.scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), bg)
         cls.scenario.process()
 
     def test_start_times(self):

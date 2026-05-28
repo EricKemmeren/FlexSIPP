@@ -75,6 +75,12 @@ class UnsafeInterval(Interval):
     def __or__(self, other):
         sup = super().__or__(other)
         return UnsafeInterval(sup.start, sup.end, self.duration + other.duration, self.by_agent, self.local_recovery_time + other.local_recovery_time)
+    
+    def __eq__(self, other):
+        if isinstance(other, UnsafeInterval):
+            if super().__eq__(other):
+                return self.duration == other.duration and self.by_agent == other.by_agent and self.local_recovery_time == other.local_recovery_time
+        return False
 
     def merge(self, other):
         super().merge(other)

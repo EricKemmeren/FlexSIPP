@@ -363,6 +363,35 @@
         },
         {
             "movements": {
+                "endLocation": "ASD|11a",
+                "endTime": 1020.0,
+                "startLocation": "SHL|3",
+                "startTime": 60.0,
+                "stops": [
+                    {
+                        "expected_arrival": 480.0,
+                        "location": "ASDL|2",
+                        "time": 480.0
+                    },
+                    {
+                        "expected_arrival": 660.0,
+                        "location": "ASS|12",
+                        "time": 660.0
+                    }
+                ]
+            },
+            "trainNumber": "18160",
+            "trainUnitTypes": [
+                "SNG"
+            ],
+            "trainUnits": [
+                "3022",
+                "2770",
+                "2750"
+            ]
+        },
+        {
+            "movements": {
                 "endLocation": "ASD|2a",
                 "endTime": 7380.0,
                 "startLocation": "RSD|4a",
@@ -645,6 +674,49 @@
         },
         {
             "movements": {
+                "endLocation": "DDR|3a",
+                "endTime": 1620.0,
+                "startLocation": "RTD|6",
+                "startTime": 240.0,
+                "stops": [
+                    {
+                        "expected_arrival": 420.0,
+                        "location": "RTB|3",
+                        "time": 420.0
+                    },
+                    {
+                        "expected_arrival": 600.0,
+                        "location": "RTZ|3",
+                        "time": 600.0
+                    },
+                    {
+                        "expected_arrival": 840.0,
+                        "location": "RLB|3",
+                        "time": 840.0
+                    },
+                    {
+                        "expected_arrival": 1020.0,
+                        "location": "BRD|3",
+                        "time": 1020.0
+                    },
+                    {
+                        "expected_arrival": 1380.0,
+                        "location": "ZWD|3",
+                        "time": 1380.0
+                    }
+                ]
+            },
+            "trainNumber": "5171",
+            "trainUnitTypes": [
+                "SNG"
+            ],
+            "trainUnits": [
+                "2328",
+                "2309"
+            ]
+        },
+        {
+            "movements": {
                 "endLocation": "ASS|9",
                 "endTime": 2760.0,
                 "startLocation": "DVNK|4",
@@ -876,83 +948,6 @@
             ],
             "trainUnits": [
                 "8632"
-            ]
-        },
-        {
-            "movements": {
-                "endLocation": "DDR|2",
-                "endTime": 9060.0,
-                "startLocation": "HT|3",
-                "startTime": 960.0,
-                "stops": [
-                    {
-                        "expected_arrival": 2580.0,
-                        "location": "UT|7",
-                        "time": 3000.0
-                    },
-                    {
-                        "expected_arrival": 3960.0,
-                        "location": "ASB|2",
-                        "time": 3960.0
-                    },
-                    {
-                        "expected_arrival": 4320.0,
-                        "location": "RAI|4",
-                        "time": 4320.0
-                    },
-                    {
-                        "expected_arrival": 4500.0,
-                        "location": "ASDZ|4",
-                        "time": 4560.0
-                    },
-                    {
-                        "expected_arrival": 4920.0,
-                        "location": "SHL|5",
-                        "time": 4980.0
-                    },
-                    {
-                        "expected_arrival": 5880.0,
-                        "location": "LEDN|8b",
-                        "time": 6060.0
-                    },
-                    {
-                        "expected_arrival": 6600.0,
-                        "location": "LAA|5",
-                        "time": 6660.0
-                    },
-                    {
-                        "expected_arrival": 6780.0,
-                        "location": "GV|4",
-                        "time": 6900.0
-                    },
-                    {
-                        "expected_arrival": 7260.0,
-                        "location": "DT|3",
-                        "time": 7260.0
-                    },
-                    {
-                        "expected_arrival": 7740.0,
-                        "location": "SDM|2",
-                        "time": 7740.0
-                    },
-                    {
-                        "expected_arrival": 7980.0,
-                        "location": "RTD|6",
-                        "time": 8100.0
-                    },
-                    {
-                        "expected_arrival": 8340.0,
-                        "location": "RTB|3",
-                        "time": 8340.0
-                    }
-                ]
-            },
-            "trainNumber": "3568",
-            "trainUnitTypes": [
-                "VIRM"
-            ],
-            "trainUnits": [
-                "8667"
             ]
         },
         {
@@ -1211,6 +1206,129 @@
         },
         {
             "movements": {
+                "endLocation": "UTG|1b",
+                "endTime": 8400.0,
+                "startLocation": "RTD|16",
+                "startTime": 1920.0,
+                "stops": [
+                    {
+                        "expected_arrival": 2220.0,
+                        "location": "RTN|1",
+                        "time": 2220.0
+                    },
+                    {
+                        "expected_arrival": 2460.0,
+                        "location": "RTA|1",
+                        "time": 2520.0
+                    },
+                    {
+                        "expected_arrival": 2700.0,
+                        "location": "CPS|1",
+                        "time": 2700.0
+                    },
+                    {
+                        "expected_arrival": 2940.0,
+                        "location": "NWK|1",
+                        "time": 2940.0
+                    },
+                    {
+                        "expected_arrival": 3360.0,
+                        "location": "GD|3",
+                        "time": 3420.0
+                    },
+                    {
+                        "expected_arrival": 3600.0,
+                        "location": "GDG|1",
+                        "time": 3600.0
+                    },
+                    {
+                        "expected_arrival": 4140.0,
+                        "location": "WD|6",
+                        "time": 4260.0
+                    },
+                    {
+                        "expected_arrival": 4740.0,
+                        "location": "BKL|2",
+                        "time": 4740.0
+                    },
+                    {
+                        "expected_arrival": 5220.0,
+                        "location": "AC|2",
+                        "time": 5220.0
+                    },
+                    {
+                        "expected_arrival": 5400.0,
+                        "location": "ASHD|2",
+                        "time": 5400.0
+                    },
+                    {
+                        "expected_arrival": 5580.0,
+                        "location": "ASB|3",
+                        "time": 5580.0
+                    },
+                    {
+                        "expected_arrival": 5760.0,
+                        "location": "DVD|5",
+                        "time": 5760.0
+                    },
+                    {
+                        "expected_arrival": 6000.0,
+                        "location": "ASA|1",
+                        "time": 6000.0
+                    },
+                    {
+                        "expected_arrival": 6180.0,
+                        "location": "ASDM|8",
+                        "time": 6180.0
+                    },
+                    {
+                        "expected_arrival": 6540.0,
+                        "location": "ASD|5b",
+                        "time": 6660.0
+                    },
+                    {
+                        "expected_arrival": 6960.0,
+                        "location": "ASS|4",
+                        "time": 6960.0
+                    },
+                    {
+                        "expected_arrival": 7380.0,
+                        "location": "ZD|2",
+                        "time": 7380.0
+                    },
+                    {
+                        "expected_arrival": 7560.0,
+                        "location": "KZ|1",
+                        "time": 7560.0
+                    },
+                    {
+                        "expected_arrival": 7680.0,
+                        "location": "ZZS|1",
+                        "time": 7680.0
+                    },
+                    {
+                        "expected_arrival": 7860.0,
+                        "location": "WM|2",
+                        "time": 7920.0
+                    },
+                    {
+                        "expected_arrival": 8100.0,
+                        "location": "KMA|1",
+                        "time": 8100.0
+                    }
+                ]
+            },
+            "trainNumber": "4068",
+            "trainUnitTypes": [
+                "SLT"
+            ],
+            "trainUnits": [
+                "2442",
+                "2614"
+            ]
+        },
+        {
+            "movements": {
                 "endLocation": "HNK|1",
                 "endTime": 6480.0,
                 "startLocation": "LEDN|5a",
@@ -1352,68 +1470,6 @@
         },
         {
             "movements": {
-                "endLocation": "VL|3",
-                "endTime": 7560.0,
-                "startLocation": "ASDZ|2",
-                "startTime": 120.0,
-                "stops": [
-                    {
-                        "expected_arrival": 300.0,
-                        "location": "RAI|2",
-                        "time": 300.0
-                    },
-                    {
-                        "expected_arrival": 540.0,
-                        "location": "ASB|7",
-                        "time": 600.0
-                    },
-                    {
-                        "expected_arrival": 1560.0,
-                        "location": "UT|18",
-                        "time": 1920.0
-                    },
-                    {
-                        "expected_arrival": 3600.0,
-                        "location": "HT|6a",
-                        "time": 3780.0
-                    },
-                    {
-                        "expected_arrival": 4860.0,
-                        "location": "EHV|2",
-                        "time": 5220.0
-                    },
-                    {
-                        "expected_arrival": 5760.0,
-                        "location": "HM|2",
-                        "time": 5760.0
-                    },
-                    {
-                        "expected_arrival": 6180.0,
-                        "location": "DN|2",
-                        "time": 6180.0
-                    },
-                    {
-                        "expected_arrival": 6840.0,
-                        "location": "HRT|2",
-                        "time": 6900.0
-                    },
-                    {
-                        "expected_arrival": 7320.0,
-                        "location": "BR|1",
-                        "time": 7320.0
-                    }
-                ]
-            },
-            "trainNumber": "3569",
-            "trainUnitTypes": [
-                "VIRM"
-            ],
-            "trainUnits": [
-                "9582"
-            ]
-        },
-        {
-            "movements": {
                 "endLocation": "GVC|9",
                 "endTime": 4020.0,
                 "startLocation": "ASB|2",
@@ -1447,6 +1503,59 @@
             ],
             "trainUnits": [
                 "9558"
+            ]
+        },
+        {
+            "movements": {
+                "endLocation": "DDR|3a",
+                "endTime": 2340.0,
+                "startLocation": "DTCP|4",
+                "startTime": 60.0,
+                "stops": [
+                    {
+                        "expected_arrival": 480.0,
+                        "location": "SDM|1",
+                        "time": 480.0
+                    },
+                    {
+                        "expected_arrival": 720.0,
+                        "location": "RTD|6",
+                        "time": 840.0
+                    },
+                    {
+                        "expected_arrival": 1020.0,
+                        "location": "RTB|3",
+                        "time": 1020.0
+                    },
+                    {
+                        "expected_arrival": 1200.0,
+                        "location": "RTZ|3",
+                        "time": 1200.0
+                    },
+                    {
+                        "expected_arrival": 1380.0,
+                        "location": "RLB|4",
+                        "time": 1380.0
+                    },
+                    {
+                        "expected_arrival": 1620.0,
+                        "location": "BRD|4",
+                        "time": 1620.0
+                    },
+                    {
+                        "expected_arrival": 1920.0,
+                        "location": "ZWD|4",
+                        "time": 2160.0
+                    }
+                ]
+            },
+            "trainNumber": "5071",
+            "trainUnitTypes": [
+                "SNG"
+            ],
+            "trainUnits": [
+                "2331",
+                "2342"
             ]
         },
         {
@@ -1573,6 +1682,128 @@
         },
         {
             "movements": {
+                "endLocation": "UTG|1b",
+                "endTime": 6600.0,
+                "startLocation": "RTD|16",
+                "startTime": 120.0,
+                "stops": [
+                    {
+                        "expected_arrival": 420.0,
+                        "location": "RTN|1",
+                        "time": 420.0
+                    },
+                    {
+                        "expected_arrival": 660.0,
+                        "location": "RTA|1",
+                        "time": 720.0
+                    },
+                    {
+                        "expected_arrival": 900.0,
+                        "location": "CPS|1",
+                        "time": 900.0
+                    },
+                    {
+                        "expected_arrival": 1140.0,
+                        "location": "NWK|1",
+                        "time": 1140.0
+                    },
+                    {
+                        "expected_arrival": 1560.0,
+                        "location": "GD|3",
+                        "time": 1620.0
+                    },
+                    {
+                        "expected_arrival": 1800.0,
+                        "location": "GDG|1",
+                        "time": 1800.0
+                    },
+                    {
+                        "expected_arrival": 2340.0,
+                        "location": "WD|6",
+                        "time": 2460.0
+                    },
+                    {
+                        "expected_arrival": 2940.0,
+                        "location": "BKL|2",
+                        "time": 2940.0
+                    },
+                    {
+                        "expected_arrival": 3420.0,
+                        "location": "AC|2",
+                        "time": 3420.0
+                    },
+                    {
+                        "expected_arrival": 3600.0,
+                        "location": "ASHD|2",
+                        "time": 3600.0
+                    },
+                    {
+                        "expected_arrival": 3780.0,
+                        "location": "ASB|3",
+                        "time": 3780.0
+                    },
+                    {
+                        "expected_arrival": 3960.0,
+                        "location": "DVD|5",
+                        "time": 3960.0
+                    },
+                    {
+                        "expected_arrival": 4200.0,
+                        "location": "ASA|1",
+                        "time": 4200.0
+                    },
+                    {
+                        "expected_arrival": 4380.0,
+                        "location": "ASDM|8",
+                        "time": 4380.0
+                    },
+                    {
+                        "expected_arrival": 4740.0,
+                        "location": "ASD|7b",
+                        "time": 4860.0
+                    },
+                    {
+                        "expected_arrival": 5160.0,
+                        "location": "ASS|4",
+                        "time": 5160.0
+                    },
+                    {
+                        "expected_arrival": 5580.0,
+                        "location": "ZD|2",
+                        "time": 5580.0
+                    },
+                    {
+                        "expected_arrival": 5760.0,
+                        "location": "KZ|1",
+                        "time": 5760.0
+                    },
+                    {
+                        "expected_arrival": 5880.0,
+                        "location": "ZZS|1",
+                        "time": 5880.0
+                    },
+                    {
+                        "expected_arrival": 6060.0,
+                        "location": "WM|2",
+                        "time": 6120.0
+                    },
+                    {
+                        "expected_arrival": 6300.0,
+                        "location": "KMA|1",
+                        "time": 6300.0
+                    }
+                ]
+            },
+            "trainNumber": "4066",
+            "trainUnitTypes": [
+                "SLT"
+            ],
+            "trainUnits": [
+                "2616"
+            ]
+        },
+        {
+            "movements": {
                 "endLocation": "HNK|1",
                 "endTime": 8160.0,
                 "startLocation": "LEDN|5a",
@@ -1648,6 +1879,33 @@
                 "2360",
                 "2324",
                 "3031"
+            ]
+        },
+        {
+            "movements": {
+                "endLocation": "UT|12",
+                "endTime": 3900.0,
+                "startLocation": "RTD|14",
+                "startTime": 1680.0,
+                "stops": [
+                    {
+                        "expected_arrival": 2160.0,
+                        "location": "RTA|1",
+                        "time": 2160.0
+                    },
+                    {
+                        "expected_arrival": 2760.0,
+                        "location": "GD|3",
+                        "time": 2820.0
+                    }
+                ]
+            },
+            "trainNumber": "2871",
+            "trainUnitTypes": [
+                "ICM"
+            ],
+            "trainUnits": [
+                "4214"
             ]
         },
         {
@@ -1735,59 +1993,75 @@
         },
         {
             "movements": {
-                "endLocation": "GVC|9",
-                "endTime": 7620.0,
-                "startLocation": "NM|3",
-                "startTime": 360.0,
+                "endLocation": "VS|2",
+                "endTime": 6480.0,
+                "startLocation": "RTB|3",
+                "startTime": 120.0,
                 "stops": [
                     {
-                        "expected_arrival": 1080.0,
-                        "location": "AH|11",
-                        "time": 1500.0
+                        "expected_arrival": 840.0,
+                        "location": "DDR|5",
+                        "time": 900.0
                     },
                     {
-                        "expected_arrival": 2100.0,
-                        "location": "ED|3",
-                        "time": 2100.0
+                        "expected_arrival": 2280.0,
+                        "location": "RSD|4b",
+                        "time": 2640.0
                     },
                     {
-                        "expected_arrival": 3420.0,
-                        "location": "UT|5",
+                        "expected_arrival": 3180.0,
+                        "location": "BGN|1",
+                        "time": 3180.0
+                    },
+                    {
+                        "expected_arrival": 3780.0,
+                        "location": "RB|1",
                         "time": 3780.0
                     },
                     {
+                        "expected_arrival": 4080.0,
+                        "location": "KBD|2",
+                        "time": 4080.0
+                    },
+                    {
+                        "expected_arrival": 4380.0,
+                        "location": "KRG|2",
+                        "time": 4380.0
+                    },
+                    {
                         "expected_arrival": 4740.0,
-                        "location": "ASB|2",
+                        "location": "BZL|1",
                         "time": 4740.0
                     },
                     {
-                        "expected_arrival": 5100.0,
-                        "location": "RAI|4",
-                        "time": 5100.0
+                        "expected_arrival": 5040.0,
+                        "location": "GS|1",
+                        "time": 5040.0
                     },
                     {
-                        "expected_arrival": 5280.0,
-                        "location": "ASDZ|4",
-                        "time": 5340.0
+                        "expected_arrival": 5640.0,
+                        "location": "ARN|2",
+                        "time": 5640.0
                     },
                     {
-                        "expected_arrival": 5700.0,
-                        "location": "SHL|5",
-                        "time": 5820.0
+                        "expected_arrival": 5940.0,
+                        "location": "MDB|1",
+                        "time": 5940.0
                     },
                     {
-                        "expected_arrival": 6840.0,
-                        "location": "LEDN|8b",
-                        "time": 6960.0
+                        "expected_arrival": 6240.0,
+                        "location": "VSS|1",
+                        "time": 6240.0
                     }
                 ]
             },
-            "trainNumber": "3168",
+            "trainNumber": "2258",
             "trainUnitTypes": [
                 "VIRM"
             ],
             "trainUnits": [
-                "9514"
+                "9549",
+                "8717"
             ]
         },
         {
@@ -2097,6 +2371,84 @@
         },
         {
             "movements": {
+                "endLocation": "GVC|1",
+                "endTime": 6120.0,
+                "startLocation": "DDR|3a",
+                "startTime": 3000.0,
+                "stops": [
+                    {
+                        "expected_arrival": 3180.0,
+                        "location": "ZWD|2",
+                        "time": 3180.0
+                    },
+                    {
+                        "expected_arrival": 3540.0,
+                        "location": "BRD|2",
+                        "time": 3540.0
+                    },
+                    {
+                        "expected_arrival": 3720.0,
+                        "location": "RLB|2",
+                        "time": 3720.0
+                    },
+                    {
+                        "expected_arrival": 3960.0,
+                        "location": "RTZ|2",
+                        "time": 3960.0
+                    },
+                    {
+                        "expected_arrival": 4140.0,
+                        "location": "RTB|2",
+                        "time": 4140.0
+                    },
+                    {
+                        "expected_arrival": 4320.0,
+                        "location": "RTD|9",
+                        "time": 4440.0
+                    },
+                    {
+                        "expected_arrival": 4680.0,
+                        "location": "SDM|3",
+                        "time": 4680.0
+                    },
+                    {
+                        "expected_arrival": 5040.0,
+                        "location": "DTCP|2",
+                        "time": 5040.0
+                    },
+                    {
+                        "expected_arrival": 5220.0,
+                        "location": "DT|2",
+                        "time": 5220.0
+                    },
+                    {
+                        "expected_arrival": 5460.0,
+                        "location": "RSW|3",
+                        "time": 5460.0
+                    },
+                    {
+                        "expected_arrival": 5640.0,
+                        "location": "GVMW|3",
+                        "time": 5640.0
+                    },
+                    {
+                        "expected_arrival": 5880.0,
+                        "location": "GV|5",
+                        "time": 5940.0
+                    }
+                ]
+            },
+            "trainNumber": "5168",
+            "trainUnitTypes": [
+                "SNG"
+            ],
+            "trainUnits": [
+                "2342",
+                "2331"
+            ]
+        },
+        {
+            "movements": {
                 "endLocation": "VL|3",
                 "endTime": 14760.0,
                 "startLocation": "DDR|2",
@@ -2278,34 +2630,6 @@
             "trainUnits": [
                 "2309",
                 "2328"
-            ]
-        },
-        {
-            "movements": {
-                "endLocation": "SHL|5",
-                "endTime": 2400.0,
-                "startLocation": "UT|5",
-                "startTime": 600.0,
-                "stops": [
-                    {
-                        "expected_arrival": 1560.0,
-                        "location": "ASB|2",
-                        "time": 1560.0
-                    },
-                    {
-                        "expected_arrival": 1920.0,
-                        "location": "ASDZ|4",
-                        "time": 2040.0
-                    }
-                ]
-            },
-            "trainNumber": "3264",
-            "trainUnitTypes": [
-                "VIRM"
-            ],
-            "trainUnits": [
-                "9473",
-                "8638"
             ]
         },
         {
@@ -2706,6 +3030,22 @@
             ],
             "trainUnits": [
                 "9401"
+            ]
+        },
+        {
+            "movements": {
+                "endLocation": "BD|5",
+                "endTime": 3000.0,
+                "startLocation": "RTD|7",
+                "startTime": 1020.0,
+                "stops": []
+            },
+            "trainNumber": "9260",
+            "trainUnitTypes": [
+                "UNKNOWN"
+            ],
+            "trainUnits": [
+                0
             ]
         },
         {
@@ -3249,6 +3589,33 @@
         },
         {
             "movements": {
+                "endLocation": "UT|11",
+                "endTime": 5700.0,
+                "startLocation": "RTD|14",
+                "startTime": 3480.0,
+                "stops": [
+                    {
+                        "expected_arrival": 3960.0,
+                        "location": "RTA|1",
+                        "time": 3960.0
+                    },
+                    {
+                        "expected_arrival": 4560.0,
+                        "location": "GD|3",
+                        "time": 4620.0
+                    }
+                ]
+            },
+            "trainNumber": "2873",
+            "trainUnitTypes": [
+                "ICM"
+            ],
+            "trainUnits": [
+                "4241"
+            ]
+        },
+        {
+            "movements": {
                 "endLocation": "GVC|3",
                 "endTime": 1320.0,
                 "startLocation": "DTCP|2",
@@ -3466,22 +3833,6 @@
             "trainUnits": [
                 "2421",
                 "2618"
-            ]
-        },
-        {
-            "movements": {
-                "endLocation": "SHL|5",
-                "endTime": 600.0,
-                "startLocation": "ASDZ|4",
-                "startTime": 240.0,
-                "stops": []
-            },
-            "trainNumber": "3262",
-            "trainUnitTypes": [
-                "VIRM"
-            ],
-            "trainUnits": [
-                "9590"
             ]
         },
         {
@@ -3744,6 +4095,33 @@
         },
         {
             "movements": {
+                "endLocation": "UT|11",
+                "endTime": 3000.0,
+                "startLocation": "RTD|14",
+                "startTime": 780.0,
+                "stops": [
+                    {
+                        "expected_arrival": 1260.0,
+                        "location": "RTA|1",
+                        "time": 1260.0
+                    },
+                    {
+                        "expected_arrival": 1860.0,
+                        "location": "GD|3",
+                        "time": 1920.0
+                    }
+                ]
+            },
+            "trainNumber": "2071",
+            "trainUnitTypes": [
+                "SLT"
+            ],
+            "trainUnits": [
+                "2647"
+            ]
+        },
+        {
+            "movements": {
                 "endLocation": "ASD|2a",
                 "endTime": 1980.0,
                 "startLocation": "HAD|1",
@@ -3767,6 +4145,33 @@
             ],
             "trainUnits": [
                 "8719"
+            ]
+        },
+        {
+            "movements": {
+                "endLocation": "UT|11",
+                "endTime": 4800.0,
+                "startLocation": "RTD|14",
+                "startTime": 2580.0,
+                "stops": [
+                    {
+                        "expected_arrival": 3060.0,
+                        "location": "RTA|1",
+                        "time": 3060.0
+                    },
+                    {
+                        "expected_arrival": 3660.0,
+                        "location": "GD|3",
+                        "time": 3720.0
+                    }
+                ]
+            },
+            "trainNumber": "2073",
+            "trainUnitTypes": [
+                "SLT"
+            ],
+            "trainUnits": [
+                "2645"
             ]
         },
         {
@@ -4330,6 +4735,14 @@
             "length": 138,
             "minimum_station_time": 120,
             "name": "ICNG",
+            "speed": 200
+        },
+        {
+            "acceleration": 0.5,
+            "deceleration": 1.1,
+            "length": 138,
+            "minimum_station_time": 120,
+            "name": "EUROCITY",
             "speed": 200
         },
         {

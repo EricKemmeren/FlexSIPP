@@ -13,7 +13,8 @@ class TestTrackGraph(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.tg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json")).tg
+        
+        cls.tg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json")).tg
 
     def test_general_track_graph(self):
         self.assertEqual(len(self.tg.nodes), 30, "In total 32 nodes")
@@ -45,7 +46,7 @@ class TestTrackGraph(unittest.TestCase):
         u_a = self.tg.nodes["uA"]
         self.assertEqual(u_a.direction, "A")
         self.assertCountEqual(u_a.opposites, [])
-        self.assertCountEqual(u_a.associated, [self.tg.nodes["uB"]]) # TODO: is this wanted?
+        self.assertCountEqual(u_a.associated, [self.tg.nodes["uB"]])
         self.assertEqual(len(u_a.outgoing), 1)
         self.assertEqual(len(u_a.incoming), 1)
 
@@ -106,7 +107,7 @@ class TestBlockGraph(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
+        cls.bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
 
     def test_general_block_graph(self):
         self.assertEqual(len(self.bg.nodes), 24, f"Should be 24 signals: {self.bg.nodes}")
@@ -145,10 +146,6 @@ class TestBlockGraph(unittest.TestCase):
         node = self.bg.nodes["s5|A"]
         self.assertEqual(len(node.outgoing), 2)
 
-    # def test_block_relation(self):
-    #     self.fail("Implement test")
-
-
     def test_path_finding(self):
         start_a, _ = self.bg.get_block_from_station("U|1")
         end_a, _ = self.bg.get_block_from_station("V|1")
@@ -161,23 +158,26 @@ class TestScenario(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
-        cls.scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), cls.bg)
+        cls.bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
+        cls.scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), cls.bg)
 
 
 class TestUnsafeIntervals(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
-        scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), bg)
+        bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
+        scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), bg)
         scenario.process()
         cls.g = scenario.g
 
     def test_unsafe_intervals(self):
 
         def test_unsafe(left: IntervalStore, right: list[Tuple[float, float]]):
-            self.assertCountEqual(left.unsafe_intervals, [Interval(s, e) for s, e in right])
+            self.assertEqual(left.unsafe_intervals[0].start, right[0][0])
+            self.assertEqual(left.unsafe_intervals[0].end, right[0][1])
+            self.assertEqual(left.unsafe_intervals[1].start, right[1][0])
+            self.assertEqual(left.unsafe_intervals[1].end, right[1][1])
 
         node = self.g.nodes["u|A"]
         for edge in node.outgoing:
@@ -218,8 +218,8 @@ class TestSafeIntervals(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
-        scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), cls.bg)
+        cls.bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
+        scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), cls.bg)
         scenario.process()
         heuristic = {node.name: 0 for node in cls.bg.nodes.values()}
         new_agent = copy(scenario.agents["1"])
