@@ -81,6 +81,12 @@ def single_delay(location_file, scenario_file, delays, scenario_end=None, use_fl
             "path_differences": result.compare_paths([str(node) for node in delay_agent.route if isinstance(node, GridCell)])
         })
         meta_data = result.metadata
+    else:
+        meta_data = {
+            "unique_routes_safe": {},
+            "path_differences": "",
+            "delays": {}
+        }
 
     # Update the unsafe intervals to retrieve the final paths and actual delays
     if failure or not new_route:
@@ -116,7 +122,7 @@ def single_delay(location_file, scenario_file, delays, scenario_end=None, use_fl
 
 
 if __name__ == "__main__":
-    random_seed = 42
+    random_seed = 123
     num_delays = 1
     results_flexsipp = {}
     results_maeder = {}
@@ -161,3 +167,6 @@ if __name__ == "__main__":
                         {f"{scenario}_{x}": single_delay(location, scenario_file, delays, use_flexibility=False)})
                     with open(result_file_maeder, "w") as f:
                         json.dump(results_maeder, f, indent=4)
+
+                    with open(file_with_previous_runs, "a") as f:
+                        f.write(f"{random_seed},{config_name},{location},{scenario_file},{x}\n")

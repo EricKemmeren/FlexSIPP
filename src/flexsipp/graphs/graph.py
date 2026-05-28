@@ -490,8 +490,7 @@ class Graph(Generic[EdgeType, NodeType]):
                             updated_delay = current_delay - recovery_used
                             new_ui = UnsafeInterval(ui.start + current_delay, ui.end + updated_delay, ui.local_recovery_time - recovery_used, ui.by_agent, ui.local_recovery_time - recovery_used)
                             current_delay = updated_delay
-                        if ui != new_ui:
-                            new_unsafe_intervals.append((move, ui, new_ui))
+                        new_unsafe_intervals.append((move, ui, new_ui))
                 for move, old_ui, new_ui in new_unsafe_intervals:
                     move.remove_unsafe_interval(old_ui)
                     move.add_unsafe_interval(new_ui)

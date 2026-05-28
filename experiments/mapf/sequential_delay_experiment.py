@@ -79,6 +79,12 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
                 "path_differences": result.compare_paths([str(node) for node in delay_agent.route if isinstance(node, GridCell)])
             })
             meta_data = result.metadata
+        else:
+            meta_data = {
+                "unique_routes_safe": {},
+                "path_differences": "",
+                "delays": {}
+            }
 
         # Update the unsafe intervals such that it can be used again
         if failure or not new_route:
@@ -115,7 +121,7 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
 
 
 if __name__ == "__main__":
-    random_seed = 42
+    random_seed = 123
     random.seed(random_seed)
     date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 

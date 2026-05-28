@@ -11,3 +11,4 @@ __pycache__/
 *.zip
 *.txt
 !/data/**/*_paths*.txt
+**/timing/
