@@ -78,7 +78,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
-    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=False)
+    atf, new_route, minimum_delays, _ = result.get_fastest_route(actual_departure_time, agents, discrete=False)
 
     ax = axs[0,1]
     ax.grid(alpha=0.3)

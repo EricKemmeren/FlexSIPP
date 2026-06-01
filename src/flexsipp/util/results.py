@@ -49,7 +49,6 @@ class Results:
             atf = found_route["edge_atf"]["atf"]
 
             path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"] if "state" in payload]
-            # TODO: rewrite this, this does not make any sense tbh
             path_str = "->".join([node for node, interval in path])
             route_str = "->".join([f"({str(node)}, {str(interval)})" for node, interval in path])
             if path_str in self.unique_paths:
@@ -225,9 +224,18 @@ class Results:
         minimum_delays = {}
         if best_route is None:
             return [0, 0, 0, 0], [], minimum_delays
+        tipping_location_and_original_time = None
         for agent in agents.values():
             minimum_delay = {}
             for delay_location, min_delay, min_gamma, max_gamma in best_route["delays"][agent.id]:
+                if tipping_location_and_original_time is None:
+                    visit_time = 0
+                    for loc in best_route["route"]:
+                        if isinstance(loc[0], Node):
+                            if loc[0] == delay_location:
+                                tipping_location_and_original_time = (delay_location, visit_time)
+                                break
+                            visit_time += 1
                 wait_location = agent.get_wait_location(delay_location, {tup[0] for tup in best_route["route"] if isinstance(tup[0], Node)})
                 delay = min_gamma + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
                 if kwargs.get("print_agent_delays", True):
@@ -236,7 +244,7 @@ class Results:
                     minimum_delay[loc] = max(minimum_delay.get(loc, 0), delay)
             minimum_delays[agent] = minimum_delay
 
-        return best_atf, best_route["route"], minimum_delays
+        return best_atf, best_route["route"], minimum_delays, tipping_location_and_original_time
 
     def find_tipping_points(self, agents, **kwargs):
         line_list:list[Line] = []
@@ -286,7 +294,7 @@ class Results:
             line_list.append(new_line)
         resulting_tipping_points = []
         for tipping_point in tipping_points:
-            atf, new_route, minimum_delays = self.get_fastest_route(tipping_point, agents, beta_inclusive=True, **kwargs)
+            atf, new_route, minimum_delays, tipping_location = self.get_fastest_route(tipping_point, agents, beta_inclusive=True, **kwargs)
             resulting_tipping_points.append((tipping_point, atf, new_route, minimum_delays))
             if kwargs.get("print_tipping_points", True):
                 for agent, delays in minimum_delays.items():
@@ -303,7 +311,7 @@ class Results:
                                 starting_agent = agent
                             print(f"Optimal starting time for agent {starting_agent} at {new_route[0][0]} is time {tipping_point}")
                         else:
-                            print(f"Tipping point for agent {agent} at {list(delays.keys())[0]} is time {tipping_point}")
+                            print(f"Tipping point for agent {agent} at {tipping_location[0]} is time {tipping_point + tipping_location[1]}")
         return resulting_tipping_points
 
 if __name__ == "__main__":

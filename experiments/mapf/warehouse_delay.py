@@ -49,6 +49,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     heuristic = {node.name: 0 for node in graph.nodes.values()}
 
     flexSIPP = FSIPP(graph, heuristic, agents)
+    flexSIPP._write(open(os.path.join(os.path.dirname(__file__), "output", "warehouse_delay_graph_@SIPP.txt"), "w"))
     result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse.txt")
     print(f"FlexSIPP Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
 
@@ -76,7 +77,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
-    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=False)
+    atf, new_route, minimum_delays, _ = result.get_fastest_route(actual_departure_time, agents, discrete=False)
 
     ax = axs[0,1]
     ax.grid(alpha=0.3)

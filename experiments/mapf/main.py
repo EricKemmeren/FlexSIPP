@@ -43,7 +43,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     delay_agent.plot_route(axs[1])
     axs[1].set_ylim(0, graph.global_end_time)
 
-    atf, new_route, minimum_delays = result.get_fastest_route(float(actual_delay), agents, discrete=True)
+    atf, new_route, minimum_delays, _ = result.get_fastest_route(float(actual_delay), agents, discrete=True)
     if new_route:
         del minimum_delays[delay_agent]
         graph.update_unsafe_intervals(minimum_delays=minimum_delays)

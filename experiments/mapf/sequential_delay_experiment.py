@@ -73,7 +73,7 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
         post_time_start = time.time()
         # Pick a route from the results the agent will take, currently selecting a given amount of delay
         if not failure:
-            atf, new_route, minimum_delays = result.get_fastest_route(delayed_start_time, agents, discrete=True, print_agent_delays=False)
+            atf, new_route, minimum_delays, _ = result.get_fastest_route(delayed_start_time, agents, discrete=True, print_agent_delays=False)
             result.metadata.update({
                 "unique_routes_safe": {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()},
                 "path_differences": result.compare_paths([str(node) for node in delay_agent.route if isinstance(node, GridCell)])

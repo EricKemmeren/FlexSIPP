@@ -75,7 +75,7 @@ def single_delay(location_file, scenario_file, delays, scenario_end=None, use_fl
     post_time_start = time.time()
     if not failure:
         # Pick a route from the results the agent will take, currently selecting a given amount of delay
-        atf, new_route, minimum_delays = result.get_fastest_route(delayed_start_time, agents, discrete=True, print_agent_delays=False)
+        atf, new_route, minimum_delays, _ = result.get_fastest_route(delayed_start_time, agents, discrete=True, print_agent_delays=False)
         result.metadata.update({
             "unique_routes_safe": {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()},
             "path_differences": result.compare_paths([str(node) for node in delay_agent.route if isinstance(node, GridCell)])
@@ -131,7 +131,7 @@ if __name__ == "__main__":
 
     for config_name in ["maze1", "warehouse1"]:
         print("Running config", config_name)
-        result_dir = Path(__file__).parent / "output"
+        result_dir = Path(__file__).parent / "output" / config_name
         result_dir.mkdir(exist_ok=True, parents=True)
         result_file_maeder   = result_dir / f"optimal_{config_name}_@MAEDeR_{date}_seed{random_seed}.json"
         result_file_flexsipp = result_dir / f"optimal_{config_name}_FlexSIPP_{date}_seed{random_seed}.json"
