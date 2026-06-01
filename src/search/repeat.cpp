@@ -8,21 +8,21 @@ double update_reference_time(const EdgeATF& path, rePEAT::Open& open_list){
     intervalTime_t lower_bound = path.alpha;
     intervalTime_t absolute_lower_bound = std::min(lower_bound + intervalTime_t(15), upper_bound);
     std::cerr << "Starting update tref with alpha " << lower_bound << " beta " << upper_bound << " delta " << path.delta << std::endl;
-     while(lower_bound < upper_bound){
-         if(open_list.empty()){
-             return upper_bound;
-         }
-         auto n = open_list.top();
-         open_list.pop();
-         std::cerr << "popped " << n.g << std::endl;
-         std::cerr << "f: " << n.f << std::endl;
-         lower_bound = n.f - path.delta;
-         std::cerr << ", new lb " << lower_bound << std::endl;
-         if (n.g.alpha > lower_bound){
-             std::cerr << "Result from lb ";
-             return std::max(std::min(upper_bound, lower_bound), absolute_lower_bound);
-         }
-     }
+    while(lower_bound < upper_bound){
+        if(open_list.empty()){
+            return upper_bound;
+        }
+        auto n = open_list.top();
+        open_list.pop();
+        std::cerr << "popped " << n.g << std::endl;
+        std::cerr << "f: " << n.f << std::endl;
+        lower_bound = n.f - path.delta;
+        std::cerr << ", new lb " << lower_bound << std::endl;
+        if (n.g.alpha > lower_bound){
+            std::cerr << "Result from lb ";
+            return std::max(std::min(upper_bound, lower_bound), absolute_lower_bound);
+        }
+    }
     std::cerr << "Result from ub ";
     return upper_bound;
 }

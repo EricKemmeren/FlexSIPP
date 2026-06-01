@@ -43,9 +43,10 @@ namespace asipp{
         intervalTime_t alpha = std::max(cur.g.alpha, edge.alpha - cur.g.delta);
         intervalTime_t beta  = std::min(cur.g.beta,  edge.beta  - cur.g.delta);
         intervalTime_t delta = cur.g.delta + edge.delta;
+        std::cerr << "Extend open on edge " << edge << ". Computed parameters: zeta " << zeta << " alpha " << alpha << " beta " << beta << " delta " << delta << std::endl;
 
         if (cur.g.earliest_arrival_time() > edge.beta) {
-            std::cerr << "cur.alpha + cur.delta > edge.beta" << cur.g << " > " << edge.beta << std::endl;
+            std::cerr << "cur.alpha + cur.delta > edge.beta (cur.g): " << cur.g << " > " << edge.beta << std::endl;
             return;
         }
 
@@ -67,7 +68,7 @@ namespace asipp{
 
         intervalTime_t eat = arrival_time_function.earliest_arrival_time();
         if (eat > edge.beta) {
-            std::cerr << "cur.alpha + cur.delta > edge.beta" << eat << " > " << edge.beta << std::endl;
+            std::cerr << "cur.alpha + cur.delta > edge.beta (EAT): " << eat << " > " << edge.beta << std::endl;
             return;
         }
     
@@ -84,7 +85,10 @@ namespace asipp{
                 if (arrival_time_function.earliest_arrival_time() <= (*handle).g.earliest_arrival_time()) {
                     m.decreased++;
                     double h = edge.heuristic;
+                    Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source, successor);
+                    std::cerr << "Decreased with better longer available path: " << new_node << std::endl;
                 } else {
+                    std::cerr << "Already found destination, but is worse. New: [" << arrival_time_function.zeta << "," << arrival_time_function.alpha << "," << arrival_time_function.beta << "," << arrival_time_function.delta << "]. Existing: [" << (*handle).g.zeta << "," << (*handle).g.alpha << "," << (*handle).g.beta << "," << (*handle).g.delta << "]" << std::endl;
                 }
             } else {
             }
@@ -109,7 +113,7 @@ namespace asipp{
         for(GraphEdge * successor: cur.node->successors){
             if(open_list.expanded.contains(MapNode(successor->destination))){
                 // Already visited location and added all outgoing edges to the queue, thus the new found path to that node is worse
-                std::cerr << "Already visited " << *successor << " at an earlier time " << std::endl;
+                std::cerr << "Already visited successor location " << successor->destination->state.loc << " with ATF " << *successor << " at an earlier time " << std::endl;
                 continue; 
             }
             gam_item_t gamma_before = cur.g.gamma[successor->edge.agent_before.id];
@@ -173,6 +177,7 @@ namespace asipp{
             auto cur = open_list.top();
             if(isGoal(cur, dest)){
                 auto res = std::make_pair(backup(cur, open_list), cur.g);
+                std::cerr << "---------------- goal at top op open list ----------------"<< std::endl;
                 std::cerr << "found path: " << cur.g << std::endl;
                 return res;             
             }
