@@ -1,3 +1,4 @@
+import os
 import json
 from typing import Any
 
@@ -29,6 +30,7 @@ class Results:
         self = cls()
 
         input = json_decoder(s)
+        json.dump(input, open("flexsipp_results.json", "w"), indent=4)
         self.metadata = input["MetaData"]
         self.metadata["Search Time Python"] = search_time
         self.metadata["Search Time"] = input["Search time"]
@@ -311,7 +313,7 @@ class Results:
                                 starting_agent = agent
                             print(f"Optimal starting time for agent {starting_agent} at {new_route[0][0]} is time {tipping_point}")
                         else:
-                            print(f"Tipping point for agent {agent} at {tipping_location[0]} is time {tipping_point + tipping_location[1]}")
+                            print(f"Tipping point for agent {agent} at {list(delays.keys())[0]} is time {tipping_point}")
         return resulting_tipping_points
 
 if __name__ == "__main__":
