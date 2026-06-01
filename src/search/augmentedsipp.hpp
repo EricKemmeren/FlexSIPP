@@ -120,7 +120,7 @@ namespace asipp{
             edge.alpha = successor->edge.alpha + gamma_before.first;
             edge.beta = successor->edge.beta + gamma_after.second;
 
-            std::cerr << "Outgoing edge " << edge << ", b: " << gamma_before << ", a: " << gamma_after << std::endl;
+            std::cerr << "Outgoing edge to " << successor->destination->state.loc << " atf " << edge << ", b: " << gamma_before << ", a: " << gamma_after << std::endl;
 
             gamma_t old_gamma = gamma_t(cur.g.gamma);
             old_gamma[successor->edge.agent_after.id] = gam_item_t(gamma_after.first, gamma_after.second,  gamma_after.last_recovery, gamma_after.incurred_delays);

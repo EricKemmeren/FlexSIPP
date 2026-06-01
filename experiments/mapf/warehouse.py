@@ -41,8 +41,8 @@ def run_flexsipp_scenario(location_file, scenario_file):
     # Filter out unsafe intervals of Agent 2 because it will find a new route
     graph.filter_out_agent(rerouting_agent)
     
-    # Agent 4 has feasibility
-    feasibility_agent = agents[4]
+    # Agent 4 has flexibility
+    flexibility_agent = agents[4]
 
     continues = False
     actual_departure_time = 3
@@ -73,7 +73,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
 
     ax = axs[1,1]
     ax.grid(alpha=0.3)
-    feasibility_agent.plot_route(ax, continues=continues, title="Agent 4 before", show_buffer_time=show_buffer_time)
+    flexibility_agent.plot_route(ax, continues=continues, title="Agent 4 before", show_buffer_time=show_buffer_time)
     ax.set_ylim(0, graph.global_end_time)
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
@@ -102,7 +102,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
 
     ax = axs[1,2]
     ax.grid(alpha=0.3)
-    feasibility_agent.plot_route(ax, continues=continues, title="Agent 4 after", show_buffer_time=True)
+    flexibility_agent.plot_route(ax, continues=continues, title="Agent 4 after", show_buffer_time=True)
     ax.set_ylim(0, graph.global_end_time)
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 

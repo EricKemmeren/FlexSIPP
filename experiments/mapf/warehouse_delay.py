@@ -37,8 +37,9 @@ def run_flexsipp_scenario(location_file, scenario_file):
     # Filter out unsafe intervals of Agent 1 because it will find a new route
     graph.filter_out_agent(rerouting_agent)
     
-    # Agent 2 has feasibility
-    feasibility_agent = agents[2]
+    # Agent 3 has flexibility
+    flexibility_agent = agents[3]
+    original_arrival_time_flexible = flexibility_agent.destination.unsafe_intervals[-1].start
 
     start_time = 0
     continues = False
@@ -48,60 +49,60 @@ def run_flexsipp_scenario(location_file, scenario_file):
     heuristic = {node.name: 0 for node in graph.nodes.values()}
 
     flexSIPP = FSIPP(graph, heuristic, agents)
-    flexSIPP._write(open("experiments/mapf/test.txt", "w"))
-    result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr.txt")
+    result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse.txt")
     print(f"FlexSIPP Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
 
-    fig, axs = plt.subplots(2,4, figsize = (15,10))
+    fig, axs = plt.subplots(2, 4, figsize = (15,10))
     result.plot(axs[0,0], linestyle=3)
     axs[1,0].grid(alpha=0.3)
-    result.plot(axs[1,0], show_atf=False, show_additional_delays=True, show_total_delays=True, original_arrival_time=original_arrival_time_reroute)
+    result.plot(axs[1,0], show_atf=False, show_additional_delays=True, show_total_delays=True, original_arrival_time=original_arrival_time_reroute, rerouted_agent=rerouting_agent.id)
 
     custom_lines = [Line2D([0], [0], color="blue"),
                     Line2D([0], [0], color="lightblue"),]
     axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
 
     tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
-    optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0])
+    optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0], starting_agent=rerouting_agent)
     
     found_flexibility_ranges = result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
 
+    # Update the graph with the results from FlexSIPP, assume we know now the actual delay of rerouting agent 
     actual_departure_time = 3
+    
+    ax = axs[1,1]
+    ax.grid(alpha=0.3)
+    flexibility_agent.plot_route(ax, continues=continues, title=f"Agent {flexibility_agent.id} before", show_buffer_time=show_buffer_time)
+    ax.set_ylim(0, graph.global_end_time)
+    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
-    # ax = axs[1,1]
-    # ax.grid(alpha=0.3)
-    # feasibility_agent.plot_route(ax, continues=continues, title=f"Agent {feasibility_agent.id} before", show_buffer_time=show_buffer_time)
-    # ax.set_ylim(0, graph.global_end_time)
-    # ax.set_yticks(range(0, graph.global_end_time + 1, 2))
+    # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
+    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=False)
 
-    # # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
-    # atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=False)
+    ax = axs[0,1]
+    ax.grid(alpha=0.3)
+    temp_agent = MapfAgent(0, [node for node, interval in graph._complete_new_route(new_route)], graph.global_end_time)
+    temp_agent.plot_route(ax, continues=continues, title="Original unsafe interval on found path", show_buffer_time=show_buffer_time)
+    ax.set_ylim(0, graph.global_end_time)
+    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
-    # ax = axs[0,1]
-    # ax.grid(alpha=0.3)
-    # temp_agent = MapfAgent(0, [node for node, interval in graph._complete_new_route(new_route)], graph.global_end_time)
-    # temp_agent.plot_route(ax, continues=continues, title="Original unsafe interval on found path", show_buffer_time=show_buffer_time)
-    # ax.set_ylim(0, graph.global_end_time)
-    # ax.set_yticks(range(0, graph.global_end_time + 1, 2))
+    del minimum_delays[rerouting_agent]
+    graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
 
-    # del minimum_delays[rerouting_agent]
-    # graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
+    graph.reset_flexibility()
+    for agent in agents.values():
+        agent.calculate_flexibility()
 
-    # graph.reset_flexibility()
-    # for agent in agents.values():
-    #     agent.calculate_flexibility()
+    ax = axs[0,2]
+    ax.grid(alpha=0.3)
+    rerouting_agent.plot_route(ax, continues=continues, title=f"Unsafe Intervals Agent {rerouting_agent.id} when departing at {actual_departure_time}", show_buffer_time=True)
+    ax.set_ylim(0, graph.global_end_time)
+    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
-    # ax = axs[0,2]
-    # ax.grid(alpha=0.3)
-    # rerouting_agent.plot_route(ax, continues=continues, title=f"Unsafe Intervals Agent {rerouting_agent.id} when departing at {actual_departure_time}", show_buffer_time=True)
-    # ax.set_ylim(0, graph.global_end_time)
-    # ax.set_yticks(range(0, graph.global_end_time + 1, 2))
-
-    # ax = axs[1,2]
-    # ax.grid(alpha=0.3)
-    # feasibility_agent.plot_route(ax, continues=continues, title=f"Agent {feasibility_agent.id} after", show_buffer_time=True)
-    # ax.set_ylim(0, graph.global_end_time)
-    # ax.set_yticks(range(0, graph.global_end_time + 1, 2))
+    ax = axs[1,2]
+    ax.grid(alpha=0.3)
+    flexibility_agent.plot_route(ax, continues=continues, title=f"Agent {flexibility_agent.id} after", show_buffer_time=True)
+    ax.set_ylim(0, graph.global_end_time)
+    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     plt.show()
     plt.close()

@@ -107,7 +107,7 @@ class Results:
 
             ax.set_xlabel(kwargs.get('xlabel', 'Departure Time'))
             ax.set_ylabel(kwargs.get('ylabel', 'Arrival Time'))
-            ax.set_title( kwargs.get('title', 'Arrival time function'))
+            ax.set_title(kwargs.get('title', 'Arrival time function'))
 
             line = None
             for (x0, x1, y0, y1) in self.segments:
@@ -292,9 +292,18 @@ class Results:
                 for agent, delays in minimum_delays.items():
                     if delays:
                         if kwargs.get("optimize_total_delay", True):
-                            print(f"Optimal starting time for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
+                            starting_agent = None
+                            for a in agents.values():
+                                if a.origin == new_route[0][0]:
+                                    if starting_agent is not None:
+                                        print(f"ERROR: Agent {starting_agent} has same origin {a.origin} as agent {a.id}")
+                                    starting_agent = a.id
+                            if starting_agent is None:
+                                print(f"ERROR: No agent found with origin {new_route[0][0]} that matches new route for optimal starting time {tipping_point}, route {new_route}")
+                                starting_agent = agent
+                            print(f"Optimal starting time for agent {starting_agent} at {new_route[0][0]} is time {tipping_point}")
                         else:
-                            print(f"Tipping point for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
+                            print(f"Tipping point for agent {agent} at {list(delays.keys())[0]} is time {tipping_point}")
         return resulting_tipping_points
 
 if __name__ == "__main__":

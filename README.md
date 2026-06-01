@@ -22,6 +22,7 @@ Building flexsipp requires `boost` to be installed using `msvc`. On Windows this
 the [boost binaries](https://www.boost.org/releases/1.90.0/) msvc version 14.3. Install these binaries in `C:\Boost` 
 or set the `BOOST_PATH_DLL` environment variable to the folder that contains the .dlls files. 
 
+### How to run + Experiments
 To run a specific railways scenario on a matching location for a specific agent (id=`1`):
 ```bash
 python experiments/railways/main.py -s data/railways/scenario_test.json -l data/railways/location_test.json -a 1
@@ -31,10 +32,22 @@ Or for a MAPF scenario, you need to pass the agents paths:
 python experiments/mapf/main.py -s data/mapf/warehouse/paths.txt -l data/mapf/warehouse/warehouse.map
 ```
 
-We also created three files for the mapf experiments used in our paper, to run these execute them using python:
+We also created three files for the mapf experiments used in our paper, to run these execute them using python.
+
+The `warehouse.py` has a scenario with four agents, where one agent breaks down and another agent needs to reroute, using the flexibility of a third agent that cannot influence the fourth agent.
 ```bash
 python experiments/mapf/warehouse.py
+```
+The `warehouse_delay.py` is the running example in our published paper, where we assume one agent is delayed so it either forces a second agent to use flexibility (not influencing the third agent), or finds a different route.
+```bash
+python experiments/mapf/warehouse_delay.py
+```
+The `single_delay_experiment` runs the scenarios with 0 or added flexibility in the original paths, and finds a new route for a single random delay.
+```bash
 python experiments/mapf/single_delay_experiment.py
+```
+The `sequential_delay_experiment.py` runs one single scenario where it delays half of the agent sequentially, recovering from a delay and then handling the next.
+```bash
 python experiments/mapf/sequential_delay_experiment.py 
 ```
 
