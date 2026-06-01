@@ -37,8 +37,8 @@ def run_flexsipp_scenario(location_file, scenario_file):
     # Filter out unsafe intervals of Agent 1 because it will find a new route
     graph.filter_out_agent(rerouting_agent)
     
-    # Agent 3 has flexibility
-    flexibility_agent = agents[3]
+    # Agent 2 has flexibility
+    flexibility_agent = agents[2]
     original_arrival_time_flexible = flexibility_agent.destination.unsafe_intervals[-1].start
 
     start_time = 0
@@ -62,7 +62,9 @@ def run_flexsipp_scenario(location_file, scenario_file):
                     Line2D([0], [0], color="lightblue"),]
     axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
 
+    # TODO show tipping point as (3,0)
     tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
+    # TODO fix optimal start time
     optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0], starting_agent=rerouting_agent)
     
     found_flexibility_ranges = result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
@@ -78,6 +80,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
     atf, new_route, minimum_delays, _ = result.get_fastest_route(actual_departure_time, agents, discrete=False)
+    print(f"Best route when earliest departure time is {actual_departure_time} is with atf {atf} and route {new_route}")
 
     ax = axs[0,1]
     ax.grid(alpha=0.3)
@@ -154,6 +157,6 @@ def create_paper_plot(result, flexibility_used, end_time):
 
 
 if __name__ == "__main__":
-    location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "warehouse", "warehouse.map")
+    location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "warehouse", "warehouse_delay.map")
     paths = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "warehouse", "paths_delay.txt")
     run_flexsipp_scenario(location, paths)
