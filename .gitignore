@@ -12,3 +12,4 @@ __pycache__/
 *.txt
 !/data/**/*_paths*.txt
 **/timing/
+*.json

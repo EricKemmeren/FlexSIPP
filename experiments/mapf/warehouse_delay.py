@@ -48,7 +48,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     # Don't use a heuristic, set it to 0 for every node
     heuristic = {node.name: 0 for node in graph.nodes.values()}
 
-    flexSIPP = FSIPP(graph, heuristic, agents)
+    flexSIPP = FSIPP(graph, heuristic, agents, use_flexibility=True)
     flexSIPP._write(open(os.path.join(os.path.dirname(__file__), "output", "warehouse_delay_graph_@SIPP.txt"), "w"))
     result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse.txt")
     print(f"FlexSIPP Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
@@ -61,6 +61,13 @@ def run_flexsipp_scenario(location_file, scenario_file):
     custom_lines = [Line2D([0], [0], color="blue"),
                     Line2D([0], [0], color="lightblue"),]
     axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
+
+
+    maeder = FSIPP(graph, heuristic, agents, use_flexibility=False)
+    result_maeder = maeder.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse.txt")
+    print(f"@MAEdeR Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
+    result_maeder.plot(axs[0,3], linestyle=3)
+
 
     # TODO show tipping point as (3,0)
     tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
