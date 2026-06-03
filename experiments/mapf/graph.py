@@ -107,12 +107,13 @@ class Grid(Graph[Edge, Node]):
 
     def _complete_new_route(self, new_route: list):
         route_with_edges = []
-        zlist = list(zip(new_route, new_route[1:]))
+        node_route = [node for node in new_route if isinstance(node[0], Node)]
+        zlist = list(zip(node_route, node_route[1:]))
         for from_node, to_node in zlist:
             for edge in from_node[0].outgoing:
                 if edge.to_node == to_node[0]:
                     route_with_edges += [from_node, (edge, [0, self.global_end_time])]
-        return route_with_edges + [new_route[-1]]
+        return route_with_edges + [node_route[-1]]
 
     def _update_delayed_agent(self, agent: MapfAgent, new_route: list, actual_departure_time: float):
         route_with_edges, safe_intervals = list(zip(*self._complete_new_route(new_route))) #TODO, actually calculate the route with edges in c code
