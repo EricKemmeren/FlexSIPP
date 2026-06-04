@@ -9,7 +9,9 @@
 
 namespace asipp{
 
-    inline gam_item_t get_reduced_gamma(const gam_item_t& gamma, NeightbouringAgent agent) {
+    inline gam_item_t get_reduced_gamma(const gam_item_t& gamma, NeighboringAgent agent) {
+        // Compound recovery time reduces over the path length
+        // Check compound recovery time by checking if you meet the agent again in the future
         intervalTime_t gamma_reduction = std::max(gamma.last_recovery - agent.compound_recovery_time, 0.0);
 
         gam_item_t reduced = reduce(gamma, gamma_reduction);
@@ -37,46 +39,22 @@ namespace asipp{
 
     template <typename Node_t, typename Open_t>
     inline void extendOpen(const Node_t& cur, Open_t& open_list, MetaData & m, GraphNode * source, GraphNode * destination, EdgeATF edge, gamma_t gamma, GraphEdge * successor) {
-
-
         intervalTime_t zeta  = cur.g.zeta;
         intervalTime_t alpha = std::max(cur.g.alpha, edge.alpha - cur.g.delta);
         intervalTime_t beta  = std::min(cur.g.beta,  edge.beta  - cur.g.delta);
         intervalTime_t delta = cur.g.delta + edge.delta;
 
-//         intervalTime_t beta_reduction = cur.g.beta - beta;
-//         if (beta_reduction > 0.0) {
-//             std::cerr << "Reducing every gamma by " << beta_reduction << std::endl;
-//             int index = 0;
-// //            Departure time at origin changed, update every max_gamma.
-//             for (gam_item_t x: gamma) {
-//                 if (index != edge.agent_after.id && x.second > 0) {
-//                     std::cerr << "Reducing " << gamma[index] << std::endl;
-//                     gamma[index] = gam_item_t(x.first, std::max(x.first, x.second - beta_reduction), x.last_recovery, x.location, x.initial_delay);
-//
-//                     if (x.first > x.second - beta_reduction) {
-//                         std::cerr << "ERROR at " << gamma[index] << std::endl;
-//                         return;
-//                     }
-//                 }
-//                 index++;
-//             }
-//         }
 
         gam_item_t gam_after = gamma[edge.agent_after.id];
 
+        // Check how much recovery time is used by checking the next agent visiting the current configuration
         gam_after = get_reduced_gamma(gam_after, edge.agent_after);
 
         intervalTime_t min_gamma = std::max(gam_after.first, alpha - (edge.beta - cur.g.delta - gam_after.second));
-
-//        intervalTime_t duration_available = beta-(edge.alpha - delta);
         intervalTime_t duration_available = std::max(static_cast<intervalTime_t>(0.0), beta - alpha);
         intervalTime_t max_gamma = gam_after.second;
-        // std::cerr << "Duration: " << duration_available << ", Max gamma before: " << max_gamma;
         max_gamma = std::min(duration_available + min_gamma, gam_after.second);
-        // std::cerr << " after: " << max_gamma << std::endl;
 
-//        gamma[edge.agent_after.id] = get_reduced_gamma(gam_item_t(min_gamma, max_gamma, gam_after.last_recovery), edge.agent_after);
         gamma[edge.agent_after.id] = gam_item_t(min_gamma, max_gamma, gam_after.last_recovery, gam_after.incurred_delays);
 
         EdgeATF arrival_time_function(zeta, alpha, beta, delta, gamma);
@@ -88,20 +66,10 @@ namespace asipp{
             std::cerr << "cur.alpha + cur.delta > edge.beta" << eat << " > " << edge.beta << std::endl;
             return;
         }
-
-//        if (alpha == beta) {
-//            std::cerr << "Alpha == Beta: " << alpha << std::endl;
-//            return;
-//        }
-
-//        if (!valid_gamma(gamma[edge.agent_after.id])) {
-//            std::cerr << "Gamma not valid " << gamma[edge.agent_after.id] << std::endl;
-//            return;
-//        }
-
-        // TODO: Make sure agent can arrive at the edge aswell (alpha + zeta compensated for gamma_before)
-
+    
+        // Enqueue the destination node 
         if (open_list.handles.contains(MapNode(destination))){
+            // If destination in queue, update the arrival time with shorter path
             auto handle = open_list.handles[MapNode(destination)];
             if(arrival_time_function.earliest_arrival_time() < (*handle).g.earliest_arrival_time()){
                 m.decreased++;
@@ -112,16 +80,14 @@ namespace asipp{
                 if (arrival_time_function.earliest_arrival_time() <= (*handle).g.earliest_arrival_time()) {
                     m.decreased++;
                     double h = edge.heuristic;
-                    // Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source, successor);
-                    // std::cerr << "Decreased with better longer available path: " << new_node << std::endl;
                 } else {
-                // std::cerr << "Already found destination, but is worse " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
+                    std::cerr << "Already found destination, but is worse. New: [" << arrival_time_function.zeta << "," << arrival_time_function.alpha << "," << arrival_time_function.beta << "," << arrival_time_function.delta << "]. Existing: [" << (*handle).g.zeta << "," << (*handle).g.alpha << "," << (*handle).g.beta << "," << (*handle).g.delta << "]" << std::endl;
                 }
             } else {
-                // std::cerr << "Already found destination, but is (maybe) worse? " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
             }
         }
         else{
+            // Add new destination to the queue
             m.generated++;
             double h = edge.heuristic;
             Node_t new_node = open_list.emplace(arrival_time_function, h, destination, source, successor);
@@ -139,12 +105,10 @@ namespace asipp{
 
         for(GraphEdge * successor: cur.node->successors){
             if(open_list.expanded.contains(MapNode(successor->destination))){
-                std::cerr << "Already visited " << *successor << " at an earlier time " << std::endl;
-                continue; // Already visited location and added all outgoing edges to the queue, thus the new found path to that node is worse
+                // Already visited location and added all outgoing edges to the queue, thus the new found path to that node is worse
+                std::cerr << "Already visited successor location " << successor->destination->state.loc << " with ATF " << *successor << " at an earlier time " << std::endl;
+                continue; 
             }
-//            gam_item_t gamma_before = get_reduced_gamma(cur, successor->edge.agent_before);
-//            gam_item_t gamma_after  = get_reduced_gamma(cur, successor->edge.agent_after);
-
             gam_item_t gamma_before = cur.g.gamma[successor->edge.agent_before.id];
             gam_item_t gamma_after  = cur.g.gamma[successor->edge.agent_after.id];
 
@@ -153,22 +117,22 @@ namespace asipp{
             edge.alpha = successor->edge.alpha + gamma_before.first;
             edge.beta = successor->edge.beta + gamma_after.second;
 
-            std::cerr << "Outgoing edge " << edge << ", b: " << gamma_before << ", a: " << gamma_after << std::endl;
+            std::cerr << "Outgoing edge to " << successor->destination->state.loc << " atf " << edge << ", b: " << gamma_before << ", a: " << gamma_after << std::endl;
 
             gamma_t old_gamma = gamma_t(cur.g.gamma);
             old_gamma[successor->edge.agent_after.id] = gam_item_t(gamma_after.first, gamma_after.second,  gamma_after.last_recovery, gamma_after.incurred_delays);
+            // Add neighbors to open list if they give a shorter path or are not visited yet
             extendOpen(cur, open_list, m, successor->source, successor->destination, edge, old_gamma, successor);
 
-//            If there is more buffer time available than is currently being used, use it.
+            // If there is more buffer time available than is currently being used, use it.
             intervalTime_t available_buffer_time = edge.agent_after.max_buffer_time - gamma_after.second;
             std::cerr << "Available buffer time: " << available_buffer_time << ", from max: " << edge.agent_after.max_buffer_time << std::endl;
             intervalTime_t eps = epsilon();
-            if (available_buffer_time > eps) {
-                // std::cerr << "Addition using " << available_buffer_time << " more buffer time" << std::endl;
-//                For this extra atf, alpha is the beta of the old edge
-//                  Beta is alpha + extra aviailable buffer time
-//                  Gamma for the agent after is atleast how much was used before, and max the new max buffer time.
 
+            // FlexSIPP new edge
+            if (available_buffer_time > eps) {
+                // For this extra atf, alpha is the beta of the old edge, new beta is old beta + extra available buffer time
+                // Gamma for the agent after is atleast how much was used before, and max the new max buffer time.
                 EdgeATF extra_edge(edge);
                 extra_edge.alpha = edge.beta;
                 extra_edge.beta = extra_edge.alpha + available_buffer_time;
@@ -203,11 +167,10 @@ namespace asipp{
     template<typename Open_t>
     inline std::pair<std::vector<GraphContainer>, EdgeATF> search_core(Open_t& open_list, const Location& dest, MetaData & m){
         while(!open_list.empty()){
-//            std::cerr << "Queue has " << open_list.size() << " elements." << std::endl;
             auto cur = open_list.top();
             if(isGoal(cur, dest)){
                 auto res = std::make_pair(backup(cur, open_list), cur.g);
-//                open_list.pop();
+                std::cerr << "---------------- goal at top op open list ----------------"<< std::endl;
                 std::cerr << "found path: " << cur.g << std::endl;
                 return res;             
             }
