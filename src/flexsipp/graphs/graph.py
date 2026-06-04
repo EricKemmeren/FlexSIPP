@@ -52,7 +52,7 @@ class IntervalStore(object):
         self.unsafe_intervals = merged_intervals
 
     def filter_out_agent(self, agent: Agent):
-        self.unsafe_intervals = SortedKeyList([ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id], key=lambda x: x.start)
+        self.unsafe_intervals = SortedKeyList([ui for ui in self.unsafe_intervals if ui.by_agent != agent], key=lambda x: x.start)
 
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
         """
@@ -194,20 +194,22 @@ class Node(IntervalStore, Generic[EdgeType, NodeType]):
         current = previous[to.name]
         if found:
             while current != self:
-                for x in current.incoming:
+                sorted_inc = sorted(current.incoming, key=lambda x: x.length)
+                for x in sorted_inc:
                     if x.from_node == previous[current.name]:
                         path.insert(0, x)
+                        break
                 current = previous[current.name]
         else:
             logger.error(f"##### ERROR ### No path was found between {self.name} and {to.name}")
         return path
 
-    def get_safe_connections(self, allowed_nodes: set[NodeType]) -> list[Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
-        # assert len(self.safe_intervals) > 0
+    def get_safe_connections(self, allowed_nodes: set[NodeType], allowed_edges: set[EdgeType]) -> list[
+        Tuple[SafeInterval, SafeInterval, SafeInterval, float]]:
         safe_connections = []
         for from_interval in self.safe_intervals:
             for edge in self.outgoing:
-                if edge.to_node in allowed_nodes:
+                if edge in allowed_edges and edge.to_node in allowed_nodes:
                     for edge_interval in edge.safe_intervals:
                         # Check for overlap with the from node and edge
                         if from_interval.agent_before == edge_interval.agent_after:
@@ -251,7 +253,7 @@ class Edge(IntervalStore, Generic[EdgeType, NodeType]):
 
     def __eq__(self, other):
         if isinstance(other, Edge):
-            return self.from_node == other.from_node and self.to_node == other.to_node
+            return self.id == other.id
         return False
 
     def __hash__(self):
@@ -328,6 +330,8 @@ class Graph(Generic[EdgeType, NodeType]):
         return time_distances
 
     def distance_between_nodes(self, start: NodeType, end: NodeType, agent_velocity):
+        if start is None or end is None:
+            return sys.maxsize
         time_distances = {n: sys.maxsize for n in self.nodes}
         pq = Q.PriorityQueue()
         time_distances[start.name] = 0
@@ -375,9 +379,11 @@ class Graph(Generic[EdgeType, NodeType]):
         current = end
         try:
             while current != start:
-                for x in current.incoming:
+                sorted_inc = sorted(current.incoming, key=lambda x: x.length)
+                for x in sorted_inc:
                     if x.from_node == previous[current.name]:
                         path.insert(0, x)
+                        break
                 current = previous[current.name]
         except Exception as e:
             logger.error(f"##### ERROR ### {e} No path was found between {start.name} and {end.name}")
@@ -439,6 +445,7 @@ class Graph(Generic[EdgeType, NodeType]):
         for agent, delays in minimum_delays.items():
             if delays:
                 current_delay = 0
+                new_unsafe_intervals: list[tuple[IntervalStore, UnsafeInterval, UnsafeInterval]] = []
                 for move in agent.route:
                     filtered_uis = [ui for ui in move.unsafe_intervals if ui.by_agent == agent]
                     if len(filtered_uis)>0:
@@ -454,8 +461,10 @@ class Graph(Generic[EdgeType, NodeType]):
                             updated_delay = current_delay - recovery_used
                             new_ui = UnsafeInterval(ui.start + current_delay, ui.end + updated_delay, ui.local_recovery_time - recovery_used, ui.by_agent, ui.local_recovery_time - recovery_used)
                             current_delay = updated_delay
-                        move.remove_unsafe_interval(ui)
-                        move.add_unsafe_interval(new_ui)
+                        new_unsafe_intervals.append((move, ui, new_ui))
+                for move, old_ui, new_ui in new_unsafe_intervals:
+                    move.remove_unsafe_interval(old_ui)
+                    move.add_unsafe_interval(new_ui)
                     move.merge_unsafe_intervals()
 
     def update_unsafe_intervals(self, new_path=None, minimum_delays=None):

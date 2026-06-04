@@ -161,8 +161,8 @@ if __name__ == "__main__":
     delays = get_delays_from_seed(location, scenario_file, num_delays, random_seed)
 
     for algorithm in [
-            "@MAEDeR"
             "FlexSIPP", 
+            "@MAEDeR",
         ]:
         result_file = result_dir / f"replan_{algorithm}_{scenario}_{date}_seed{random_seed}_{num_delays}delays.json"
         repeated_delays(location, scenario_file, delays, result_file, use_flexibility=algorithm == "FlexSIPP")
