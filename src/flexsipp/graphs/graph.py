@@ -37,10 +37,10 @@ class IntervalStore(object):
         uis = SortedKeyList(self.unsafe_intervals, key=lambda x: (x.by_agent.id, x.start))
         if len(uis) == 0:
             return
-        index = uis.bisect_left(interval)
-        interval_left = uis[index]
+        index = uis.bisect_left(interval) - 1
+        interval_left = uis[index] if index > 0 else None
         interval_right = uis[index + 1] if index < len(uis)-1 else None
-        if interval_left & interval and interval_left.by_agent == interval.by_agent:
+        if interval_left and interval_left & interval and interval_left.by_agent == interval.by_agent:
             # Interval_left has a start earlier than interval, can overlap in two ways: encompassing the whole interval or only a part.
             self.unsafe_intervals.remove(interval_left)
             if interval_left.start < interval.start:
@@ -466,6 +466,7 @@ class Graph(Generic[EdgeType, NodeType]):
         for agent, delays in minimum_delays.items():
             if delays:
                 current_delay = 0
+                new_unsafe_intervals: list[tuple[IntervalStore, UnsafeInterval, UnsafeInterval]] = []
                 for move in agent.route:
                     filtered_uis = [ui for ui in move.unsafe_intervals if ui.by_agent == agent]
                     if len(filtered_uis)>0:
@@ -481,10 +482,13 @@ class Graph(Generic[EdgeType, NodeType]):
                             updated_delay = current_delay - recovery_used
                             new_ui = UnsafeInterval(ui.start + current_delay, ui.end + updated_delay, ui.local_recovery_time - recovery_used, ui.by_agent, ui.local_recovery_time - recovery_used)
                             current_delay = updated_delay
-                        # TODO: for railways, overwrite remove_unsafE_interval to remove all unsafe intervals of all blocks on the track route of a move
-                        move.remove_unsafe_interval(ui)
-                        move.add_unsafe_interval(new_ui)
+                        new_unsafe_intervals.append((move, ui, new_ui))
+                for move, old_ui, new_ui in new_unsafe_intervals:
+                    # print(f"Move {move} removing <{old_ui}> and adding new <{new_ui}> then merge")
+                    move.remove_unsafe_interval(old_ui)
+                    move.add_unsafe_interval(new_ui)
                     move.merge_unsafe_intervals()
+                    # print(f"Merged", move.unsafe_intervals)
 
     def update_unsafe_intervals(self, new_path=None, minimum_delays=None):
         if new_path is not None:
