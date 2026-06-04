@@ -39,7 +39,6 @@ def run_flexsipp_scenario(location_file, scenario_file):
     
     # Agent 2 has flexibility
     flexibility_agent = agents[2]
-    original_arrival_time_flexible = flexibility_agent.destination.unsafe_intervals[-1].start
 
     start_time = 0
     continues = False
@@ -62,16 +61,10 @@ def run_flexsipp_scenario(location_file, scenario_file):
                     Line2D([0], [0], color="lightblue"),]
     axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
 
-
     maeder = FSIPP(graph, heuristic, agents, use_flexibility=False)
     result_maeder = maeder.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse.txt")
-    print(f"@MAEdeR Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
-    result_maeder.plot(axs[0,3], linestyle=3)
 
-
-    # TODO show tipping point as (3,0)
     tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
-    # TODO fix optimal start time
     optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0], starting_agent=rerouting_agent)
     
     found_flexibility_ranges = result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
@@ -86,7 +79,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
-    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=False)
+    atf, new_route, minimum_delays, tipping_location = result.get_fastest_route(actual_departure_time, agents, discrete=False)
     print(f"Best route when earliest departure time is {actual_departure_time} is with atf {atf} and route {new_route}")
 
     ax = axs[0,1]
@@ -114,6 +107,9 @@ def run_flexsipp_scenario(location_file, scenario_file):
     flexibility_agent.plot_route(ax, continues=continues, title=f"Agent {flexibility_agent.id} after", show_buffer_time=True)
     ax.set_ylim(0, graph.global_end_time)
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
+
+    print(f"@MAEdeR Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
+    result_maeder.plot(axs[0,3], linestyle=3)
 
     plt.show()
     plt.close()

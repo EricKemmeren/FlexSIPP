@@ -48,7 +48,6 @@ class Results:
             atf = found_route["edge_atf"]["atf"]
 
             path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"] if "state" in payload]
-            # TODO: rewrite this, this does not make any sense tbh
             path_str = "->".join([node for node, interval in path])
             route_str = "->".join([f"({str(node)}, {str(interval)})" for node, interval in path])
             if path_str in self.unique_paths:
@@ -77,7 +76,6 @@ class Results:
                     max_gamma = gamma["max_gamma"]
                     delays[agent].append((location, min_delay, min_gamma, max_gamma))
 
-            # TODO: make this a route, including the exact edges taken
             node_route = [(g.nodes[node], interval) for node, interval in path]
 
             self.found_routes.append((atf, {"route": node_route, "delays": delays}))
@@ -101,7 +99,7 @@ class Results:
 
             ax.set_xlabel(kwargs.get('xlabel', 'Departure Time'))
             ax.set_ylabel(kwargs.get('ylabel', 'Arrival Time'))
-            ax.set_title( kwargs.get('title', 'Arrival time function'))
+            ax.set_title(kwargs.get('title', 'Arrival time function'))
 
             line = None
             for (x0, x1, y0, y1) in self.segments:
@@ -193,7 +191,6 @@ class Results:
 
         return json.dumps(out)
 
-    # TODO: get_best_route that takes into account the total delay
     def get_fastest_route(self, actual_departure_time: float, agents: dict[int, Agent], **kwargs):
         # To get the correct times, as the continuous intervals are exclusive of the end
         if kwargs.get("discrete", False):
@@ -217,12 +214,24 @@ class Results:
                     best_atf = atf
         
         minimum_delays = {}
+        tipping_location_and_original_time = {}
         if best_route is None:
-            return [0, 0, 0, 0], [], minimum_delays
+            return [0, 0, 0, 0], [], minimum_delays, tipping_location_and_original_time
         for agent in agents.values():
             minimum_delay = {}
             for delay_location, min_delay, min_gamma, max_gamma in best_route["delays"][agent.id]:
-                wait_location = agent.get_wait_location(delay_location, {node for node, interval in best_route["route"]})
+                wait_location = agent.get_wait_location(delay_location, {tup[0] for tup in best_route["route"] if isinstance(tup[0], Node)})
+                # Determine tipping point location (last unsafe location in delay locations) per agent
+                if wait_location:
+                    visit_time = 0
+                    wait_location_nodes = [loc for loc in wait_location if isinstance(loc, Node)]
+                    tipp_loc = wait_location_nodes[-2] if len(wait_location_nodes) > 1 else wait_location_nodes[-1]
+                    for loc in best_route["route"]:
+                        if isinstance(loc[0], Node):
+                            if loc[0] == tipp_loc:
+                                tipping_location_and_original_time[agent.id] = (tipp_loc, visit_time)
+                                break
+                            visit_time += 1
                 delay = min_gamma + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
                 if kwargs.get("print_agent_delays", True):
                     print(f"Agent {agent} delayed at {delay_location}, should wait at {[x.name for x in wait_location if isinstance(x, Node)]} for at least {delay}")
@@ -230,7 +239,7 @@ class Results:
                     minimum_delay[loc] = max(minimum_delay.get(loc, 0), delay)
             minimum_delays[agent] = minimum_delay
 
-        return best_atf, best_route["route"], minimum_delays
+        return best_atf, best_route["route"], minimum_delays, tipping_location_and_original_time
 
     def find_tipping_points(self, agents, **kwargs):
         line_list:list[Line] = []
@@ -280,20 +289,22 @@ class Results:
             line_list.append(new_line)
         resulting_tipping_points = []
         for tipping_point in tipping_points:
-            atf, new_route, minimum_delays = self.get_fastest_route(tipping_point, agents, beta_inclusive=True, **kwargs)
+            atf, new_route, minimum_delays, tipping_location = self.get_fastest_route(tipping_point, agents, beta_inclusive=True, **kwargs)
             resulting_tipping_points.append((tipping_point, atf, new_route, minimum_delays))
             if kwargs.get("print_tipping_points", True):
                 for agent, delays in minimum_delays.items():
                     if delays:
                         if kwargs.get("optimize_total_delay", True):
-                            print(f"Optimal starting time for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
+                            starting_agent = None
+                            for a in agents.values():
+                                if a.origin == new_route[0][0]:
+                                    if starting_agent is not None:
+                                        print(f"ERROR: Agent {starting_agent} has same origin {a.origin} as agent {a.id}")
+                                    starting_agent = a.id
+                            if starting_agent is None:
+                                print(f"ERROR: No agent found with origin {new_route[0][0]} that matches new route for optimal starting time {tipping_point}, route {new_route}")
+                                starting_agent = agent
+                            print(f"Optimal starting time for agent {starting_agent} at {new_route[0][0]} is time {tipping_point}")
                         else:
-                            print(f"Tipping point for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
+                            print(f"Tipping point for agent {agent} at {tipping_location[agent.id][0]} is time {tipping_point + tipping_location[agent.id][1]}")
         return resulting_tipping_points
-
-if __name__ == "__main__":
-    with open(r"C:\Users\eoss3\Documents\FlexSIPP\FlexSIPP\data\friso\demo_backup\update-00\results.pkl", "rb") as f:
-        data = pickle.load(f)
-
-    with open(r"C:\Users\eoss3\Documents\FlexSIPP\FlexSIPP\data\friso\demo_backup\update-00\results2.txt", "w") as f:
-        data.compare_paths(f, ['LPE-1284', 'LPE-1264', 'BTL_LPE-1236', 'BTL-1194', 'BTL-1124', 'BTL_TB-1542', 'BTL_TB-1536', 'BTL_TB-1532', 'BTL_TB-1528', 'BTL_TB-1522', 'BTL_TB-528', 'BTL_TB-524', 'BTL_TB-518', 'BTL_TB-512', 'BTL_TB-506', 'TB-168', 'TB-892', 'TB-130', 'TB-116', 'TBU-96', 'TBU-72', 'BD_TBU-874', 'BD_TBU-870', 'BD_TBU-866', 'BD_TBU-862', 'BD_TBU-858', 'BD_TBU-852', 'BD_TBU-846', 'BD_TBU-836', 'BD_TBU-830', 'BD_TBU-826', 'BD_TBU-822', 'BD_TBU-818', 'BD_TBU-812', 'BD-1150', 'BD-1136', 'BD-1080', 'BD-1044', 'BD-1028', 'BD_ZHA-703', 'BD_ZHA-709', 'BD_ZHA-715', 'ZHA-526', 'ZHA-508', 'ZHA-2376', 'RTDBD-2356', 'RTDBD-2346', 'RTDBD-2336', 'RTDBD-2326', 'RTDBD-2316', 'RTDBD-2306', 'RTDBD-2296', 'RTDBD-2286', 'RTDBD-2276', 'RTDBD-2266', 'RTDBD-2256', 'KFHAZ_RTDBD-710'])
