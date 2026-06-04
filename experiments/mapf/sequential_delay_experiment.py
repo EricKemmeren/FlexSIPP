@@ -5,7 +5,6 @@ import math
 import datetime
 import random
 from pathlib import Path
-import numpy as np
 
 from graph import GridCell
 from flexsipp.graphs.fsipp import FSIPP
@@ -24,7 +23,8 @@ def get_delays_from_seed(location_file, scenario_file, num_delays, scenario_end=
         # Get a random agent
         a = agent_list[idx]
         # Get a random node on this agent's path
-        loc: GridCell = random.choice([node for node in a.route[:len(a.route)//4] if isinstance(node, GridCell)])
+        available_route = a.route[:len(a.route)//4] if len(a.route) > 10 else a.route
+        loc: GridCell = random.choice([node for node in available_route if isinstance(node, GridCell)])
         ui_a_end = max([ui for ui in loc.unsafe_intervals if ui.by_agent == a])
         # Get the first unsafe interval at the delay location after the delayed agent visits
         index = loc.unsafe_intervals.bisect_right(ui_a_end)
@@ -71,14 +71,20 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
 
         meta_data = {}
         post_time_start = time.time()
+        # Pick a route from the results the agent will take, currently selecting a given amount of delay
         if not failure:
-            # Pick a route from the results the agent will take, currently selecting a given amount of delay
             atf, new_route, minimum_delays = result.get_fastest_route(delayed_start_time, agents, discrete=True, print_agent_delays=False)
             result.metadata.update({
                 "unique_routes_safe": {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()},
                 "path_differences": result.compare_paths([str(node) for node in delay_agent.route if isinstance(node, GridCell)])
             })
             meta_data = result.metadata
+        else:
+            meta_data = {
+                "unique_routes_safe": {},
+                "path_differences": "",
+                "delays": {}
+            }
 
         # Update the unsafe intervals such that it can be used again
         if failure or not new_route:
@@ -107,30 +113,56 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
                 "arrival": (agent.destination.name, agent.destination.unsafe_intervals[-1].start)
             } for agent_id, agent in agents.items()}
         })
+        print(f"Delay idx {delay_idx} arrival time differences: {sum([meta_data['arrival_times'][a]['arrival'][1] - initial_paths[a]['arrival'][1] for a in agents])}")
         if delay_idx == 0:
-            result.metadata.update({"initial_paths": initial_paths})
-        complete_result[f"delay{delay_idx}"] = result.metadata
+            meta_data.update({"initial_paths": initial_paths})
+        complete_result[f"delay{delay_idx}"] = meta_data
         json.dump(complete_result, open(result_file, "w"), indent=4)
     return complete_result
 
 
 if __name__ == "__main__":
-    # This is the number of time steps after the start time that can be searched. 
-    filename = os.path.join(os.path.dirname(__file__), "experiment_configurations_movingAI.json")
-    configurations = json.load(open(filename, "r"))
     random_seed = 123
-    config = ("warehouse1", "warehouse-20-40-10-2-1.map", "warehouse-20-40-10-2-1-random-1-k200", "scen-random")
-    config = ("maze1", "maze-128-128-1.map", "maze-128-128-1-even-1-k50", "scen-even")
-    location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config[0], config[1])
-    scenario_file = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", config[0], config[3], f"{config[2]}_paths.txt")
-    date = datetime.datetime.now().strftime("%Y-%m-%d-%H:%M")
-    k = int(config[2].split("-")[-1].replace("k", ""))
-    num_delays = int(math.floor(k / 2))
-    print("Run scenario", config[2], "with", num_delays, "delays")
-    result_dir = os.path.join(os.path.dirname(__file__), "output", config[0])
+    random.seed(random_seed)
+    date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
+
+    # Folder in data/mapf containing the scenario
+    config = "maze1"
+    # We run this experiment for a specific scenario
+    scenario_number = 1
+    # We do not assume added flexibility in the original paths (this can be 0, 3, 5, 8)
+    instance_flexibility = 0
+    # We take the larger instance with 50 agents
+    num_agents = 50
+    scenario_dir = "generated" if instance_flexibility > 0 else "scen-even" if config == "maze1" else "scen-random"
+
+    # Store files in ./output/{config}
+    result_dir = Path(__file__).parent / "output" / config
+    result_dir.mkdir(exist_ok=True, parents=True)
+    # It is expected that data is found in ../../../data/mapf/{config}, edit this if the file structure is updated.
+    data_dir = Path(__file__).parent.parent.parent / "data" / "mapf" / config
+
+    # Get location files in the current directory, these files end with .map, there is only one
+    location = next(data_dir.glob("*.map"), None)
+    if location is None:
+        raise FileNotFoundError(f"No .map files in {data_dir}")
+    
+    # The scenario file starts with the name of the location, and include more info and are found in the subdirectories. Only for altered instance with artificial flexibility is the instance included in the scenario name.
+    instance_flexibility = "" if instance_flexibility == 0 else f"_{instance_flexibility}"
+    pattern = f"{location.stem}*-{scenario_number}-k{num_agents}_paths{instance_flexibility}.txt"
+    scenario_file = next(data_dir.rglob(pattern))
+    if scenario_file is None:
+        raise FileNotFoundError(f"No scenario file matching {pattern}")
+    scenario = scenario_file.stem.split("_paths")[0]
+
+    num_delays = int(math.floor(num_agents / 2))
+    print("Run scenario", scenario, "with", num_delays, "delays")
 
     delays = get_delays_from_seed(location, scenario_file, num_delays, random_seed)
 
-    for algorithm in ["@MAEDeR", "FlexSIPP"]:
-        result_file = os.path.join(result_dir, f"replan_{algorithm}_{config[2]}_{date}_seed{random_seed}_{num_delays}delays.json")
+    for algorithm in [
+            "@MAEDeR"
+            "FlexSIPP", 
+        ]:
+        result_file = result_dir / f"replan_{algorithm}_{scenario}_{date}_seed{random_seed}_{num_delays}delays.json"
         repeated_delays(location, scenario_file, delays, result_file, use_flexibility=algorithm == "FlexSIPP")

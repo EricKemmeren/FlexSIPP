@@ -158,7 +158,6 @@ def create_paper_plot(result, flexibility_used, end_time):
     handles, labels = plt.gca().get_legend_handles_labels()
     by_label = OrderedDict(zip(labels, handles))
     plt.legend(by_label.values(), by_label.keys(), title="Found path")
-    # plt.savefig(os.path.join(os.path.dirname(__file__), "warehouse.pdf"))
     plt.show()
     plt.close()
 
