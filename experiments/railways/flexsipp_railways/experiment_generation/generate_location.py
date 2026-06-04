@@ -114,24 +114,7 @@ def track_part():
     parkingAllowed = False
     sawMovement = False
     stationPlatform = False
-
-    # If name starts with a t, it can be a station, turnaround station or parking spot
-    # if name[0].lower() == "t":
-    #     sawMovement = defaultFalse("Saw movement")
-    #     parkingAllowed = defaultFalse("Parking allowed")
-    #     stationPlatform = defaultFalse("Station platform")
-
     trackType = "RailRoad"
-    # Determine type of switch if it's a switch
-    # if name[0].lower() == "s":
-    #     trackType = input("Track type ([S]witch/[e]nglishSwitch): ")
-    #     if len(trackType) == 0:
-    #         trackType = "Switch"
-    #     else:
-    #         first_letter = trackType[0].lower()
-    #         trackType = "EnglishSwitch" if first_letter == "e" else "Switch"
-
-    #     TODO: create bumper track parts
     tp = TrackPart(length, name, sawMovement, parkingAllowed, stationPlatform, trackType)
     print(f"Create a new track part: {repr(tp)}")
     return [tp]
