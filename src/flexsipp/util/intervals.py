@@ -80,7 +80,6 @@ class UnsafeInterval(Interval):
         super().merge(other)
         self.duration += other.duration
         self.local_recovery_time += other.local_recovery_time
-        # assert self.by_agent == other.by_agent
 
 class SafeInterval(Interval):
     def __init__(self, start, end, agent_before: Agent, crt_before: float, agent_after: Agent, buffer_after: float, crt_after: float):
@@ -137,7 +136,6 @@ class ArrivalTimeFunction:
         if self.beta == (to_interval.end - delta):
             self.train_after = self._check_agent(to_interval.agent_after)
 
-    # TODO: check if still needed
     @staticmethod
     def _check_agent(agent):
         if isinstance(agent, Agent):
@@ -155,7 +153,6 @@ class FlexibleArrivalTimeFunction(ArrivalTimeFunction):
 
         self.heuristic = heuristic
 
-        # TODO: check if maybe it should not be from the edge but from the from or to node
         if self.alpha == from_interval.start:
             self.crt_before = from_interval.crt_before
         if self.alpha == edge_interval.start:

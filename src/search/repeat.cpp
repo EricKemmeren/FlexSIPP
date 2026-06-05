@@ -34,7 +34,7 @@ CompoundATF<std::vector<GraphContainer>> rePEAT::search(GraphNode * source, cons
     CompoundATF solutions(path);
     m.init();
     while((t_ref < end(source->state.interval) + std::get<4>(source->state.interval)) && (t_ref < start_time + search_duration)){
-        std::cerr << "tref: " << t_ref << "\n";
+        std::cerr << "tref: " << t_ref << " at source" << source->state.loc << "\n";
         Open open_list;
         open_list.optimize_total_delay = optimize_total_delay;
         open_list.emplace(EdgeATF(-std::numeric_limits<double>::infinity(), t_ref, std::numeric_limits<double>::infinity(), 0.0, gamma), 0, source, nullptr, nullptr);

@@ -37,7 +37,6 @@ class Scenario:
                 data["releaseTime"],
                 movements["startTime"]
             )
-            # TODO: check if its from from_node or from to_node
             start = g_block.get_block_from_station(movements["startLocation"])
             stops: list[BlockNode] = []
 

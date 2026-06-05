@@ -171,7 +171,7 @@ namespace asipp{
             if(isGoal(cur, dest)){
                 auto res = std::make_pair(backup(cur, open_list), cur.g);
                 std::cerr << "---------------- goal at top op open list ----------------"<< std::endl;
-                std::cerr << "found path: " << cur.g << std::endl;
+                std::cerr << "found path: " << cur.g << " at " << cur.node->state.loc << std::endl;
                 return res;             
             }
             open_list.pop();

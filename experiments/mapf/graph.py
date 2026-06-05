@@ -40,7 +40,6 @@ class GridConnection(Edge["GridConnection", "GridCell"]):
     def remove_unsafe_interval(self, interval: UnsafeInterval):
         super().remove_unsafe_interval(interval)
         super(Edge, self.opposite).remove_unsafe_interval(interval)
-        # self.to_node.remove_unsafe_interval(interval)
 
     def add_flexibility(self, agent: MapfAgent, bt: float, crt:float):
         """
@@ -115,7 +114,7 @@ class Grid(Graph[Edge, Node]):
         return route_with_edges + [new_route[-1]]
 
     def _update_delayed_agent(self, agent: MapfAgent, new_route: list, actual_departure_time: float):
-        route_with_edges, safe_intervals = list(zip(*self._complete_new_route(new_route))) #TODO, actually calculate the route with edges in c code
+        route_with_edges, safe_intervals = list(zip(*self._complete_new_route(new_route)))
 
         # Copy over all unsafe intervals from the part of the route before the agent is delayed
         existing_route = agent.route[:agent.route.index(route_with_edges[0])]

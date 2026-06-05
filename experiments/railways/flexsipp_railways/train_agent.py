@@ -41,7 +41,6 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
             if self.id in e.stops_at_station:
                 recovery_time = max(0.0, station_time - self.measures.minimum_stop_time)
             else:
-                # TODO: create variable from the 1.08
                 recovery_time = (e.length / max_train_v) - e.length / (max_train_v * 1.08)
 
             return UnsafeInterval(
@@ -90,7 +89,6 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
         current_path_index = bools.index(True) if True in bools else None
 
         approach_blocks: set[IntervalStore] = set()
-        # TODO make variable and fix values > 2 in regards to station time, or even better:
         #  change it to actually use the breaking distance of the train at the current time.
         n_blocks = 1
 
@@ -102,7 +100,6 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
         return interval, approach_blocks
 
 
-    # TODO: Maybe make this overwrite a function of Agent
     def calculate_blocking_times(self):
         cur_time = self.measures.start_time
         velocity = 0.0

@@ -288,6 +288,8 @@ class Results:
 
             line_list.append(new_line)
         resulting_tipping_points = []
+        if not tipping_points and kwargs.get("print_tipping_points", True):
+            print("No tipping points found")
         for tipping_point in tipping_points:
             atf, new_route, minimum_delays, tipping_location = self.get_fastest_route(tipping_point, agents, beta_inclusive=True, **kwargs)
             resulting_tipping_points.append((tipping_point, atf, new_route, minimum_delays))

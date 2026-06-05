@@ -9,7 +9,6 @@ def train_agent_limited_flexibility_generator(max_buffer=float("inf"), max_compo
             for move in self.route[::-1]:
                 local_buffer, local_recovery = self._get_local_flexibility(move)
 
-                # TODO: check order of these operations
                 # Because we are going backwards over the route,
                 # the buffer time cannot be larger than the buffer time in the future
                 # (if ignoring recovery time)

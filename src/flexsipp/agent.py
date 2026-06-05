@@ -75,7 +75,6 @@ class Agent(Generic[EdgeType, NodeType]):
             local_buffer, local_recovery = self._get_local_flexibility(move)
             logger.info(f"Agent {self.id} with move {move} has local buffer {local_buffer} and recovery {local_recovery}")
 
-            # TODO: local buffer can be negative because agents can both have an unsafe interval on a node.
             # Because we are going backwards over the route,
             # the buffer time cannot be larger than the buffer time in the future
             # (if ignoring recovery time)

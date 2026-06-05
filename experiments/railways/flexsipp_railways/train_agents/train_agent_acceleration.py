@@ -26,7 +26,6 @@ class TrainAgentAcceleration(TrainAgent):
             if self.id in e.stops_at_station:
                 recovery_time = max(0.0, station_time - self.measures.minimum_stop_time)
             else:
-                # TODO: create variable from the 1.08
                 recovery_time = (e.length / train_v) - e.length / (train_v * 1.08)
 
             return UnsafeInterval(
