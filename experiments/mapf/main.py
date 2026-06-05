@@ -27,20 +27,22 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     delay_agent = agents[delay_agent_id]
     original_arrival_time = delay_agent.destination.unsafe_intervals[-1].start
     graph.filter_out_agent(delay_agent)
+
     # Heuristic for delay agent
     heuristic = graph.calculate_heuristic(delay_agent.destination)
     flexSIPP = FSIPP(graph, heuristic, agents)
     result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, 0)
-    for route in result.unique_routes:
-        for atf in result.unique_routes_eatfs[route]:
-            print(f"Found route with atf", atf, route)
+
+    tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=False, print_tipping_points=True)
+    optimal_start_times = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=True, print_tipping_points=True)
 
     fig, axs = plt.subplots(1,3, figsize = (15,5))
     result.plot(axs[0], linestyle=3)
+    result.plot(axs[1], linestyle=3, show_atf=False, show_additional_delays=True, show_total_delays=True, original_arrival_time=original_arrival_time)
 
-    axs[1].grid(alpha=0.3)
-    delay_agent.plot_route(axs[1])
-    axs[1].set_ylim(0, graph.global_end_time)
+    axs[2].grid(alpha=0.3)
+    delay_agent.plot_route(axs[2])
+    axs[2].set_ylim(0, graph.global_end_time)
 
     atf, new_route, minimum_delays, _ = result.get_fastest_route(float(actual_delay), agents, discrete=True)
     if new_route:
@@ -48,9 +50,6 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
         graph.update_unsafe_intervals(minimum_delays=minimum_delays)
 
     delay_agent.plot_route(axs[2])
-
-    tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=False)
-    optimal_start_times = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=True)
     
     plt.show()
     plt.close()
