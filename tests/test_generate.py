@@ -3,7 +3,7 @@ import unittest
 from copy import copy
 from typing import Tuple
 
-from flexsipp_railways.generate import graph_from_file, scenario_from_file
+from experiments.railways.flexsipp_railways.generate import graph_from_file, scenario_from_file
 from flexsipp.graphs.fsipp import FSIPP
 from flexsipp.graphs.graph import IntervalStore
 from flexsipp.util.intervals import Interval
@@ -13,7 +13,7 @@ class TestTrackGraph(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.tg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json")).tg
+        cls.tg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json")).tg
 
     def test_general_track_graph(self):
         self.assertEqual(len(self.tg.nodes), 30, "In total 32 nodes")
@@ -106,7 +106,7 @@ class TestBlockGraph(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
+        cls.bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
 
     def test_general_block_graph(self):
         self.assertEqual(len(self.bg.nodes), 24, f"Should be 24 signals: {self.bg.nodes}")
@@ -145,10 +145,6 @@ class TestBlockGraph(unittest.TestCase):
         node = self.bg.nodes["s5|A"]
         self.assertEqual(len(node.outgoing), 2)
 
-    # def test_block_relation(self):
-    #     self.fail("Implement test")
-
-
     def test_path_finding(self):
         start_a, _ = self.bg.get_block_from_station("U|1")
         end_a, _ = self.bg.get_block_from_station("V|1")
@@ -156,21 +152,19 @@ class TestBlockGraph(unittest.TestCase):
         #TODO: should this include the starting track, currently does not
         self.assertEqual(len(path), 8, f"Length of path should be 9: {path}")
 
-
 class TestScenario(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
-        cls.scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), cls.bg)
-
+        cls.bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
+        cls.scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), cls.bg)
 
 class TestUnsafeIntervals(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
-        scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), bg)
+        bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
+        scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), bg)
         scenario.process()
         cls.g = scenario.g
 
@@ -218,15 +212,13 @@ class TestSafeIntervals(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        cls.bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
-        scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), cls.bg)
-        scenario.process()
+        cls.bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
+        scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), cls.bg)
+        scenario.process()  
         heuristic = {node.name: 0 for node in cls.bg.nodes.values()}
-        new_agent = copy(scenario.agents[0])
+        new_agent = copy(scenario.agents["1"])
         new_agent.id = -1
-        agents = {agent.id: agent for agent in scenario.agents}
-        cls.fsipp = FSIPP(scenario.fsipp(new_agent), heuristic, agents)
-
+        cls.fsipp = FSIPP(scenario.fsipp(new_agent), heuristic, scenario.agents)
 
     def test_safe_intervals(self):
         node = self.bg.nodes["w|A"]
