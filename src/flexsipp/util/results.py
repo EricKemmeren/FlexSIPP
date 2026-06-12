@@ -296,10 +296,3 @@ class Results:
                         else:
                             print(f"Tipping point for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
         return resulting_tipping_points
-
-if __name__ == "__main__":
-    with open(r"C:\Users\eoss3\Documents\FlexSIPP\FlexSIPP\data\friso\demo_backup\update-00\results.pkl", "rb") as f:
-        data = pickle.load(f)
-
-    with open(r"C:\Users\eoss3\Documents\FlexSIPP\FlexSIPP\data\friso\demo_backup\update-00\results2.txt", "w") as f:
-        data.compare_paths(f, ['LPE-1284', 'LPE-1264', 'BTL_LPE-1236', 'BTL-1194', 'BTL-1124', 'BTL_TB-1542', 'BTL_TB-1536', 'BTL_TB-1532', 'BTL_TB-1528', 'BTL_TB-1522', 'BTL_TB-528', 'BTL_TB-524', 'BTL_TB-518', 'BTL_TB-512', 'BTL_TB-506', 'TB-168', 'TB-892', 'TB-130', 'TB-116', 'TBU-96', 'TBU-72', 'BD_TBU-874', 'BD_TBU-870', 'BD_TBU-866', 'BD_TBU-862', 'BD_TBU-858', 'BD_TBU-852', 'BD_TBU-846', 'BD_TBU-836', 'BD_TBU-830', 'BD_TBU-826', 'BD_TBU-822', 'BD_TBU-818', 'BD_TBU-812', 'BD-1150', 'BD-1136', 'BD-1080', 'BD-1044', 'BD-1028', 'BD_ZHA-703', 'BD_ZHA-709', 'BD_ZHA-715', 'ZHA-526', 'ZHA-508', 'ZHA-2376', 'RTDBD-2356', 'RTDBD-2346', 'RTDBD-2336', 'RTDBD-2326', 'RTDBD-2316', 'RTDBD-2306', 'RTDBD-2296', 'RTDBD-2286', 'RTDBD-2276', 'RTDBD-2266', 'RTDBD-2256', 'KFHAZ_RTDBD-710'])
