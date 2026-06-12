@@ -42,13 +42,13 @@ def paths_to_unsafe_intervals(path_file, grid, scenario_end):
                         agent.route.append(edge.from_node)
                         agent.route.append(edge)
                         edge.add_unsafe_interval(edge_interval, ORIGINAL_GENERATION)
-                        print(f"Agent {agent} node {node_list[i-1]} {grid.nodes[node_list[i]].unsafe_intervals}")
-                        print(f"Agent {agent} edge {edge} {edge.unsafe_intervals}")
+                        # print(f"Agent {agent} node {node_list[i-1]} {grid.nodes[node_list[i]].unsafe_intervals}")
+                        # print(f"Agent {agent} edge {edge} {edge.unsafe_intervals}")
 
                         current_flexibility = 0
                     if i == len(node_list) - 1:
                         node_interval = UnsafeInterval(i - current_flexibility, grid.global_end_time, grid.global_end_time - i, agent, grid.global_end_time - i + current_flexibility)
-                        print(f"Agent {agent} node {node_list[i]} {grid.nodes[node_list[i]].unsafe_intervals}")
+                        # print(f"Agent {agent} node {node_list[i]} {grid.nodes[node_list[i]].unsafe_intervals}")
                         grid.nodes[node_list[i]].add_unsafe_interval(node_interval)
                         agent.wait_time_at_location[grid.nodes[node_list[i]]] = grid.global_end_time - i
                         agent.route.append(grid.nodes[node_list[i]])
