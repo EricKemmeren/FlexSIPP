@@ -175,6 +175,6 @@ def create_paper_plot(result, flexibility_used, end_time):
 
 
 if __name__ == "__main__":
-    location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "warehouse", "warehouse.map")
-    paths = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "warehouse", "paths.txt")
+    location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "example_warehouse", "warehouse.map")
+    paths = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "example_warehouse", "paths.txt")
     run_flexsipp(location, paths)
