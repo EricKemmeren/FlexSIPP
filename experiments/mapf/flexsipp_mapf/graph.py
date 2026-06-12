@@ -32,10 +32,11 @@ class GridConnection(Edge["GridConnection", "GridCell"]):
         self.opposite: GridConnection = None
         self.old_unsafe_intervals = None
 
-    def add_unsafe_interval(self, interval: UnsafeInterval):
+    def add_unsafe_interval(self, interval: UnsafeInterval, original = True):
         super().add_unsafe_interval(interval)
         super(Edge, self.opposite).add_unsafe_interval(interval)
-        self.to_node.add_unsafe_interval(interval)
+        # if original:
+        #     self.to_node.add_unsafe_interval(interval)
 
     def remove_unsafe_interval(self, interval: UnsafeInterval):
         super().remove_unsafe_interval(interval)

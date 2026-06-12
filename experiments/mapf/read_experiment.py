@@ -19,33 +19,67 @@ def paths_to_unsafe_intervals(path_file, grid, scenario_end):
             node_list = get_coordinate_list(path)
             current_flexibility = 0
             agent = MapfAgent(id, [], grid.global_end_time)
-            # Last node is empty
-            for i in range(1, len(node_list)):
-                if node_list[i] == node_list[i-1]:
-                    current_flexibility += 1
-                else:
-                    # Duration is always one for grids
-                    edge_interval = UnsafeInterval(i-1, i, 1, agent, 0)
-                    node_interval = UnsafeInterval(i-1-current_flexibility, i, current_flexibility+1, agent, current_flexibility)
-                    grid.nodes[node_list[i-1]].add_unsafe_interval(node_interval)
-                    agent.wait_time_at_location[grid.nodes[node_list[i-1]]] = current_flexibility
+            
+            ORIGINAL_GENERATION = True
+            if ORIGINAL_GENERATION:
+                # Last node is empty
+                for i in range(1, len(node_list)):
+                    if node_list[i] == node_list[i-1]:
+                        current_flexibility += 1
+                    else:
+                        # Duration is always one for grids
+                        edge_interval = UnsafeInterval(i-1, i, 1, agent, 0)
+                        node_interval = UnsafeInterval(i-1-current_flexibility, i, current_flexibility+1, agent, current_flexibility)
+                        grid.nodes[node_list[i-1]].add_unsafe_interval(node_interval)
+                        agent.wait_time_at_location[grid.nodes[node_list[i-1]]] = current_flexibility
 
-                    edge = None
-                    for e in grid.nodes[node_list[i-1]].outgoing:
-                        if e.to_node.name == node_list[i]:
-                            edge = e
+                        edge = None
+                        for e in grid.nodes[node_list[i-1]].outgoing:
+                            if e.to_node.name == node_list[i]:
+                                edge = e
 
-                    assert edge is not None, f"ERROR: cannot find edge from {node_list[i-1]} to {node_list[i]} in grid.\n{grid.nodes[node_list[i-1]].outgoing}"
-                    agent.route.append(edge.from_node)
-                    agent.route.append(edge)
-                    edge.add_unsafe_interval(edge_interval)
+                        assert edge is not None, f"ERROR: cannot find edge from {node_list[i-1]} to {node_list[i]} in grid.\n{grid.nodes[node_list[i-1]].outgoing}"
+                        agent.route.append(edge.from_node)
+                        agent.route.append(edge)
+                        edge.add_unsafe_interval(edge_interval, ORIGINAL_GENERATION)
+                        print(f"Agent {agent} node {node_list[i-1]} {grid.nodes[node_list[i]].unsafe_intervals}")
+                        print(f"Agent {agent} edge {edge} {edge.unsafe_intervals}")
 
-                    current_flexibility = 0
-                if i == len(node_list) - 1:
-                    node_interval = UnsafeInterval(i - current_flexibility, grid.global_end_time, grid.global_end_time - i, agent, grid.global_end_time - i + current_flexibility)
-                    grid.nodes[node_list[i]].add_unsafe_interval(node_interval)
-                    agent.wait_time_at_location[grid.nodes[node_list[i]]] = grid.global_end_time - i
-                    agent.route.append(grid.nodes[node_list[i]])
+                        current_flexibility = 0
+                    if i == len(node_list) - 1:
+                        node_interval = UnsafeInterval(i - current_flexibility, grid.global_end_time, grid.global_end_time - i, agent, grid.global_end_time - i + current_flexibility)
+                        print(f"Agent {agent} node {node_list[i]} {grid.nodes[node_list[i]].unsafe_intervals}")
+                        grid.nodes[node_list[i]].add_unsafe_interval(node_interval)
+                        agent.wait_time_at_location[grid.nodes[node_list[i]]] = grid.global_end_time - i
+                        agent.route.append(grid.nodes[node_list[i]])
+            else:
+                # Last node is empty
+                for i in range(1, len(node_list)):
+                    if node_list[i] == node_list[i-1]:
+                        current_flexibility += 1
+                    else:
+                        # Duration is always one for grids
+                        edge_interval = UnsafeInterval(i-1, i, 1, agent, 0)
+                        node_interval = UnsafeInterval(i-1-current_flexibility, i, current_flexibility+1, agent, current_flexibility)
+                        grid.nodes[node_list[i-1]].add_unsafe_interval(node_interval)
+                        agent.wait_time_at_location[grid.nodes[node_list[i-1]]] = current_flexibility
+
+                        edge = None
+                        for e in grid.nodes[node_list[i-1]].outgoing:
+                            if e.to_node.name == node_list[i]:
+                                edge = e
+
+                        assert edge is not None, f"ERROR: cannot find edge from {node_list[i-1]} to {node_list[i]} in grid.\n{grid.nodes[node_list[i-1]].outgoing}"
+                        agent.route.append(edge.from_node)
+                        agent.route.append(edge)
+                        edge.add_unsafe_interval(edge_interval, ORIGINAL_GENERATION)
+
+                        current_flexibility = 0
+                    if i == len(node_list) - 1:
+                        node_interval = UnsafeInterval(i - current_flexibility, grid.global_end_time, grid.global_end_time - i, agent, grid.global_end_time - i + current_flexibility)
+                        grid.nodes[node_list[i]].add_unsafe_interval(node_interval)
+                        agent.wait_time_at_location[grid.nodes[node_list[i]]] = grid.global_end_time - i
+                        agent.route.append(grid.nodes[node_list[i]])                    
             agents[id] = agent
         return agents
     
