@@ -72,7 +72,7 @@ class IntervalStore(object):
             # Check for overlap using intersection
             if start.by_agent == next.by_agent:
                 if not (start & next):
-                    logger.error("Merged non overlapping interval")
+                    logger.error(f"Merged non overlapping interval {start} and {next}")
                 start = start | next
             else:
                 merged_intervals.add(start)
@@ -81,7 +81,7 @@ class IntervalStore(object):
         self.unsafe_intervals = merged_intervals
 
     def filter_out_agent(self, agent: Agent):
-        self.unsafe_intervals = SortedKeyList([ui for ui in self.unsafe_intervals if ui.by_agent.id != agent.id], key=lambda x: x.start)
+        self.unsafe_intervals = SortedKeyList([ui for ui in self.unsafe_intervals if ui.by_agent != agent], key=lambda x: x.start)
 
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
         """

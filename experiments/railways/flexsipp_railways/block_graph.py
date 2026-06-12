@@ -131,8 +131,8 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
                 # This is probably the test scenarios as naming is different
                 block_name = f"{track.name[0:-1]}|{track.name[-1]}"
                 if block_name not in self.nodes:
-                    # Other error, return false
-                    assert False, f"{block_name} not in self.nodes"
+                    # Other error, return None
+                    return None
             block = self.nodes[block_name]
             if block in track.blocks:
                 return block
