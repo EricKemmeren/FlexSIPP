@@ -15,7 +15,7 @@ if shutil.which('pdflatex'):
         'pgf.rcfonts': False,
     })
 
-from agent import MapfAgent
+from flexsipp_mapf.agent import MapfAgent
 from flexsipp.graphs.fsipp import FSIPP
 from flexsipp.util.intervals import UnsafeInterval
 from read_experiment import create_mapf_instance_from_paths
@@ -81,7 +81,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
-    atf, new_route, minimum_delays, tipping_location = result.get_fastest_route(actual_departure_time, agents, discrete=False)
+    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=False)
     print(f"Best route when earliest departure time is {actual_departure_time} is with atf {atf} and route {new_route}, delaying agent {flexibility_agent} at {[f'{n} ({x:.2f})' for n, x in minimum_delays[flexibility_agent].items() if isinstance(n, Node)]}")
 
     ax = axs[0,1]

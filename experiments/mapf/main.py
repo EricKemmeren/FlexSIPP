@@ -28,6 +28,11 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     delay_agent = agents[delay_agent_id]
     original_arrival_time = delay_agent.destination.unsafe_intervals[-1].start
     graph.filter_out_agent(delay_agent)
+    
+    for node in graph.nodes:
+        print(f"-unsafe- node {node} {graph.nodes[node].unsafe_intervals}")
+        for edge in graph.nodes[node].outgoing:
+            print(f"-unsafe- edge {edge} {edge.unsafe_intervals}")
             
     # Heuristic for delay agent
     heuristic = graph.calculate_heuristic(delay_agent.destination)
@@ -51,24 +56,26 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     for route in result.unique_routes:
         for atf in result.unique_routes_eatfs[route]:
             print(f"Found route with atf", atf, route)
+    
+    tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=False, print_agent_delays=True)
+    optimal_start_times = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=True, print_agent_delays=True)
 
-    fig, axs = plt.subplots(1,3, figsize = (15,5))
+    fig, axs = plt.subplots(1,4, figsize = (15,5))
     result.plot(axs[0], linestyle=3)
 
     axs[1].grid(alpha=0.3)
     delay_agent.plot_route(axs[1])
     axs[1].set_ylim(0, graph.global_end_time)
 
+    found_flexibility_ranges = result.plot(axs[2], show_atf=False, show_additional_delays=True)
+
     atf, new_route, minimum_delays = result.get_fastest_route(float(actual_delay), agents, discrete=True)
     if new_route:
         del minimum_delays[delay_agent]
         graph.update_unsafe_intervals(minimum_delays=minimum_delays)
 
-    delay_agent.plot_route(axs[2])
+    delay_agent.plot_route(axs[3])
 
-    tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=False)
-    optimal_start_times = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=True)
-    
     plt.show()
     plt.close()
 
