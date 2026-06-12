@@ -128,7 +128,11 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
             n = 2 if direction == "A" else 0
             block_name = "|".join(track.name.split("-")[0].split("|")[n:n+2])
             if block_name not in self.nodes:
-                return None
+                # This is probably the test scenarios as naming is different
+                block_name = f"{track.name[0:-1]}|{track.name[-1]}"
+                if block_name not in self.nodes:
+                    # Other error, return false
+                    assert False, f"{block_name} not in self.nodes"
             block = self.nodes[block_name]
             if block in track.blocks:
                 return block
