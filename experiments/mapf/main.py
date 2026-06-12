@@ -28,9 +28,25 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     delay_agent = agents[delay_agent_id]
     original_arrival_time = delay_agent.destination.unsafe_intervals[-1].start
     graph.filter_out_agent(delay_agent)
+            
     # Heuristic for delay agent
     heuristic = graph.calculate_heuristic(delay_agent.destination)
     flexSIPP = FSIPP(graph, heuristic, agents)
+    
+    interval_index_map: dict[int, int] = {}
+    last_index = 0
+    nodes_indices = {}
+    for node in flexSIPP.nodes:
+        for interval in node.safe_intervals:
+            print(f"SAFE: {node.name} {repr(interval)}")
+            interval_index_map[interval.index] = last_index
+            nodes_indices[last_index] = node.name
+            last_index += 1
+
+    for atf in flexSIPP.atfs:
+        atf = atf.replace_index(interval_index_map)
+        print(f"SAFE: {nodes_indices[atf.from_id]} {nodes_indices[atf.to_id]} [{atf.alpha},{atf.beta}> {repr(atf)}")
+    
     result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, 0)
     for route in result.unique_routes:
         for atf in result.unique_routes_eatfs[route]:
