@@ -71,7 +71,12 @@ class UnsafeInterval(Interval):
 
     def __str__(self):
         return f'{super().__str__()},{self.duration},{self.by_agent}'
-
+    
+    def __eq__(self, other):
+        if isinstance(other, UnsafeInterval) and super().__eq__(other):
+            return self.by_agent == other.by_agent
+        return False
+    
     def __or__(self, other):
         sup = super().__or__(other)
         return UnsafeInterval(sup.start, sup.end, self.duration + other.duration, self.by_agent, self.local_recovery_time + other.local_recovery_time)
