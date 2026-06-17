@@ -44,14 +44,13 @@ class Results:
         def rjust_interval(l: list, width: int):
             return "<" + " ".join([str(a).rjust(width) for a in l]) + ">"
 
-        # Last found route is irrelevant
+        # Last found route is empty - terminated search
         for found_route in result["payloads"][0:-1]:
             atf = found_route["edge_atf"]["atf"]
 
-            path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"] if "state" in payload]
-            # TODO: rewrite this, this does not make any sense tbh
-            path_str = "->".join([node for node, interval in path])
-            route_str = "->".join([f"({str(node)}, {str(interval)})" for node, interval in path])
+            node_path = [(payload["state"]["loc"], payload["state"]["interval"]) for payload in found_route["payload"] if "state" in payload]
+            path_str = "->".join([node for node, interval in node_path])
+            route_str = "->".join([f"({str(node)}, {str(interval)})" for node, interval in node_path])
             if path_str in self.unique_paths:
                 self.unique_paths[path_str] += 1
                 if atf not in self.unique_path_eatfs[path_str]:
@@ -84,8 +83,12 @@ class Results:
                     s = pl["state"]
                     route.append((g.nodes[s["loc"]], s["interval"]))
                 elif "edge" in pl:
+                    # TODO use the route with ATFs on edges
+                    # for edge in g.nodes[pl["from"]["state"]["loc"]].outgoing:
+                    #     if edge.to_node.name == pl["to"]["state"]["loc"]:
+                    #         route.append((edge, pl["edge"]["atf"]))
+                    #         break
                     route.append(pl["edge"]["atf"])
-
             self.found_routes.append((atf, {"route": route, "delays": delays}))
         return self
 

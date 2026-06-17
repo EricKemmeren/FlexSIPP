@@ -113,9 +113,9 @@ namespace asipp{
                     m.decreased++;
                     double h = edge.heuristic;
                     // Node_t new_node = open_list.decrease_key(handle, arrival_time_function, h, destination, source, successor);
-                    // std::cerr << "Decreased with better longer available path: " << new_node << std::endl;
+                    std::cerr << "Not better arrival time " << std::endl;
                 } else {
-                // std::cerr << "Already found destination, but is worse " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
+                std::cerr << "Already found destination, but is worse " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
                 }
             } else {
                 // std::cerr << "Already found destination, but is (maybe) worse? " << std::endl << "  New:      " << arrival_time_function << std::endl << "  Existing: " << (*handle).g << std::endl;
@@ -175,6 +175,7 @@ namespace asipp{
 
                 gamma_t new_gamma = gamma_t(cur.g.gamma);
                 std::vector<incurred_delay_t> incurred_delays = gamma_after.incurred_delays;
+                std::cerr << "Incurring delay. gamma after " << gamma_after << " location " << successor->destination->state.loc.name << std::endl;
                 incurred_delays.push_back(incurred_delay_t(successor->destination->state.loc.name, gamma_after.second));
                 new_gamma[successor->edge.agent_after.id] =
                         gam_item_t(
@@ -183,7 +184,7 @@ namespace asipp{
                                 gamma_after.last_recovery,
                                 incurred_delays);
 
-                std::cerr << "Additional edge " << extra_edge << ", " << new_gamma[successor->edge.agent_after.id] << std::endl;
+                std::cerr << "Additional edge " << extra_edge << ", new gamma " << new_gamma[successor->edge.agent_after.id] << std::endl;
                 extendOpen(cur, open_list, m, successor->source, successor->destination, extra_edge, new_gamma, successor);
             }
         }

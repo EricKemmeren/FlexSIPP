@@ -45,13 +45,20 @@ def run_flexsipp_scenario(location_file, scenario_file):
     start_time = 0
     continues = False
     show_buffer_time = True
+    
+    # for x, node in graph.nodes.items():
+    #     print(f"Node {x} has unsafe intervals {' '.join([f'A{ui.by_agent}: <{ui.start},{ui.end}> [{ui.duration}] recovery {ui.local_recovery_time}'for ui in node.unsafe_intervals])}")
+    # for move in flexibility_agent.route:
+    #     print(f"-unsafe- {move} {' '.join([f'A{ui.by_agent}: <{ui.start},{ui.end}> [{ui.duration}]'for ui in move.unsafe_intervals])}")
+        # for edge in graph.nodes[node].outgoing:
+        #     print(f"-unsafe- edge {edge} {edge.unsafe_intervals}")
 
     # Don't use a heuristic, set it to 0 for every node
     heuristic = {node.name: 0 for node in graph.nodes.values()}
 
     flexSIPP = FSIPP(graph, heuristic, agents, use_flexibility=True)
-    flexSIPP._write(open(os.path.join(os.path.dirname(__file__), "output", "warehouse_delay_graph_@SIPP.txt"), "w"))
-    result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse.txt")
+    flexSIPP._write(open(os.path.join(os.path.dirname(__file__), "output", "warehouse_delay_graph_FlexSIPP.txt"), "w"))
+    result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse_FlexSIPP.txt")
     print(f"FlexSIPP Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
 
     fig, axs = plt.subplots(2, 4, figsize = (15,10))
@@ -64,7 +71,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
 
     maeder = FSIPP(graph, heuristic, agents, use_flexibility=False)
-    result_maeder = maeder.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse.txt")
+    result_maeder = maeder.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse_maeder.txt")
 
     tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
     optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0], starting_agent=rerouting_agent)
@@ -73,7 +80,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of rerouting agent 
     actual_departure_time = 3
-    
+
     ax = axs[1,1]
     ax.grid(alpha=0.3)
     flexibility_agent.plot_route(ax, continues=continues, title=f"Agent {flexibility_agent.id} before", show_buffer_time=show_buffer_time)
@@ -81,6 +88,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
+    # TODO check discrete necessary
     atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=False)
     print(f"Best route when earliest departure time is {actual_departure_time} is with atf {atf} and route {new_route}, delaying agent {flexibility_agent} at {[f'{n} ({x:.2f})' for n, x in minimum_delays[flexibility_agent].items() if isinstance(n, Node)]}")
 
@@ -92,6 +100,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     del minimum_delays[rerouting_agent]
+    print(f"Updating intervals for agent {rerouting_agent} at starting at time {actual_departure_time} {new_route} with minimum delays {minimum_delays}")
     graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
 
     graph.reset_flexibility()
@@ -113,49 +122,6 @@ def run_flexsipp_scenario(location_file, scenario_file):
     print(f"@MAEdeR Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
     result_maeder.plot(axs[0,3], linestyle=3)
 
-    plt.show()
-    plt.close()
-                
-def create_paper_plot(result, flexibility_used, end_time):
-    flexibility = []
-    for start, end in flexibility_used:
-        if not flexibility:
-            flexibility.append((start,end))
-        elif flexibility[-1][0] == end:
-            flexibility[-1] = (start, flexibility[-1][1])
-        elif flexibility[-1][1] == start:
-            flexibility[-1] = (flexibility[-1][0], end)
-
-    matplotlib.rcParams["font.size"] = 12
-    figure = plt.figure(figsize=(4,2.3))
-    ax = figure.add_axes((0.12,0.2,0.85,0.75))
-    ax.set_xlabel('Departure Time')
-    ax.set_ylabel('Arrival Time')
-    lines = {
-        "flexible": {
-            "linestyle": result.linestyles[3],
-            "color": "red"
-        },
-        "regular": {
-            "linestyle": result.linestyles[0],
-            "color": "blue"
-        }
-    }
-    for (x0, x1, y0, y1) in result.segments:
-        line_type = None
-        for ((s, e), (delta_alpha, delta_beta)) in flexibility_used:
-            if x0 >= s and x1 <= e and delta_alpha > 0:
-                line_type = "flexible"
-                break
-        if not line_type:
-            line_type = "regular"
-        if x0 == "-inf" and x1 != "inf" and y1 != "inf":
-            ax.hlines(float(y1), 0, float(x1), color=lines[line_type]["color"], linestyle=lines[line_type]["linestyle"])
-        ax.plot([float(x0), float(x1)], [float(y0), float(y1)], 
-                        color=lines[line_type]["color"], linestyle=lines[line_type]["linestyle"], label=line_type)
-    handles, labels = plt.gca().get_legend_handles_labels()
-    by_label = OrderedDict(zip(labels, handles))
-    plt.legend(by_label.values(), by_label.keys(), title="Found path")
     plt.show()
     plt.close()
 
