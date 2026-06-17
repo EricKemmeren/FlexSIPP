@@ -30,6 +30,7 @@ def paths_to_unsafe_intervals(path_file, grid, scenario_end):
                         # Duration is always one for grids
                         edge_interval = UnsafeInterval(i-1, i, 1, agent, 0)
                         node_interval = UnsafeInterval(i-1-current_flexibility, i, current_flexibility+1, agent, current_flexibility)
+                        # print(f"Node {node_list[i-1]} interval <{node_interval.start},{node_interval.end}> [{node_interval.duration}]")
                         grid.nodes[node_list[i-1]].add_unsafe_interval(node_interval)
                         agent.wait_time_at_location[grid.nodes[node_list[i-1]]] = current_flexibility
 

@@ -80,6 +80,6 @@ CompoundATF<std::vector<GraphContainer>> rePEAT::search(GraphNode * source, cons
         }
         t_ref = update_reference_time(res.second, open_list);
     }
-    std::cerr << "At end of safe interval at start node at " << t_ref << "source int " << std::get<4>(source->state.interval) << std::endl;
+    std::cerr << "At end of safe interval at start node at t_ref=" << t_ref << " source int " << std::get<4>(source->state.interval) << std::endl;
     return solutions;
 }

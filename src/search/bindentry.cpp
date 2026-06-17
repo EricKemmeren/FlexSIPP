@@ -43,6 +43,8 @@ std::string search(std::string start, std::string goal, std::string graph_str, d
     auto search_time = std::chrono::high_resolution_clock::now();
     auto search_duration = std::chrono::duration_cast<std::chrono::milliseconds >(
             search_time - search_start_time);
+    
+    std::cerr << "\n\nresult " << res << std::endl;
 
     std::stringstream ss;
 
