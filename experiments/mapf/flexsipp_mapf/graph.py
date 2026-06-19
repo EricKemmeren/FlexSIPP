@@ -43,6 +43,10 @@ class GridConnection(Edge["GridConnection", "GridCell"]):
         super(Edge, self.opposite).remove_unsafe_interval(interval)
         # self.to_node.remove_unsafe_interval(interval)
 
+    def merge_unsafe_intervals(self):
+        super().merge_unsafe_intervals()
+        super(Edge, self.opposite).merge_unsafe_intervals()
+
     def add_flexibility(self, agent: MapfAgent, bt: float, crt:float):
         """
         Add the flexibility parameters to this node/edge
@@ -162,3 +166,6 @@ class Grid(Graph[Edge, Node]):
         route_with_edges[-1].add_unsafe_interval(last_ui)
 
         agent.route = existing_route + list(route_with_edges)
+        
+        for move in agent.route:
+            move.merge_unsafe_intervals()

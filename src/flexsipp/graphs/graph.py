@@ -29,11 +29,15 @@ class IntervalStore(object):
 
     def add_unsafe_interval(self, interval: UnsafeInterval):
         self.unsafe_intervals.add(interval)
+        self.merged = False
 
     def remove_unsafe_interval(self, interval: UnsafeInterval):
         """Remove the unsafe interval from this node/edge. Will split the existing unsafe intervals to remove only the given interval. Assumes self.unsafe_intervals are merged.
         :param interval: Unsafe interval to remove.
         """
+        assert self.merged
+        self.merged = False
+
         uis = SortedKeyList(self.unsafe_intervals, key=lambda x: (x.by_agent.id, x.start))
         if len(uis) == 0:
             return
@@ -82,6 +86,7 @@ class IntervalStore(object):
 
     def filter_out_agent(self, agent: Agent):
         self.unsafe_intervals = SortedKeyList([ui for ui in self.unsafe_intervals if ui.by_agent != agent], key=lambda x: x.start)
+        self.merge_unsafe_intervals()
 
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
         """
@@ -115,7 +120,6 @@ class IntervalStore(object):
             if start == 0:
                 agent_before = agent
                 current = end
-                logger.warning(f"INTERVAL WARNING start == 0.")
             else:
                 bt_b, crt_b = self.get_flexibility(agent_before)
                 bt_a, crt_a = self.get_flexibility(agent)
@@ -495,7 +499,7 @@ class Graph(Generic[EdgeType, NodeType]):
                             current_delay = updated_delay
                         new_unsafe_intervals.append((move, ui, new_ui))
                 for move, old_ui, new_ui in new_unsafe_intervals:
-                    # print(f"Agent {agent}: Move {move} old <{old_ui.start},{old_ui.end}>[{old_ui.duration}](a{old_ui.by_agent}) new <{new_ui.start},{new_ui.end}>[{new_ui.duration}](a{new_ui.by_agent}). Current: {[f'<{x.start},{x.end}>(a{x.by_agent})' for x in move.unsafe_intervals]}")
+                    # print(f"Agent {agent}: Move {move} old <{old_ui.start},{old_ui.end}>[{old_ui.duration}](a{old_ui.by_agent}) new <{new_ui.start},{new_ui.end}>[{new_ui.duration}](a{new_ui.by_agent}). Current: {' '.join([f'<{x.start},{x.end}>(a{x.by_agent})' for x in move.unsafe_intervals])}")
                     move.remove_unsafe_interval(old_ui)
                     move.add_unsafe_interval(new_ui)
                     move.merge_unsafe_intervals()
