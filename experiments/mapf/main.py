@@ -70,9 +70,17 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     found_flexibility_ranges = result.plot(axs[2], show_atf=False, show_additional_delays=True)
 
     atf, new_route, minimum_delays = result.get_fastest_route(float(actual_delay), agents, discrete=True)
-    if new_route:
-        del minimum_delays[delay_agent]
-        graph.update_unsafe_intervals(minimum_delays=minimum_delays)
+    if not new_route:
+        print(f"No route found for agent {delay_agent} starting at time {actual_delay}")
+        return 
+
+    del minimum_delays[delay_agent]
+    print(f"Updating intervals for agent {delay_agent} at starting at time {actual_delay} {new_route} with minimum delays {minimum_delays}")
+    graph.update_unsafe_intervals(new_path=(delay_agent, new_route, actual_delay), minimum_delays=minimum_delays)
+
+    graph.reset_flexibility()
+    for agent in agents.values():
+        agent.calculate_flexibility()
 
     delay_agent.plot_route(axs[3])
 
@@ -80,6 +88,5 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     plt.close()
 
 if __name__ == "__main__":
-    # Run with data/mapf/corridor
     args = parser.parse_args()
-    run_flexsipp(args.location_file, args.scenario_file, args.delay_agent, args.end_time, args.actual_delay)
+    run_flexsipp(args.location_file, args.scenario_file, args.delay_agent, args.end_time, float(args.actual_delay))
