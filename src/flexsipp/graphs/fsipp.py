@@ -82,6 +82,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
         interval_index_map: dict[int, int] = {}
         last_index = 0
 
+        ## TODO is this correct? Safe connections are created on a node not a nodes interval
         for node in self.nodes:
             for interval in node.safe_intervals:
                 f.write(f"{node.name} {repr(interval)}\n")

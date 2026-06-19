@@ -28,6 +28,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     end_time = 12
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, end_time)
 
+    # TODO when not using the to-node interval on edge intervals: agent 2 should end in (2,6) to include other path.
     # Set some initial buffer time
     for agent in agents.values():
         agent.max_buffer = 5
@@ -119,8 +120,17 @@ def run_flexsipp_scenario(location_file, scenario_file):
     ax.set_ylim(0, graph.global_end_time)
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
-    print(f"@MAEdeR Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
+    print(f"@MAEdeR Search time (python)", result_maeder)
     result_maeder.plot(axs[0,3], linestyle=3)
+    
+    graph.filter_out_agent(flexibility_agent)
+    flexSIPP2 = FSIPP(graph, heuristic, agents, use_flexibility=True)
+    flexSIPP2._write(open(os.path.join(os.path.dirname(__file__), "output", "warehouse_delay_graph_FlexSIPP_agent2.txt"), "w"))
+    result2 = flexSIPP2.run_search(flexibility_agent.origin.name, flexibility_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse_FlexSIPP_agent2.txt")
+    print(f"FlexSIPP Agent 2 Search time (python) {result2.metadata['Search Time Python']:.2f}, (c++) {result2.metadata['Search Time']} yields: ", result2)
+    atf, new_route, minimum_delays = result2.get_fastest_route(2, agents, discrete=False)
+    print("Found route", new_route, atf, minimum_delays)
+
 
     plt.show()
     plt.close()
