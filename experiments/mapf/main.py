@@ -28,34 +28,12 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     delay_agent = agents[delay_agent_id]
     original_arrival_time = delay_agent.destination.unsafe_intervals[-1].start
     graph.filter_out_agent(delay_agent)
-    
-    for node in graph.nodes:
-        print(f"-unsafe- node {node} {graph.nodes[node].unsafe_intervals}")
-        for edge in graph.nodes[node].outgoing:
-            print(f"-unsafe- edge {edge} {edge.unsafe_intervals}")
             
     # Heuristic for delay agent
     heuristic = graph.calculate_heuristic(delay_agent.destination)
     flexSIPP = FSIPP(graph, heuristic, agents)
     
-    interval_index_map: dict[int, int] = {}
-    last_index = 0
-    nodes_indices = {}
-    for node in flexSIPP.nodes:
-        for interval in node.safe_intervals:
-            print(f"SAFE: {node.name} {repr(interval)}")
-            interval_index_map[interval.index] = last_index
-            nodes_indices[last_index] = node.name
-            last_index += 1
-
-    for atf in flexSIPP.atfs:
-        atf = atf.replace_index(interval_index_map)
-        print(f"SAFE: {nodes_indices[atf.from_id]} {nodes_indices[atf.to_id]} [{atf.alpha},{atf.beta}> {repr(atf)}")
-    
     result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, 0)
-    for route in result.unique_routes:
-        for atf in result.unique_routes_eatfs[route]:
-            print(f"Found route with atf", atf, route)
     
     tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=False, print_agent_delays=True)
     optimal_start_times = result.find_tipping_points(agents, original_arrival_time=original_arrival_time, optimize_total_delay=True, print_agent_delays=True)
