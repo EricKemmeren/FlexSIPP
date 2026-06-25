@@ -33,7 +33,6 @@ def run_flexsipp_scenario(location_file, scenario_file):
     heuristic = {node.name: 0 for node in graph.nodes.values()}
 
     flexSIPP = FSIPP(graph, heuristic, agents, use_flexibility=True)
-    flexSIPP._write(open(os.path.join(os.path.dirname(__file__), "output", "warehouse_delay_graph_FlexSIPP.txt"), "w"))
     result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse_FlexSIPP.txt")
     print(f"FlexSIPP Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
 
@@ -47,7 +46,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
 
     maeder = FSIPP(graph, heuristic, agents, use_flexibility=False)
-    result_maeder = maeder.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse_maeder.txt")
+    result_maeder = maeder.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False)
 
     tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
     optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0])
@@ -67,13 +66,6 @@ def run_flexsipp_scenario(location_file, scenario_file):
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
     atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=True)
     print(f"Agent {rerouting_agent} is delayed at time {actual_departure_time} and has new path {'-'.join([node[0].name for node in new_route if isinstance(node[0], Node)])} with atf {atf} that delays agents {' and '.join([str(k) + ' with route ' + '-'.join([node.name for node in k.route if isinstance(node, Node)]) + ' at nodes ' + ' '.join([f'{n}: {time}' for n, time in v.items() if isinstance(n, Node)]) for k, v in minimum_delays.items() if v])}")
-
-    ax = axs[0,1]
-    ax.grid(alpha=0.3)
-    temp_agent = MapfAgent(0, [node for node, interval in graph._complete_new_route(new_route)], graph.global_end_time)
-    temp_agent.plot_route(ax, continues=continues, title="Original unsafe interval on found path", show_buffer_time=show_buffer_time)
-    ax.set_ylim(0, graph.global_end_time)
-    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     del minimum_delays[rerouting_agent]
     graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
