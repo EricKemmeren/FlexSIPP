@@ -26,8 +26,6 @@ class TestWarehouseExample(unittest.TestCase):
 
         # The route of Agent 2 is not not possible anymore, we should find a new route for this agent
         rerouting_agent = agents[2]
-        for agent in agents.values():
-            agent.max_buffer = 5
         original_arrival_time_reroute = rerouting_agent.destination.unsafe_intervals[-1].start
 
         # Filter out unsafe intervals of Agent 2 because it will find a new route
@@ -42,27 +40,30 @@ class TestWarehouseExample(unittest.TestCase):
 
         flexSIPP = FSIPP(graph, heuristic, agents)
         result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False)
-
+        
         self.assertIn("(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)", result.unique_path_eatfs)
-        self.assertEqual(len(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"]), 3)
+        self.assertEqual(len(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"]), 4)
 
-        # First path safe in (0,2)
+        # First path safe in (0,1)
         self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][0][1], 0)
-        self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][0][2], 2)
-        # Second path safe in (2,3)
-        self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][1][1], 2)
+        self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][0][2], 1)
+        # Second path safe in (1,3)
+        self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][1][1], 1)
         self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][1][2], 3)
-        # Third path safe in (4,5)
-        self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][2][1], 4)
-        self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][2][2], 5)
+        # Third path safe in (3,4)
+        self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][2][1], 3)
+        self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][2][2], 4)
+        # Fourth path safe in (4,5)
+        self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][3][1], 4)
+        self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][3][2], 5)
 
         tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True)
         self.assertEqual(len(tipping_points), 1)
-        self.assertEqual(tipping_points[0][0], 3)
+        self.assertEqual(tipping_points[0][0], 4)
 
         optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True)
         self.assertEqual(len(optimal_start_time), 1)
-        self.assertEqual(optimal_start_time[0][0], 1)
+        self.assertEqual(optimal_start_time[0][0], 1.5)
 
 
 if __name__ == '__main__':

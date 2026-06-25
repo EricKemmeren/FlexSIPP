@@ -170,8 +170,11 @@ class TestUnsafeIntervals(unittest.TestCase):
 
     def test_unsafe_intervals(self):
 
-        def test_unsafe(left: IntervalStore, right: list[Tuple[float, float]]):
-            self.assertCountEqual(left.unsafe_intervals, [Interval(s, e) for s, e in right])
+        def test_unsafe(left: IntervalStore, right: list[Tuple[int, int]]):
+            self.assertEqual(left.unsafe_intervals[0].start, right[0][0])
+            self.assertEqual(left.unsafe_intervals[0].end, right[0][1])
+            self.assertEqual(left.unsafe_intervals[1].start, right[1][0])
+            self.assertEqual(left.unsafe_intervals[1].end, right[1][1])
 
         node = self.g.nodes["u|A"]
         for edge in node.outgoing:
