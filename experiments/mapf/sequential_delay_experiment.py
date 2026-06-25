@@ -44,9 +44,6 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
             "arrival": (agent.destination.name, agent.destination.unsafe_intervals[-1].start)
         } for id, agent in agents.items()}
     for delay_idx, (delay_agent_id, delay_origin, delayed_start_time, original_start_time) in enumerate(delays):
-        for _, agent in agents.items():
-            for move in agent.route:
-                print(f"Agent {agent.id} node {move} has unsafe intervals {' '.join([f'A{ui.by_agent}: <{ui.start},{ui.end}> [{ui.duration}] recovery {ui.local_recovery_time}'for ui in move.unsafe_intervals])}")
         delay_agent = agents[delay_agent_id]
         gen_time_start = time.time()
         original_arrival_time = delay_agent.destination.unsafe_intervals[-1].start
