@@ -80,13 +80,6 @@ def run_flexsipp_scenario(location_file, scenario_file):
     atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=True)
     print(f">>>Agent {rerouting_agent} is delayed at time {actual_departure_time} and has new path {'-'.join([node[0].name for node in new_route if isinstance(node[0], Node)])} with atf {atf} that delays agents {' and '.join([str(k) + ' with route ' + '-'.join([node.name for node in k.route if isinstance(node, Node)]) + ' at nodes ' + ' '.join([f'{n}: {time}' for n, time in v.items() if isinstance(n, Node)]) for k, v in minimum_delays.items() if v])}")
 
-    ax = axs[0,1]
-    ax.grid(alpha=0.3)
-    temp_agent = MapfAgent(0, [node for node, interval in graph._complete_new_route(new_route)], graph.global_end_time)
-    temp_agent.plot_route(ax, continues=continues, title="Original unsafe interval on found path", show_buffer_time=show_buffer_time)
-    ax.set_ylim(0, graph.global_end_time)
-    ax.set_yticks(range(0, graph.global_end_time + 1, 2))
-
     del minimum_delays[rerouting_agent]
     graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
 

@@ -78,18 +78,18 @@ class Results:
                     delays[agent].append((location, min_delay, min_gamma, max_gamma))
 
             route = []
+            node_route = []
             for pl in found_route["payload"]:
                 if "state" in pl:
                     s = pl["state"]
                     route.append((g.nodes[s["loc"]], s["interval"]))
+                    node_route.append((g.nodes[s["loc"]], s["interval"]))
                 elif "edge" in pl:
-                    # TODO use the route with ATFs on edges
-                    # for edge in g.nodes[pl["from"]["state"]["loc"]].outgoing:
-                    #     if edge.to_node.name == pl["to"]["state"]["loc"]:
-                    #         route.append((edge, pl["edge"]["atf"]))
-                    #         break
-                    route.append(pl["edge"]["atf"])
-            self.found_routes.append((atf, {"route": route, "delays": delays}))
+                    for edge in g.nodes[pl["from"]["state"]["loc"]].outgoing:
+                        if edge.to_node.name == pl["to"]["state"]["loc"]:
+                            route.append((edge, pl["edge"]["atf"]))
+                            break
+            self.found_routes.append((atf, {"route": route, "node_route": node_route, "delays": delays}))
         return self
 
     linestyles = [
@@ -231,7 +231,7 @@ class Results:
         for agent in agents.values():
             minimum_delay = {}
             for delay_location, min_delay, min_gamma, max_gamma in best_route["delays"][agent.id]:
-                wait_location = agent.get_wait_location(delay_location, {tup[0] for tup in best_route["route"] if isinstance(tup[0], Node)})
+                wait_location = agent.get_wait_location(delay_location, {tup[0] for tup in best_route["node_route"]})
                 delay = min_gamma + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
                 if kwargs.get("print_agent_delays", True):
                     print(f"Agent {agent} delayed at {delay_location}, should wait at {[x.name for x in wait_location if isinstance(x, Node)]} for at least {delay}")

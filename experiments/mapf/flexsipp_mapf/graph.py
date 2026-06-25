@@ -107,46 +107,33 @@ class Grid(Graph[Edge, Node]):
             else:
                 print(f"Unknown type of map: {graph_type}")
 
-    def _complete_new_route(self, new_route: list):
-        route_with_edges = []
-        node_route = [node for node in new_route if isinstance(node[0], Node)]
-        zlist = list(zip(node_route, node_route[1:]))
-        for from_node, to_node in zlist:
-            for edge in from_node[0].outgoing:
-                if edge.to_node == to_node[0]:
-                    route_with_edges += [from_node, (edge, [0, self.global_end_time])]
-        return route_with_edges + [node_route[-1]]
-
     def _update_delayed_agent(self, agent: MapfAgent, new_route: list, actual_departure_time: float):
-        route_with_edges, safe_intervals = list(zip(*self._complete_new_route(new_route))) #TODO, actually calculate the route with edges in c code
+        # If the new route contains only the destination of the agent, then we put back the old route
+        if new_route[0][0] == agent.route[-1]:
+            for move in agent.route:
+                for ui in move.old_unsafe_intervals:
+                    if ui.by_agent == agent:
+                        move.add_unsafe_interval(ui)
+                        move.merge_unsafe_intervals()
+            return
 
         # Copy over all unsafe intervals from the part of the route before the agent is delayed
-        # TODO Make this better with replacing old route
-        if route_with_edges[0] == agent.route[-1]:
-            existing_route = agent.route
-        else:
-            existing_route = agent.route[:agent.route.index(route_with_edges[0])]
-        
+        existing_route = agent.route[:agent.route.index(new_route[0][0])]
         for move in existing_route:
             for ui in move.old_unsafe_intervals:
                 if ui.by_agent == agent:
                     move.add_unsafe_interval(ui)
-        
-        if route_with_edges[0] == agent.route[-1]:
-            for move in agent.route:
-                move.merge_unsafe_intervals()
-            return
-        
+
         current_time = actual_departure_time
-        # Calculate new route for the agent, it departs from new_route[0] with a delay of actual_delay, always departing as soon as the next node is safe.
-        for i, move in enumerate(route_with_edges[:-1]):
+        # Calculate new route for the agent, it departs from new_route[0] with a delay of actual_delay, always departing as soon as the next node is safe. The start and end node are updated afterward
+        for i, (move, interval) in enumerate(new_route[:-1]):
             if isinstance(move, GridConnection):
                 from_node = move.from_node
                 to_node = move.to_node
 
-                si_from = safe_intervals[i-1]
-                si_edge = safe_intervals[i]
-                si_to   = safe_intervals[i+1]
+                si_from = new_route[i-1][1]
+                si_edge = interval
+                si_to   = new_route[i+1][1]
 
                 earliest_departure = max(si_edge[0], si_to[0] - move.length, current_time)
 
@@ -159,20 +146,20 @@ class Grid(Graph[Edge, Node]):
                 current_time = earliest_departure + move.length
 
         # Node where the agent is delayed in, is unsafe from the moment it arrives there
-        for ui in route_with_edges[0].unsafe_intervals:
+        for ui in new_route[0][0].unsafe_intervals:
             if ui.by_agent == agent:
-                for old_ui in route_with_edges[0].old_unsafe_intervals:
+                for old_ui in new_route[0][0].old_unsafe_intervals:
                     if old_ui.by_agent == agent:
                         ui.start = old_ui.start
                         ui.local_recovery_time = ui.end - 1 - ui.start
-                        agent.wait_time_at_location[route_with_edges[0]] = ui.local_recovery_time
+                        agent.wait_time_at_location[new_route[0][0]] = ui.local_recovery_time
 
         # At the end of it's route the node stays unsafe
         last_ui = UnsafeInterval(current_time, self.global_end_time, self.global_end_time - current_time, agent, self.global_end_time - current_time)
-        agent.wait_time_at_location[route_with_edges[-1]] = self.global_end_time - current_time
-        route_with_edges[-1].add_unsafe_interval(last_ui)
+        agent.wait_time_at_location[new_route[-1][0]] = self.global_end_time - current_time
+        new_route[-1][0].add_unsafe_interval(last_ui)
 
-        agent.route = existing_route + list(route_with_edges)
+        agent.route = existing_route + [x[0] for x in new_route]
         
         for move in agent.route:
             move.merge_unsafe_intervals()

@@ -141,8 +141,8 @@ class ArrivalTimeFunction:
         if self.beta == edge_interval.end:
             self.train_after = self._check_agent(edge_interval.agent_after)
 
-    # TODO: check if still needed
     @staticmethod
+    ## Used by railways, agent 0 does not exist but serves as the agent before 
     def _check_agent(agent):
         if isinstance(agent, Agent):
             return agent
