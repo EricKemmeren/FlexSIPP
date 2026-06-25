@@ -152,7 +152,7 @@ class Grid(Graph[Edge, Node]):
 
                 recovery_time = earliest_departure - current_time
 
-                from_node.add_unsafe_interval(UnsafeInterval(current_time, earliest_departure + 1, recovery_time, agent, recovery_time))
+                from_node.add_unsafe_interval(UnsafeInterval(current_time, earliest_departure + 1, earliest_departure + 1 - current_time, agent, recovery_time))
                 agent.wait_time_at_location[from_node] = recovery_time
                 move.add_unsafe_interval(UnsafeInterval(earliest_departure, earliest_departure + move.length, move.length, agent, 0))
 

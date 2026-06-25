@@ -128,7 +128,7 @@ class IntervalStore(object):
                     # Dictionary with node keys, each entry has a dictionary with interval keys and then the index value
                     self.safe_intervals.append(interval)
                 else:
-                    logger.error(f"INTERVAL ERROR: interval {interval} is wrong on node {self}")
+                    logger.warning(f"INTERVAL WARNING: interval {interval} is empty on node {self} as start equals end of previous and there is no buffer time")
                 agent_before = agent
                 current = end
         if current < global_end_time:
@@ -484,26 +484,21 @@ class Graph(Generic[EdgeType, NodeType]):
                     if len(filtered_uis)>0:
                         ui = filtered_uis[0]
                         new_delay = delays.get(move, 0)
-                        # TODO: duration of interval is 0
-                        if current_delay < new_delay and isinstance(move, Node):
-                            # print(f"Agent {agent} move {move} ui <{ui.start},{ui.end}> current delay {current_delay}, new delay {new_delay}, recovery time {ui.local_recovery_time}")
+                        if current_delay < new_delay:
                             # Delay becomes larger, thus the agent should wait here. Extend end of interval delay, start of interval is shifted by old delay
-                            # As it's standing still here, it is gaining local recovery time by the difference in delay amount
+                            # As it's standing still here (at this node), it is gaining local recovery time by the difference in delay amount
                             new_ui = UnsafeInterval(ui.start + current_delay, ui.end + new_delay, ui.local_recovery_time + new_delay - current_delay, ui.by_agent, ui.local_recovery_time + new_delay - current_delay)
                             current_delay = new_delay
                         else:
                             recovery_used = min(ui.local_recovery_time, current_delay)
                             updated_delay = current_delay - recovery_used
-                            new_ui = UnsafeInterval(ui.start + current_delay, ui.end + updated_delay, ui.local_recovery_time - recovery_used, ui.by_agent, ui.local_recovery_time - recovery_used)
-                            # print(f"Agent {agent} move {move} ui <{ui.start},{ui.end}> current delay {current_delay}, new delay {new_delay}, recovery time {ui.local_recovery_time}. recovery used {recovery_used}. updated delay {updated_delay}. new ui <{new_ui.start},{new_ui.end}>")
+                            new_ui = UnsafeInterval(ui.start + current_delay, ui.end + updated_delay, ui.duration - recovery_used, ui.by_agent, ui.local_recovery_time - recovery_used)
                             current_delay = updated_delay
                         new_unsafe_intervals.append((move, ui, new_ui))
                 for move, old_ui, new_ui in new_unsafe_intervals:
-                    # print(f"Agent {agent}: Move {move} old <{old_ui.start},{old_ui.end}>[{old_ui.duration}](a{old_ui.by_agent}) new <{new_ui.start},{new_ui.end}>[{new_ui.duration}](a{new_ui.by_agent}). Current: {' '.join([f'<{x.start},{x.end}>(a{x.by_agent})' for x in move.unsafe_intervals])}")
                     move.remove_unsafe_interval(old_ui)
                     move.add_unsafe_interval(new_ui)
                     move.merge_unsafe_intervals()
-                    # print(f"Agent {agent}: Updated: {[f'<{x.start},{x.end}>(a{x.by_agent})' for x in move.unsafe_intervals]}")
 
     def update_unsafe_intervals(self, new_path=None, minimum_delays=None):
         if new_path is not None:
