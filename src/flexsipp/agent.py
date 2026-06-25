@@ -70,23 +70,22 @@ class Agent(Generic[EdgeType, NodeType]):
         """
         compound_recovery_time = 0.0
 
-        last_buffer_time = self.max_buffer
+        last_buffer_time = 0
         for move in self.route[::-1]:
             local_buffer, local_recovery = self._get_local_flexibility(move)
             logger.info(f"Agent {self.id} with move {move} has local buffer {local_buffer} and recovery {local_recovery}")
 
-            # TODO: local buffer can be negative because agents can both have an unsafe interval on a node.
-            # Because we are going backwards over the route,
-            # the buffer time cannot be larger than the buffer time in the future
-            # (if ignoring recovery time)
+            # Because we are going backwards over the route, the buffer time cannot be larger than the buffer time in the future (if ignoring recovery time).
             last_buffer_time = min(last_buffer_time, max(0, local_buffer))
 
             # Buffer time can increase by recovery time if it would fit
             compound_recovery_time += local_recovery
+            
+            # Store the buffer and crt - last node does not have buffer time, only recovery, so update this afterward
+            move.add_flexibility(self, last_buffer_time, compound_recovery_time)
+            
             last_buffer_time = min(last_buffer_time + local_recovery, self.max_buffer)
 
-            # Store the buffer and crt
-            move.add_flexibility(self, last_buffer_time, compound_recovery_time)
 
     def plot_route(self, ax: Axis, **kwargs):
         x = 0
