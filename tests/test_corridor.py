@@ -131,9 +131,7 @@ class TestCorridorExample(unittest.TestCase):
         rerouting_agent2 = agents[2]
         graph.filter_out_agent(rerouting_agent2)
         flexSIPP2 = FSIPP(graph, heuristic, agents)
-        with open(os.path.join(os.path.dirname(os.path.dirname(__file__)), "corridor2.txt"), "w") as f:
-            flexSIPP2._write(f)
-        result2 = flexSIPP2.run_search(rerouting_agent2.origin.name, rerouting_agent2.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_corridor2.txt")
+        result2 = flexSIPP2.run_search(rerouting_agent2.origin.name, rerouting_agent2.destination.name, start_time, graph.global_end_time, optimize_total_delay=False)
 
         ##### Test Second FlexSIPP run #####
         self.assertEqual(len(result2.found_routes), 3)
