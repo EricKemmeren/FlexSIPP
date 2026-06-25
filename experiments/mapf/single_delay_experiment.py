@@ -126,6 +126,9 @@ if __name__ == "__main__":
     results_maeder = {}
     date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
     file_with_previous_runs = os.path.join(os.path.dirname(__file__), "run_single_delay_experiment.csv")
+    if not os.path.isfile(file_with_previous_runs) or len(open(file_with_previous_runs, "r").readlines()) < 5:
+        with open(file_with_previous_runs, "w") as f:
+            f.write("random_seed,config_name,location,k,i,scenario_file,f,x\n")
         
     config_locations = {"maze1": {20: 25, 50: 22}, "warehouse1": {50: 10}}
     flexibility = [0, 3, 5, 8]
@@ -149,13 +152,14 @@ if __name__ == "__main__":
             random.seed(random_seed)
             
             for i in range(scenario_num):
-                for f in flexibility:
-                    if f == 0:
+                num = i + 1
+                for flex in flexibility:
+                    if flex == 0:
                         flexibility_str = ""
                     else:
-                        flexibility_str = f"_{f}"
+                        flexibility_str = f"_{flex}"
                     
-                    scenario_pattern = f"{location.stem}*-{scenario_num}-k{agent_num}_paths{flexibility_str}.txt"
+                    scenario_pattern = f"{location.stem}*-{num}-k{agent_num}_paths{flexibility_str}.txt"
                     scenario_file = next(data_dir.rglob(scenario_pattern), None)
                     if scenario_file is None:
                         print("ERROR: could not find scenario file with pattern", scenario_pattern)
@@ -167,7 +171,7 @@ if __name__ == "__main__":
                         delays = get_delays_from_seed(location, scenario_file, num_delays)
                         
                         ### To allow partial runs ###
-                        if f"{random_seed},{config_name},{location},{agent_num},{scenario_file},{x}\n" in open(file_with_previous_runs, "r").readlines():
+                        if f"{random_seed},{config_name},{location.stem},{agent_num},{num},{scenario},{f},{x}\n" in open(file_with_previous_runs, "r").readlines():
                             continue
                         ###
                         
@@ -185,5 +189,5 @@ if __name__ == "__main__":
                             
                         ### To allow partial runs ###
                         with open(file_with_previous_runs, "a") as f:
-                            f.write(f"{random_seed},{config_name},{location},{scenario_file},{x}\n")
+                            f.write(f"{random_seed},{config_name},{location.stem},{agent_num},{num},{scenario},{flex},{x}\n")
                         ####
