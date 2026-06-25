@@ -14,6 +14,7 @@ if shutil.which('pdflatex'):
     })
 
 from flexsipp_mapf.agent import MapfAgent
+from flexsipp.graphs.graph import Node
 from flexsipp.graphs.fsipp import FSIPP
 from flexsipp.util.intervals import UnsafeInterval
 from read_experiment import create_mapf_instance_from_paths
@@ -76,7 +77,8 @@ def run_flexsipp_scenario(location_file, scenario_file):
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
-    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=False)
+    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=True)
+    print(f">>>Agent {rerouting_agent} is delayed at time {actual_departure_time} and has new path {'-'.join([node[0].name for node in new_route if isinstance(node[0], Node)])} with atf {atf} that delays agents {' and '.join([str(k) + ' with route ' + '-'.join([node.name for node in k.route if isinstance(node, Node)]) + ' at nodes ' + ' '.join([f'{n}: {time}' for n, time in v.items() if isinstance(n, Node)]) for k, v in minimum_delays.items() if v])}")
 
     ax = axs[0,1]
     ax.grid(alpha=0.3)
@@ -87,6 +89,11 @@ def run_flexsipp_scenario(location_file, scenario_file):
 
     del minimum_delays[rerouting_agent]
     graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
+
+    # Only added here to show in the interval graphs
+    graph.reset_flexibility()
+    for agent in agents.values():
+        agent.calculate_flexibility()
 
     ax = axs[0,2]
     ax.grid(alpha=0.3)
