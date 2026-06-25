@@ -99,8 +99,6 @@ namespace asipp{
 //            return;
 //        }
 
-        // TODO: Make sure agent can arrive at the edge aswell (alpha + zeta compensated for gamma_before)
-
         if (open_list.handles.contains(MapNode(destination))){
             auto handle = open_list.handles[MapNode(destination)];
             if(arrival_time_function.earliest_arrival_time() < (*handle).g.earliest_arrival_time()){
@@ -175,7 +173,6 @@ namespace asipp{
 
                 gamma_t new_gamma = gamma_t(cur.g.gamma);
                 std::vector<incurred_delay_t> incurred_delays = gamma_after.incurred_delays;
-                // TODO current problem: the delay is incurred in the to destination of the edge, but it doesn't have to be that the agent comes from that side, it can be that the agent-after comes from the same location as the delayed agent. However, using the edge-source also creates problems when indeed they come from the other side. The traceback of where the agent has flexibility and where it should wait is not encoded properly.
                 std::cerr << "Incurring delay. gamma after " << gamma_after << " location " << successor->destination->state.loc.name << std::endl;
                 incurred_delays.push_back(incurred_delay_t(successor->destination->state.loc.name, gamma_after.second));
                 new_gamma[successor->edge.agent_after.id] =
