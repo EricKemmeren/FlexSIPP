@@ -1,9 +1,9 @@
-import os
 import argparse
 
 from matplotlib import pyplot as plt
 
 from flexsipp.graphs.fsipp import FSIPP
+from flexsipp.graphs.graph import Node
 from read_experiment import create_mapf_instance_from_paths
 
 import logging
@@ -73,16 +73,18 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     if not new_route:
         print(f"No route found for agent {delay_agent} starting at time {actual_delay}")
         return 
+    print(f">>>Agent {delay_agent} is delayed at time {actual_delay} and has new path {'-'.join([node[0].name for node in new_route if isinstance(node[0], Node)])} with atf {atf} that delays agents {' and '.join([str(k) + ' with route ' + '-'.join([node.name for node in k.route if isinstance(node, Node)]) + ' at nodes ' + ' '.join([f'{n}: {time}' for n, time in v.items() if isinstance(n, Node)]) for k, v in minimum_delays.items() if v])}")
+
 
     del minimum_delays[delay_agent]
-    print(f"Updating intervals for agent {delay_agent} at starting at time {actual_delay} {new_route} with minimum delays {minimum_delays}")
     graph.update_unsafe_intervals(new_path=(delay_agent, new_route, actual_delay), minimum_delays=minimum_delays)
 
+    # Only to show buffers in plot
     graph.reset_flexibility()
     for agent in agents.values():
         agent.calculate_flexibility()
-
-    delay_agent.plot_route(axs[3])
+        
+    delay_agent.plot_route(axs[3], continues=False, title=f"Agent {delay_agent} after", show_buffer_time=True)
 
     plt.show()
     plt.close()
