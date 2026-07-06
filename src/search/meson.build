@@ -24,15 +24,17 @@ if not boost_dep.found()
         boost_librarydir = '/usr/lib'
     endif
     
+    cc = meson.get_compiler('cpp')
+    
     # Find individual boost libraries
-    boost_python_lib = find_library('boost_python313', boost_librarydir, required: false)
+    boost_python_lib = cc.find_library('boost_python313', dirs: boost_librarydir, required: false)
     if not boost_python_lib.found()
-        boost_python_lib = find_library('boost_python3', boost_librarydir, required: true)
+        boost_python_lib = cc.find_library('boost_python3', dirs: boost_librarydir, required: true)
     endif
     
-    boost_program_options_lib = find_library('boost_program_options', boost_librarydir, required: true)
-    boost_random_lib = find_library('boost_random', boost_librarydir, required: true)
-    boost_iostreams_lib = find_library('boost_iostreams', boost_librarydir, required: true)
+    boost_program_options_lib = cc.find_library('boost_program_options', dirs: boost_librarydir, required: true)
+    boost_random_lib = cc.find_library('boost_random', dirs: boost_librarydir, required: true)
+    boost_iostreams_lib = cc.find_library('boost_iostreams', dirs: boost_librarydir, required: true)
     
     boost_dep = declare_dependency(
         include_directories: include_directories(boost_includedir),
