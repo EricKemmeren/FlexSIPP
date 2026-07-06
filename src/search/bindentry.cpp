@@ -1,5 +1,4 @@
-#define BOOST_PYTHON_STATIC_LIB
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 #include <chrono>
 #include <filesystem>
@@ -61,6 +60,13 @@ std::string search(std::string start, std::string goal, std::string graph_str, d
     return output;
 }
 
-BOOST_PYTHON_MODULE(search) {
-    boost::python::def("search", search);
+PYBIND11_MODULE(search, m) {
+    m.def("search", &search, 
+          "Search for flexible any-start-time plans",
+          pybind11::arg("start"),
+          pybind11::arg("goal"),
+          pybind11::arg("graph_str"),
+          pybind11::arg("start_time_d") = 0,
+          pybind11::arg("max_search_time_d") = 1000,
+          pybind11::arg("optimize_total_delay") = false);
 }
