@@ -1,3 +1,4 @@
+import sys
 import os
 import time
 import json
@@ -120,7 +121,11 @@ def single_delay(location_file, scenario_file, delays, scenario_end=None, use_fl
 
 
 if __name__ == "__main__":
-    random_seed = 42
+    if len(sys.argv) < 1:
+        print("Please add the index in range [1, 57] to run a specific configuration")
+    idx = int(sys.argv[1]) - 1
+    # Use the index as the seed
+    random.seed(idx)
     num_delays = 1
     results_flexsipp = {}
     results_maeder = {}
@@ -131,63 +136,50 @@ if __name__ == "__main__":
             f.write("random_seed,config_name,location,k,i,scenario_file,f,x\n")
         
     config_locations = {"maze1": {20: 25, 50: 22}, "warehouse1": {50: 10}}
+    configurations = [(m, a, i) for m, x in config_locations.items() for a, s in x.items() for i in range(s)]
+    config_name, num_agents, scenario_num = configurations[idx]
+    total = len(configurations) - 1
     flexibility = [0, 3, 5, 8]
 
-    for config_name, config in config_locations.items():
-        print("Running config", config_name)
-        result_dir = Path(__file__).parent / "output" / config_name
-        result_dir.mkdir(exist_ok=True, parents=True)
-        result_file_maeder   = result_dir / f"optimal_{config_name}_@MAEDeR_{date}_seed{random_seed}.json"
-        result_file_flexsipp = result_dir / f"optimal_{config_name}_FlexSIPP_{date}_seed{random_seed}.json"
+    print("Running config", config_name, f"with index {idx} out of {total}")
+    result_dir = Path(__file__).parent / "output" / config_name
+    result_dir.mkdir(exist_ok=True, parents=True)
+    result_file_maeder   = result_dir / f"optimal_{config_name}_@MAEDeR_{date}_{idx}-{total}.json"
+    result_file_flexsipp = result_dir / f"optimal_{config_name}_FlexSIPP_{date}_{idx}-{total}.json"
 
-        data_dir = Path(__file__).parent.parent.parent / "data" / "mapf" / config_name
+    data_dir = Path(__file__).parent.parent.parent / "data" / "mapf" / config_name
 
-        # Get location files in the current directory, these files end with .map, there is only one
-        location = next(data_dir.glob("*.map"), None)
-        if location is None:
-            raise FileNotFoundError(f"No .map files in {data_dir}")
+    # Get location files in the current directory, these files end with .map, there is only one
+    location = next(data_dir.glob("*.map"), None)
+    if location is None:
+        raise FileNotFoundError(f"No .map files in {data_dir}")
 
-        for agent_num, scenario_num in config.items():
-            # Set random seed such that it is repeatable
-            random.seed(random_seed)
+    
+    for flex in flexibility:
+        if flex == 0:
+            flexibility_str = ""
+        else:
+            flexibility_str = f"_{flex}"
+        
+        scenario_pattern = f"{location.stem}*-{scenario_num + 1}-k{num_agents}_paths{flexibility_str}.txt"
+        scenario_file = next(data_dir.rglob(scenario_pattern), None)
+        if scenario_file is None:
+            print("ERROR: could not find scenario file with pattern", scenario_pattern)
+        scenario = scenario_file.stem
+        
+        for x in range(3):
+            print("Run scenario", scenario, x, "with", num_delays, "delays")
+
+            delays = get_delays_from_seed(location, scenario_file, num_delays)
             
-            for i in range(scenario_num):
-                num = i + 1
-                for flex in flexibility:
-                    if flex == 0:
-                        flexibility_str = ""
-                    else:
-                        flexibility_str = f"_{flex}"
-                    
-                    scenario_pattern = f"{location.stem}*-{num}-k{agent_num}_paths{flexibility_str}.txt"
-                    scenario_file = next(data_dir.rglob(scenario_pattern), None)
-                    if scenario_file is None:
-                        print("ERROR: could not find scenario file with pattern", scenario_pattern)
-                    scenario = scenario_file.stem
-                    
-                    for x in range(3):
-                        print("Run scenario", scenario, x, "with", num_delays, "delays")
+            results_flexsipp.update({
+                f"{scenario}_{x}": single_delay(location, scenario_file, delays, use_flexibility=True)
+            })
+            with open(result_file_flexsipp, "w") as f:
+                json.dump(results_flexsipp, f, indent=4)
 
-                        delays = get_delays_from_seed(location, scenario_file, num_delays)
-                        
-                        ### To allow partial runs ###
-                        if f"{random_seed},{config_name},{location.stem},{agent_num},{num},{scenario},{f},{x}\n" in open(file_with_previous_runs, "r").readlines():
-                            continue
-                        ###
-                        
-                        results_flexsipp.update({
-                            f"{scenario}_{x}": single_delay(location, scenario_file, delays, use_flexibility=True)
-                        })
-                        with open(result_file_flexsipp, "w") as f:
-                            json.dump(results_flexsipp, f, indent=4)
-
-                        results_maeder.update({ 
-                            f"{scenario}_{x}": single_delay(location, scenario_file, delays, use_flexibility=False
-                        )})
-                        with open(result_file_maeder, "w") as f:
-                            json.dump(results_maeder, f, indent=4)
-                            
-                        ### To allow partial runs ###
-                        with open(file_with_previous_runs, "a") as f:
-                            f.write(f"{random_seed},{config_name},{location.stem},{agent_num},{num},{scenario},{flex},{x}\n")
-                        ####
+            results_maeder.update({ 
+                f"{scenario}_{x}": single_delay(location, scenario_file, delays, use_flexibility=False
+            )})
+            with open(result_file_maeder, "w") as f:
+                json.dump(results_maeder, f, indent=4)
