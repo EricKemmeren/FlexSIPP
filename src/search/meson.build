@@ -5,11 +5,40 @@ python = import('python').find_installation(
 )
 
 # ---- Boost dependency ----
+# Try pkg-config first, fallback to manual search if not found
 boost_dep = dependency(
     'boost',
     modules : ['python3', 'program_options', 'random', 'iostreams'],
-    required : true,
+    required : false,
 )
+
+if not boost_dep.found()
+    # Manual fallback: search for boost libraries directly
+    boost_includedir = get_option('boost_includedir')
+    boost_librarydir = get_option('boost_librarydir')
+    
+    if boost_includedir == ''
+        boost_includedir = '/usr/include'
+    endif
+    if boost_librarydir == ''
+        boost_librarydir = '/usr/lib'
+    endif
+    
+    # Find individual boost libraries
+    boost_python_lib = find_library('boost_python313', boost_librarydir, required: false)
+    if not boost_python_lib.found()
+        boost_python_lib = find_library('boost_python3', boost_librarydir, required: true)
+    endif
+    
+    boost_program_options_lib = find_library('boost_program_options', boost_librarydir, required: true)
+    boost_random_lib = find_library('boost_random', boost_librarydir, required: true)
+    boost_iostreams_lib = find_library('boost_iostreams', boost_librarydir, required: true)
+    
+    boost_dep = declare_dependency(
+        include_directories: include_directories(boost_includedir),
+        dependencies: [boost_python_lib, boost_program_options_lib, boost_random_lib, boost_iostreams_lib]
+    )
+endif
 
 python.extension_module(
     'search',
