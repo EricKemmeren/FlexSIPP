@@ -13,7 +13,7 @@ import logging
 logger = logging.getLogger()
 logger.setLevel(logging.CRITICAL)
 
-def get_delays_from_seed(location_file, scenario_file, num_delays, scenario_end=None):
+def get_delays_from_seed(location_file, scenario_file, num_delays, scenario_end=None, max_delay=None):
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     delays = []
     agent_list = list(agents.values())
@@ -22,28 +22,38 @@ def get_delays_from_seed(location_file, scenario_file, num_delays, scenario_end=
         # Get a random agent
         a = agent_list[idx]
         # Get a random node on this agent's path
-        loc: GridCell = random.choice([node for node in a.route[:len(a.route)//4] if isinstance(node, GridCell)])
+        available_route = a.route[:len(a.route)//4] if len(a.route) > 10 else a.route[::-1]
+        loc: GridCell = random.choice([node for node in available_route if isinstance(node, GridCell)])
         ui_a_end = max([ui for ui in loc.unsafe_intervals if ui.by_agent == a])
         # Get the first unsafe interval at the delay location after the delayed agent visits
         index = loc.unsafe_intervals.bisect_right(ui_a_end)
         safe_end = loc.unsafe_intervals[index].start if index < len(loc.unsafe_intervals) else graph.global_end_time
+        # Cap the maximum delay
+        if max_delay is not None:
+            safe_end = min(safe_end, max_delay)
         delayed_start_time = random.uniform(max(0, ui_a_end.start), max(0, safe_end))
         delays.append((a.id, loc, delayed_start_time, ui_a_end.start))
     # Sort delays by time
     delays.sort(key=lambda x: x[2])
+    delays = [(i, id, loc, delay, t) for i, (id, loc, delay, t) in enumerate(delays)]
     return delays
 
 
-def repeated_delays(location_file, scenario_file, delays, result_file, scenario_end=None, use_flexibility=True):
+def repeated_delays(location_file, scenario_file, delays, num_delays, result_file, scenario_end=None, use_flexibility=True):
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     epsilon = 0.001
+    # To ensure fair comparison, @MAEDeR first solves <num_delays> of the delays, and returns the delays actually solved
+    executed_delays = []
     complete_result = {f"delay{i}": {} for i in range(len(delays))}
     initial_paths = {
         id: {
             "departure": (agent.origin.name, agent.origin.unsafe_intervals[0].end),
             "arrival": (agent.destination.name, agent.destination.unsafe_intervals[-1].start)
         } for id, agent in agents.items()}
-    for delay_idx, (delay_agent_id, delay_origin, delayed_start_time, original_start_time) in enumerate(delays):
+    count_delays = 0
+    while len(executed_delays) < num_delays:
+        delay_idx, delay_agent_id, delay_origin, delayed_start_time, original_start_time = delays[count_delays]
+        count_delays += 1
         delay_agent = agents[delay_agent_id]
         gen_time_start = time.time()
         original_arrival_time = delay_agent.destination.unsafe_intervals[-1].start
@@ -94,6 +104,7 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
             meta_data.update({
                 "delays": {a.id: {n.name: m for (n,m) in v.items() if isinstance(n, GridCell)} for (a,v) in minimum_delays.items()}
             })
+            executed_delays.append((delay_idx, delay_agent_id, delay_origin, delayed_start_time, original_start_time))
         post_time_end = time.time()
         
         meta_data.update({
@@ -101,6 +112,7 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
             "delayed_start_time": delayed_start_time,
             "original_start_time": original_start_time,
             "original_arrival_time": original_arrival_time,
+            "delay_location": delay_origin.name,
             "epsilon": epsilon,
             "preprocess_time": gen_time_end - gen_time_start,
             "postprocess_time": post_time_end - post_time_start,
@@ -110,16 +122,17 @@ def repeated_delays(location_file, scenario_file, delays, result_file, scenario_
             } for agent_id, agent in agents.items()}
         })
         print(f"Delay idx {delay_idx} arrival time differences: {sum([meta_data['arrival_times'][a]['arrival'][1] - initial_paths[a]['arrival'][1] for a in agents])}")
-        if delay_idx == 0:
-            meta_data.update({"initial_paths": initial_paths})
+        meta_data.update({"initial_paths": initial_paths})
         complete_result[f"delay{delay_idx}"] = meta_data
-        json.dump(complete_result, open(result_file, "w"), indent=4)
-    return complete_result
+        with open(result_file, "w") as open_file:
+            json.dump(complete_result, open_file, indent=4)
+    return executed_delays, complete_result
 
 
 if __name__ == "__main__":
     random_seed = 42
     random.seed(random_seed)
+    max_delay = None
     date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
 
     # Folder in data/mapf containing the scenario
@@ -130,7 +143,8 @@ if __name__ == "__main__":
     instance_flexibility = 3
     # We take the larger instance with 50 agents
     num_agents = 50
-
+    num_delays = int(math.floor(num_agents / 2))
+    
     # Store files in ./output/{config}
     result_dir = Path(__file__).parent / "output" / config
     result_dir.mkdir(exist_ok=True, parents=True)
@@ -148,13 +162,14 @@ if __name__ == "__main__":
     scenario_file = next(data_dir.rglob(pattern))
     if scenario_file is None:
         raise FileNotFoundError(f"No scenario file matching {pattern}")
+
+    print("Run scenario", scenario_file.stem)
     scenario = scenario_file.stem.split("_paths")[0]
 
-    num_delays = int(math.floor(num_agents / 2))
-    print("Run scenario", scenario, "with", num_delays, "delays")
+    # Generate delays for all agents, allowing only a <max_delay>
+    delays = get_delays_from_seed(location, scenario_file, num_agents, scenario_end=None, max_delay=max_delay)
 
-    delays = get_delays_from_seed(location, scenario_file, num_delays, random_seed)
-
-    for algorithm in ["FlexSIPP", "@MAEDeR"]:
-        result_file = result_dir / f"replan_{algorithm}_{scenario}_{date}_f{instance_flexibility}_seed{random_seed}_{num_delays}delays.json"
-        repeated_delays(location, scenario_file, delays, result_file, use_flexibility=algorithm == "FlexSIPP")
+    for algorithm in ["@MAEDeR", "FlexSIPP"]:
+        result_file = result_dir / f"replan_{algorithm}_{scenario}_{date}_f{instance_flexibility}_seed{random_seed}_{num_delays}delays_m{max_delay if max_delay else 'INF'}.json"
+        # First run @MAEDeR, then run FlexSIPP only on the executed delays - which are updated
+        delays, result = repeated_delays(location, scenario_file, delays, num_delays, result_file, use_flexibility=algorithm == "FlexSIPP", scenario_end=None)
