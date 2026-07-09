@@ -1,5 +1,4 @@
 from flexsipp.agent import Agent
-from flexsipp.graphs.graph import Node, Edge
 
 class MapfAgent(Agent):
     def __init__(self, id: int, route: list, global_end_time: int):

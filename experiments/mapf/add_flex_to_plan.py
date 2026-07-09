@@ -56,6 +56,3 @@ if __name__ == "__main__":
                         for agent, path in enumerate(paths):
                             new_file.write(f"Agent {agent}: {'->'.join(path)}\n")
                     json.dump(stat_results, open(stats, "w"), indent=4)
-
-
-

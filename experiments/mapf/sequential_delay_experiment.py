@@ -38,7 +38,6 @@ def get_delays_from_seed(location_file, scenario_file, num_delays, scenario_end=
     delays = [(i, id, loc, delay, t) for i, (id, loc, delay, t) in enumerate(delays)]
     return delays
 
-
 def repeated_delays(location_file, scenario_file, delays, num_delays, result_file, scenario_end=None, use_flexibility=True):
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     epsilon = 0.001
@@ -127,7 +126,6 @@ def repeated_delays(location_file, scenario_file, delays, num_delays, result_fil
         with open(result_file, "w") as open_file:
             json.dump(complete_result, open_file, indent=4)
     return executed_delays, complete_result
-
 
 if __name__ == "__main__":
     random_seed = 42

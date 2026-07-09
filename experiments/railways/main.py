@@ -4,6 +4,7 @@ from flexsipp_railways.train_agents.train_agent_limited_flexibility import \
     train_agent_limited_flexibility_generator
 from flexsipp_railways.generate import graph_from_file, scenario_from_file
 from flexsipp.graphs.fsipp import FSIPP
+from flexsipp.graphs.graph import Node, Edge
 
 parser = argparse.ArgumentParser(
                     prog='FlexSIPP',
@@ -18,14 +19,12 @@ def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end):
     scenario = scenario_from_file(scenario_file, railway_graph)
     scenario.process()
     if delay_agent is None:
-        delay_agent = scenario.agents[0]
+        delay_agent = scenario.agents["1"]
     else:
-        delay_agent = scenario.get_replanning_agent(int(delay_agent))
-    agents = {agent.id: agent for agent in scenario.agents}
+        delay_agent = scenario.get_replanning_agent(delay_agent)
     graph = scenario.fsipp(delay_agent)
     heuristic = graph.calculate_heuristic(delay_agent.destination)
-    # TODO: filter on agent route, not allowing major reroutes
-    flexSIPP = FSIPP(graph, heuristic, agents)
+    flexSIPP = FSIPP(graph, heuristic, scenario.agents, filter_nodes=[node for node in delay_agent.route if isinstance(node, Node)], filter_edges=[edge for edge in delay_agent.route if isinstance(edge, Edge)])
     result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time, redirect_stderr="stderr.txt")
     print(result)
 
