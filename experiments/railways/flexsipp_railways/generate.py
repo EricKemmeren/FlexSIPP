@@ -6,8 +6,8 @@ from .track_graph import TrackGraph
 from .train_agent import TrainAgent
 from flexsipp.util.types import GraphType
 
-def graph_from_file(file) -> BlockGraph:
-    track_graph = TrackGraph(file)
+def graph_from_file(file, global_end_time=None) -> BlockGraph:
+    track_graph = TrackGraph(file, global_end_time)
     block_graph = BlockGraph(track_graph)
     return block_graph
 

@@ -83,11 +83,15 @@ class Signal:
         return f"Signal {self.id} on track {self.track}"
 
 class TrackGraph(Graph[TrackEdge, TrackNode]):
-    def __init__(self, file):
+    def __init__(self, file, scenario_end_time):
         super().__init__()
         self.signals: list[Signal] = []
         self.distance_markers = {}
         self.stations:dict[str, Tuple[TrackNode, TrackNode]] = {}
+        if scenario_end_time is None:
+            self.global_end_time = None
+        else:
+            self.global_end_time = float(scenario_end_time)
 
         with open(file) as f:
             data = json.load(f)
