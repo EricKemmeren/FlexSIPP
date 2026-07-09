@@ -46,7 +46,7 @@ endif
 
 python.extension_module(
     'search',
-    ['bindentry.cpp', 'graph.cpp', 'segment.cpp', 'augmentedsipp.cpp', 'repeat.cpp'],
+    ['bindentry.cpp', 'graph.cpp', 'segment.cpp', 'augmentedsipp.hpp', 'repeat.cpp'],
     install: true,
     dependencies: [pybind11_dep, boost_dep],
     subdir: '_flexsipp'

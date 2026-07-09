@@ -9,7 +9,6 @@ from .graph import Graph
 from ..agent import Agent
 from ..util.intervals import SafeInterval, FlexibleArrivalTimeFunction
 from ..util.results import Results
-from ..util.timing import timing
 from ..util.types import EdgeType, NodeType
 
 logger = getLogger('__main__.' + __name__)
