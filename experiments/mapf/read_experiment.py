@@ -4,7 +4,6 @@ from flexsipp_mapf.graph import Grid
 from flexsipp_mapf.agent import MapfAgent
 from flexsipp.util.intervals import UnsafeInterval
 
-
 def paths_to_unsafe_intervals(path_file, grid, scenario_end):
     with open(path_file, "r") as f:
         lines = f.readlines()

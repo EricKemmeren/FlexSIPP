@@ -152,7 +152,6 @@ if __name__ == "__main__":
     if location is None:
         raise FileNotFoundError(f"No .map files in {data_dir}")
 
-    
     for flex in flexibility:
         if flex == 0:
             flexibility_str = ""

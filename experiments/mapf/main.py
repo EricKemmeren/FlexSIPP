@@ -1,5 +1,4 @@
 import argparse
-
 from matplotlib import pyplot as plt
 
 from flexsipp.graphs.fsipp import FSIPP
@@ -52,7 +51,6 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
         print(f"No route found for agent {delay_agent} starting at time {actual_delay}")
         return 
     print(f">>>Agent {delay_agent} is delayed at time {actual_delay} and has new path {'-'.join([node[0].name for node in new_route if isinstance(node[0], Node)])} with atf {atf} that delays agents {' and '.join([str(k) + ' with route ' + '-'.join([node.name for node in k.route if isinstance(node, Node)]) + ' at nodes ' + ' '.join([f'{n}: {time}' for n, time in v.items() if isinstance(n, Node)]) for k, v in minimum_delays.items() if v])}")
-
 
     del minimum_delays[delay_agent]
     graph.update_unsafe_intervals(new_path=(delay_agent, new_route, actual_delay), minimum_delays=minimum_delays)

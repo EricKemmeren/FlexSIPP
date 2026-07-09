@@ -1,5 +1,4 @@
 import os
-from collections import OrderedDict
 import matplotlib
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
@@ -13,7 +12,6 @@ if shutil.which('pdflatex'):
         'pgf.rcfonts': False,
     })
 
-from flexsipp_mapf.agent import MapfAgent
 from flexsipp.graphs.graph import Node
 from flexsipp.graphs.fsipp import FSIPP
 from flexsipp.util.intervals import UnsafeInterval
@@ -65,10 +63,12 @@ def run_flexsipp_scenario(location_file, scenario_file):
                     Line2D([0], [0], color="lightblue"),]
     axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
 
-    tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
-    optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0])
-    
-    found_flexibility_ranges = result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
+    # Print the tipping points
+    result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
+    # Print the optimal starting time
+    result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0])
+    # Plot the delays
+    result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
 
     ax = axs[1,1]
     ax.grid(alpha=0.3)
@@ -119,11 +119,11 @@ def run_flexsipp_scenario(location_file, scenario_file):
                     Line2D([0], [0], color="lightblue"),]
     axs[1,3].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
 
-    tipping_points = update_result.find_tipping_points(agents, original_arrival_time=original_arrival_time_breakdown, optimize_total_delay=False)
+    # Print updated tipping points
+    update_result.find_tipping_points(agents, original_arrival_time=original_arrival_time_breakdown, optimize_total_delay=False)
 
     plt.show()
     plt.close()
-
 
 if __name__ == "__main__":
     location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "example_warehouse", "warehouse.map")

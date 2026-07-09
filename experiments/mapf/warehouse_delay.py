@@ -2,7 +2,6 @@ import os
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
 
-from flexsipp_mapf.agent import MapfAgent
 from flexsipp.graphs.graph import Node
 from flexsipp.graphs.fsipp import FSIPP
 from read_experiment import create_mapf_instance_from_paths
@@ -48,10 +47,12 @@ def run_flexsipp_scenario(location_file, scenario_file):
     maeder = FSIPP(graph, heuristic, agents, use_flexibility=False)
     result_maeder = maeder.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False)
 
-    tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
-    optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0])
-    
-    found_flexibility_ranges = result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
+    # Print the tipping points
+    result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
+    # Print the optimal starting time
+    result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0])
+    # Plot the delays
+    result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of rerouting agent 
     # Forces agent 2 to wait
@@ -92,7 +93,6 @@ def run_flexsipp_scenario(location_file, scenario_file):
 
     plt.show()
     plt.close()
-
 
 if __name__ == "__main__":
     location = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data", "mapf", "example_warehouse", "warehouse_delay.map")
