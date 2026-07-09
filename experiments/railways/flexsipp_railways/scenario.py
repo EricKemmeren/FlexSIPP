@@ -18,8 +18,9 @@ class Scenario:
         self.types = {x["name"]: x for x in data["types"]}
         self.g = g_block
 
-        self.g.global_end_time = max([2 * entry["movements"]["endTime"] for entry in data["trains"]])
-        self.g.tg.global_end_time = self.g.global_end_time
+        if self.g.global_end_time is None:
+            self.g.global_end_time = max([2 * entry["movements"]["endTime"] for entry in data["trains"]])
+            self.g.tg.global_end_time = self.g.global_end_time
         self.agents: dict[str, TrainAgent] = {}
 
         # Calculate routes for all trains

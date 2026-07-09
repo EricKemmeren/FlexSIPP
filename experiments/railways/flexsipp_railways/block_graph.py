@@ -89,6 +89,7 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
     def __init__(self, g: TrackGraph):
         super().__init__()
         self.tg = g
+        self.global_end_time = g.global_end_time
 
         track_to_signal = {signal.track: signal for signal in g.signals}
         for signal in g.signals:

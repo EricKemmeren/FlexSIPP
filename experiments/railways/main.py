@@ -14,8 +14,8 @@ parser.add_argument('-s', "--scenario-file", help = "Path to the scenario file",
 parser.add_argument('-a', "--delay-agent", help="Identifier (int) of the agent in the scenario_file that is delayed. If not specified, the first agent in the scenario wil be chosen.", required=False, default=None)
 parser.add_argument('-e', "--end-time", help="End time of the scenario, if None is given", required=False, default=None)
 
-def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end):
-    railway_graph = graph_from_file(location_file)
+def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end=None):
+    railway_graph = graph_from_file(location_file, scenario_end)
     scenario = scenario_from_file(scenario_file, railway_graph)
     scenario.process()
     if delay_agent is None:
