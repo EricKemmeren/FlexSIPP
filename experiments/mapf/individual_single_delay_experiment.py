@@ -94,8 +94,6 @@ def single_delay(location_file, scenario_file, delays, scenario_end=None, use_fl
     else:
         del minimum_delays[delay_agent]
         graph.update_unsafe_intervals(new_path=(delay_agent, new_route, delayed_start_time), minimum_delays=minimum_delays)
-        for agent, flexibility_used in minimum_delays.items():
-            agent.update_wait_time_with_flexibility(flexibility_used)
         meta_data.update({
             "delays": {a.id: {n.name: m for (n,m) in v.items() if isinstance(n, GridCell)} for (a,v) in minimum_delays.items()}
         })
