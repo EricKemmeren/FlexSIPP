@@ -32,13 +32,13 @@ namespace rePEAT{
     struct Node;
 
     struct Node{
-//        Compound ATF of current search state
+        // Compound ATF of current search state
         EdgeATF g;
 
-//        Cost value for A*
+        // Cost value for A*
         intervalTime_t f;
 
-//        @SIPP graph node, with a single safe interval
+        // @SIPP graph node, with a single safe interval
         GraphNode * node;
         Node() = default;
         Node(EdgeATF e, intervalTime_t _h, GraphNode * _node, bool optimize_total_delay):g(e),node(_node){
@@ -84,6 +84,7 @@ namespace rePEAT{
         std::unordered_map<MapNode, double> expanded;
 		bool optimize_total_delay;
 
+        // Each node in the queue is an EdgeATF, the current heuristic value, the current graphNode, the parent graphNode and the edge between them
         inline Node emplace(EdgeATF e, double h, GraphNode * n, GraphNode * p, GraphEdge * ge){
             parent[n] = p;
 			edge_to_parent[n] = ge;
@@ -121,4 +122,3 @@ namespace rePEAT{
 
     CompoundATF<std::vector<GraphContainer>> search(GraphNode * source, const Location& dest, MetaData & m, double start_time, gamma_t gamma, intervalTime_t search_duration, bool optimize_total_delay);
 }
-
