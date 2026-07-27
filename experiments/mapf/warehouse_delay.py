@@ -23,6 +23,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     
     # Agent 2 has flexibility
     flexibility_agent = agents[2]
+    print(f"Agent {flexibility_agent} has flexibility: {', and '.join([f'buffer={str(flexibility_agent._get_local_flexibility(n)[0])} and recovery={str(flexibility_agent._get_local_flexibility(n)[1])} at node {n}' for n in flexibility_agent.route if isinstance(n, Node) and flexibility_agent._get_local_flexibility(n)[0] < float("inf") and flexibility_agent._get_local_flexibility(n)[1] > 0])}")
 
     start_time = 0
     continues = False
@@ -88,6 +89,16 @@ def run_flexsipp_scenario(location_file, scenario_file):
 
     print(f"@MAEdeR Search time (python)", result_maeder)
     result_maeder.plot(axs[0,3], linestyle=3, title="MAEDeR")
+    
+        
+    # Now replan agent 2 with updated agent 1
+    print("###########\nNow replan agent 2")
+    original_arrival_time_flexibility = flexibility_agent.destination.unsafe_intervals[-1].start
+    graph.filter_out_agent(flexibility_agent)
+    flexSIPP_replan = FSIPP(graph, heuristic, agents, use_flexibility=True)
+    result_replan = flexSIPP_replan.run_search(flexibility_agent.origin.name, flexibility_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False)
+    atf_replan, new_route_replan, minimum_delays_replan, _ = result_replan.get_fastest_route(flexibility_agent, original_arrival_time_flexibility, start_time, agents, discrete=True)
+    print(f"Agent {flexibility_agent} replans at time {start_time} and has new path {'-'.join([node[0].name for node in new_route_replan if isinstance(node[0], Node)])} with atf {atf_replan} that delays agents {' and '.join([str(k) + ' with route ' + '-'.join([node.name for node in k.route if isinstance(node, Node)]) + ' at nodes ' + ' '.join([f'{n}: {time}' for n, time in v.items() if isinstance(n, Node)]) for k, v in minimum_delays_replan.items() if v])}{'<None>' if sum([len(v) for k,v in minimum_delays_replan.items()]) == 0 else ''}")
 
     plt.show()
     plt.close()
