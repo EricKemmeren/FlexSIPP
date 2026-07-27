@@ -62,6 +62,7 @@ class TestCorridorExample(unittest.TestCase):
             self.assertEqual(graph.edges[i].unsafe_intervals, old_edges[i].unsafe_intervals)
         
         rerouting_agent1 = agents[1]
+        original_arrival1 = rerouting_agent1.destination.unsafe_intervals[-1].start
         graph.filter_out_agent(rerouting_agent1)
         flexSIPP1 = FSIPP(graph, heuristic, agents)
         result1 = flexSIPP1.run_search(rerouting_agent1.origin.name, rerouting_agent1.destination.name, start_time, graph.global_end_time, optimize_total_delay=False)
@@ -90,11 +91,20 @@ class TestCorridorExample(unittest.TestCase):
         ###################################
         
         actual_delay1 = 1
-        res_atf1, new_route1, minimum_delays1 = result1.get_fastest_route(float(actual_delay1), agents, discrete=True, print_agent_delays=False)
+        res_atf1, new_route1, minimum_delays1, tipping_loc1 = result1.get_fastest_route(rerouting_agent1, original_arrival1, actual_delay1, agents, discrete=True, print_agent_delays=False)
+        ### Test the delays: agent 2 should be delayed with delay 1 ###
+        self.assertGreaterEqual(len(minimum_delays1[agents[2]]), 1)
+        self.assertIn(graph.nodes["(0,1)"], minimum_delays1[agents[2]])
+        self.assertEqual(minimum_delays1[agents[2]][graph.nodes["(0,1)"]], 1)
+        ### Test the tipping point: it's at the start of agent 1's route: (0,1) with original visiting time t=0 of agent 1 ###
+        self.assertEqual(len(tipping_loc1), 1)
+        self.assertIn(agents[2], tipping_loc1)
+        self.assertEqual(tipping_loc1[agents[2]], (graph.nodes["(0,1)"], 0))
+        
         del minimum_delays1[rerouting_agent1]
         graph.update_unsafe_intervals(new_path=(rerouting_agent1, new_route1, actual_delay1), minimum_delays=minimum_delays1)
         
-        print(f"Agent {rerouting_agent1} is delayed at time {actual_delay1} and has new path {'-'.join([node[0].name for node in new_route1 if isinstance(node[0], Node)])} with atf {res_atf1} that delays agent {[k for k, v in minimum_delays1.items() if v]} with route {'-'.join([node.name for node in [k for k, v in minimum_delays1.items() if v][0].route if isinstance(node, Node)])} at nodes {[f'{n}: {time}' for k, v in minimum_delays1.items() for n, time in v.items() if isinstance(n, Node)]}")
+        print(f"Agent {rerouting_agent1} is delayed at time {actual_delay1} and has new path {'-'.join([node[0].name for node in new_route1 if isinstance(node[0], Node)])} with atf {res_atf1} that delays agent {[k for k, v in minimum_delays1.items() if v]} with route {'-'.join([node.name for node in [k for k, v in minimum_delays1.items() if v][0].route if isinstance(node, Node)])} at nodes {[f'{n}: {time}' for k, v in minimum_delays1.items() for n, time in v.items() if isinstance(n, Node)]}{'<None>' if sum([len(v) for k,v in minimum_delays1.items()]) == 0 else ''}")
 
         ##### Test First FlexSIPP update #####
         # Found path uses flexibility
@@ -129,6 +139,7 @@ class TestCorridorExample(unittest.TestCase):
         ###################################
 
         rerouting_agent2 = agents[2]
+        original_arrival2 = rerouting_agent2.destination.unsafe_intervals[-1].start
         graph.filter_out_agent(rerouting_agent2)
         flexSIPP2 = FSIPP(graph, heuristic, agents)
         result2 = flexSIPP2.run_search(rerouting_agent2.origin.name, rerouting_agent2.destination.name, start_time, graph.global_end_time, optimize_total_delay=False)
@@ -143,7 +154,6 @@ class TestCorridorExample(unittest.TestCase):
         atf2, res2 = result2.found_routes[2]
         self.assertEqual(atf2[1], 2) # alpha
         self.assertEqual(atf2[2], 8) # beta
-
         self.assertDictEqual(res2["delays"], {1: [], 2: [], 3: [(graph.nodes["(0,1)"], 0, 0, 6)], 4: [], 5: []})
 
         ## Paths
@@ -158,11 +168,20 @@ class TestCorridorExample(unittest.TestCase):
         ###################################
 
         actual_delay2 = 4
-        res_atf2, new_route2, minimum_delays2 = result2.get_fastest_route(float(actual_delay2), agents, discrete=True, print_agent_delays=False)
+        res_atf2, new_route2, minimum_delays2, tipping_loc2 = result2.get_fastest_route(rerouting_agent2, original_arrival2, float(actual_delay2), agents, discrete=True, print_agent_delays=False)
+        ### Test the delays: agent 3 should be delayed with delay 4 ###
+        self.assertGreaterEqual(len(minimum_delays2[agents[3]]), 1)
+        self.assertIn(graph.nodes["(0,1)"], minimum_delays2[agents[3]])
+        self.assertEqual(minimum_delays2[agents[3]][graph.nodes["(0,1)"]], 3)
+        ### Test the tipping point: it's the second node of agent 2's route: (0,1) originally visited at t=1 by agent 2 (rerouting agent) ###
+        self.assertEqual(len(tipping_loc2), 1)
+        self.assertIn(agents[3], tipping_loc2)
+        self.assertEqual(tipping_loc2[agents[3]], (graph.nodes["(0,1)"], 1))
+        
         del minimum_delays2[rerouting_agent2]
         graph.update_unsafe_intervals(new_path=(rerouting_agent2, new_route2, actual_delay2), minimum_delays=minimum_delays2)
         
-        print(f"Agent {rerouting_agent2} is delayed at time {actual_delay2} and has new path {'-'.join([node[0].name for node in new_route2 if isinstance(node[0], Node)])} with atf {res_atf2} that delays agent {[k for k, v in minimum_delays2.items() if v]} with route {'-'.join([node.name for node in [k for k, v in minimum_delays2.items() if v][0].route if isinstance(node, Node)])} at nodes {[f'{n}: {time}' for k, v in minimum_delays2.items() for n, time in v.items() if isinstance(n, Node)]}")
+        print(f"Agent {rerouting_agent2} is delayed at time {actual_delay2} and has new path {'-'.join([node[0].name for node in new_route2 if isinstance(node[0], Node)])} with atf {res_atf2} that delays agent {[k for k, v in minimum_delays2.items() if v]} with route {'-'.join([node.name for node in [k for k, v in minimum_delays2.items() if v][0].route if isinstance(node, Node)])} at nodes {[f'{n}: {time}' for k, v in minimum_delays2.items() for n, time in v.items() if isinstance(n, Node)]}{'<None>' if sum([len(v) for k,v in minimum_delays2.items()]) == 0 else ''}")
 
         ##### Test Second FlexSIPP update #####
         # Found path uses flexibility
@@ -200,6 +219,7 @@ class TestCorridorExample(unittest.TestCase):
         ###################################
 
         rerouting_agent3 = agents[4]
+        original_arrival3 = rerouting_agent3.destination.unsafe_intervals[-1].start
         graph.filter_out_agent(rerouting_agent3)
         flexSIPP3 = FSIPP(graph, heuristic, agents)
         result3 = flexSIPP3.run_search(rerouting_agent3.origin.name, rerouting_agent3.destination.name, start_time, graph.global_end_time, optimize_total_delay=False)
@@ -214,10 +234,19 @@ class TestCorridorExample(unittest.TestCase):
         ###################################
 
         actual_delay3 = 4
-        res_atf3, new_route3, minimum_delays3 = result3.get_fastest_route(float(actual_delay3), agents, discrete=True, print_agent_delays=False)
+        res_atf3, new_route3, minimum_delays3, tipping_loc3 = result3.get_fastest_route(rerouting_agent3, original_arrival3, float(actual_delay3), agents, discrete=True, print_agent_delays=False)
+        ### Test the delays: agent 1 should be delayed with delay 2 ###
+        self.assertGreaterEqual(len(minimum_delays3[agents[1]]), 1)
+        self.assertIn(graph.nodes["(3,1)"], minimum_delays3[agents[1]])
+        self.assertEqual(minimum_delays3[agents[1]][graph.nodes["(3,1)"]], 2)
+        ### Test the tipping point: it's the second node of agent 4's route: (3,1) originally visited at t=3 by agent 4 (rerouting agent) ###
+        self.assertEqual(len(tipping_loc3), 1)
+        self.assertIn(agents[1], tipping_loc3)
+        self.assertEqual(tipping_loc3[agents[1]], (graph.nodes["(3,1)"], 2))
+        
         del minimum_delays3[rerouting_agent3]
         graph.update_unsafe_intervals(new_path=(rerouting_agent3, new_route3, actual_delay3), minimum_delays=minimum_delays3)
-        print(f"Agent {rerouting_agent3} is delayed at time {actual_delay3} and has new path {'-'.join([node[0].name for node in new_route3 if isinstance(node[0], Node)])} with atf {res_atf3} that delays agent {[k for k, v in minimum_delays3.items() if v]} with route {'-'.join([node.name for node in [k for k, v in minimum_delays3.items() if v][0].route if isinstance(node, Node)])} at nodes {[f'{n}: {time}' for k, v in minimum_delays3.items() for n, time in v.items() if isinstance(n, Node)]}")
+        print(f"Agent {rerouting_agent3} is delayed at time {actual_delay3} and has new path {'-'.join([node[0].name for node in new_route3 if isinstance(node[0], Node)])} with atf {res_atf3} that delays agent {[k for k, v in minimum_delays3.items() if v]} with route {'-'.join([node.name for node in [k for k, v in minimum_delays3.items() if v][0].route if isinstance(node, Node)])} at nodes {[f'{n}: {time}' for k, v in minimum_delays3.items() for n, time in v.items() if isinstance(n, Node)]}{'<None>' if sum([len(v) for k,v in minimum_delays3.items()]) == 0 else ''}")
 
         ##### Test Third FlexSIPP update #####
         # Found path uses flexibility
@@ -256,7 +285,7 @@ class TestCorridorExample(unittest.TestCase):
         rerouting_agent4 = agents[3]
         old_nodes = graph.nodes.copy()
         old_edges = graph.edges.copy()
-        original_arrival = rerouting_agent4.destination.unsafe_intervals[-1].start
+        original_arrival4 = rerouting_agent4.destination.unsafe_intervals[-1].start
         start4 = 10
         graph.filter_out_agent(rerouting_agent4)
         flexSIPP4 = FSIPP(graph, heuristic, agents)
@@ -264,7 +293,7 @@ class TestCorridorExample(unittest.TestCase):
         
         self.assertEqual(len(result4.found_routes), 0)
         graph.update_unsafe_intervals(new_path=(rerouting_agent4, [(rerouting_agent4.destination, (0, graph.global_end_time))], start4), minimum_delays={})
-        self.assertEqual(rerouting_agent4.destination.unsafe_intervals[-1].start, original_arrival)
+        self.assertEqual(rerouting_agent4.destination.unsafe_intervals[-1].start, original_arrival4)
         for node in graph.nodes:
             self.assertEqual(graph.nodes[node].unsafe_intervals, old_nodes[node].unsafe_intervals)
         for i in range(len(graph.edges)):

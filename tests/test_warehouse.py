@@ -57,13 +57,13 @@ class TestWarehouseExample(unittest.TestCase):
         self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][3][1], 4)
         self.assertEqual(result.unique_path_eatfs["(0,2)->(1,2)->(2,2)->(3,2)->(3,1)->(3,0)->(2,0)->(1,0)"][3][2], 5)
 
-        tipping_points = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True)
+        tipping_points = result.find_tipping_points(rerouting_agent, original_arrival_time_reroute, agents, optimize_total_delay=False, print_tipping_points=True, discrete=True)
         self.assertEqual(len(tipping_points), 1)
         self.assertEqual(tipping_points[0][0], 4)
 
-        optimal_start_time = result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True)
-        self.assertEqual(len(optimal_start_time), 1)
-        self.assertEqual(optimal_start_time[0][0], 1.5)
+        tipping_points_start_opt_delay = result.find_tipping_points(rerouting_agent, original_arrival_time_reroute, agents, optimize_total_delay=True, print_tipping_points=True, discrete=True)
+        self.assertEqual(len(tipping_points_start_opt_delay), 1)
+        self.assertEqual(tipping_points_start_opt_delay[0][0], 1.5)
 
 
 if __name__ == '__main__':
