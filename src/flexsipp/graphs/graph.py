@@ -73,9 +73,7 @@ class IntervalStore(object):
         start = unmerged_intervals[0]
         for next in unmerged_intervals[1:]:
             # Check for overlap using intersection
-            if start.by_agent == next.by_agent:
-                if not (start & next):
-                    logger.error(f"Merged non overlapping interval {start} and {next}")
+            if start.by_agent == next.by_agent and (start & next):
                 start = start | next
             else:
                 merged_intervals.add(start)
