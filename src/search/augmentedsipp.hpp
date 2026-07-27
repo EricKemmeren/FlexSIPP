@@ -63,7 +63,7 @@ namespace asipp{
 
         intervalTime_t eat = arrival_time_function.earliest_arrival_time();
         if (eat > edge.beta) {
-            std::cerr << "cur.alpha + cur.delta > edge.beta" << eat << " > " << edge.beta << std::endl;
+            std::cerr << "cur.alpha + cur.delta > edge.beta: " << eat << " > " << edge.beta << std::endl;
             return;
         }
 
