@@ -239,20 +239,34 @@ class Results:
             delay_addition = 0
         best_route = None
         best_atf = None
+        best_total_delay = float("inf")
         best_arrival_time = float("inf")
         for atf, route in self.found_routes:
             zeta, alpha, beta, delta = atf
-            if kwargs.get("beta_inclusive", False):
+            if kwargs.get("decide_tipping_point", False):
                 in_range = zeta <= actual_departure_time <= beta
             else:
                 in_range = zeta <= actual_departure_time < beta
             if in_range:
                 arrival_time = max(alpha, actual_departure_time) + delta
-                if arrival_time < best_arrival_time:
-                    best_arrival_time = arrival_time
-                    best_route = route
-                    best_atf = atf
-        
+                if kwargs.get("optimize_total_delay", True):
+                    counter_own_delay = min(0, arrival_time - original_arrival_time)
+                    total_delay_other_agents = counter_own_delay
+                    # Computes total delay for the ATF, not on the exact actual_departure_time
+                    for agent in agents.values():
+                        if route["delays"][agent.id]:
+                            # Account for delay of other agents once (max node)
+                            total_delay_other_agents += delay_addition + max([min_gamma for delay_location, min_delay, min_gamma, max_gamma in route["delays"][agent.id]])
+                    if arrival_time + total_delay_other_agents < best_arrival_time + best_total_delay:
+                        best_arrival_time = arrival_time
+                        best_route = route
+                        best_atf = atf
+                        best_total_delay = total_delay_other_agents
+                else:
+                    if arrival_time < best_arrival_time:
+                        best_arrival_time = arrival_time
+                        best_route = route
+                        best_atf = atf
         minimum_delays = {}
         tipping_location_and_original_time = {}
         if best_route is None:
@@ -274,10 +288,15 @@ class Results:
         
     def calculate_intersecting_atfs(self, original_arrival_time, **kwargs):
         line_list:list[Line] = []
+        route_list = []
         tipping_points = []
         axis = kwargs.get("plot_on_axis", None)
         for atf, route in self.found_routes:
+            # Calculate other agents delay lines
             zeta, alpha, beta, delta = atf
+            if beta - alpha == 0:
+                # Cannot construct line over same x coordinates
+                continue
             delay_at_alpha = alpha + delta - original_arrival_time
             delay_at_beta  = beta + delta - original_arrival_time
             for agents_delays in route["delays"].values():
@@ -289,32 +308,29 @@ class Results:
                         current_delay_at_beta  = max(current_delay_at_beta,  max_gamma)
                 delay_at_alpha += current_delay_at_alpha
                 delay_at_beta  += current_delay_at_beta
-
-            if beta - alpha == 0:
-                # Cannot construct line over same x coordinates
-                continue
             new_line = Line(alpha, beta, delay_at_alpha, delay_at_beta)
-
             if new_line in line_list:
                 continue
-            # Check if this new line decreases the total delay as opposed to the previous line
-            if line_list and new_line.y0 < line_list[-1].y1:
-                # If it decreases, the tipping point is the first(?) point where the y0
-                for old_line in line_list[::-1]:
-                    if kwargs.get("optimize_total_delay", True):
-                        x_intersection = old_line.get_x_value(new_line.y0)
-                        if x_intersection < float("inf"):
-                            tipping_points.append(x_intersection)
-                            if axis is not None:
-                                axis.plot([x_intersection, new_line.x0], [new_line.y0, new_line.y0], color="blue", linestyle="dashed")
-                            break
-                    else:
-                        tipping_points.append(old_line.x1)
-                        if axis is not None:
-                            axis.plot([old_line.x1, new_line.x0], [new_line.y0, new_line.y0], color="blue")
-                        break
-
+            if line_list:
+                if kwargs.get("optimize_total_delay", True):
+                    # Check if the new line decreases the total delay as opposed to the previous line
+                    if new_line.y0 < line_list[-1].y1:
+                        # If it decreases, the tipping point is the first(?) point where the y0
+                        for old_line in line_list[::-1]:
+                            x_intersection = old_line.get_x_value(new_line.y0)
+                            if x_intersection < float("inf"):
+                                tipping_points.append(x_intersection)
+                                if axis is not None:
+                                    axis.plot([x_intersection, new_line.x0], [new_line.y0, new_line.y0], color="blue", linestyle="dashed")
+                                break
+                else:
+                    # Tipping point is the beta parameter of the flexible ATF: previous ATF must have delays, while current should be non-delay
+                    current_delays = sum([d[3] for _, r in route["delays"].items() for d in r])
+                    previous_delays = sum([d[3] for _, r in route_list[-1]["delays"].items() for d in r])
+                    if current_delays == 0 and previous_delays > 0:
+                        tipping_points.append(line_list[-1].x1)
             line_list.append(new_line)
+            route_list.append(route)
         return tipping_points
 
     def find_tipping_points(self, delayed_agent, original_arrival_time, agents, **kwargs):
