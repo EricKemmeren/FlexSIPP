@@ -63,10 +63,10 @@ def run_flexsipp_scenario(location_file, scenario_file):
                     Line2D([0], [0], color="lightblue"),]
     axs[1,0].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
 
-    # Print the tipping points
-    result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
-    # Print the optimal starting time
-    result.find_tipping_points(agents, original_arrival_time=original_arrival_time_reroute, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0])
+    # Print the tipping points: critical location where one agent must arrive first
+    result.find_tipping_points(rerouting_agent, original_arrival_time_reroute, agents, discrete=True, optimize_total_delay=False, print_tipping_points=True, plot_on_axis=axs[1,0])
+    # Print the tipping points for the start time of rerouting_agent to optimize the total delay
+    result.find_tipping_points(rerouting_agent, original_arrival_time_reroute, agents, discrete=True, optimize_total_delay=True, print_tipping_points=True, plot_on_axis=axs[1,0])
     # Plot the delays
     result.plot(axs[1,0], show_atf=False, show_additional_delays=True)
 
@@ -77,8 +77,8 @@ def run_flexsipp_scenario(location_file, scenario_file):
     ax.set_yticks(range(0, graph.global_end_time + 1, 2))
 
     # Update the graph with the results from FlexSIPP, assume we know now the actual delay of Agent 2
-    atf, new_route, minimum_delays = result.get_fastest_route(actual_departure_time, agents, discrete=True)
-    print(f">>>Agent {rerouting_agent} is delayed at time {actual_departure_time} and has new path {'-'.join([node[0].name for node in new_route if isinstance(node[0], Node)])} with atf {atf} that delays agents {' and '.join([str(k) + ' with route ' + '-'.join([node.name for node in k.route if isinstance(node, Node)]) + ' at nodes ' + ' '.join([f'{n}: {time}' for n, time in v.items() if isinstance(n, Node)]) for k, v in minimum_delays.items() if v])}")
+    atf, new_route, minimum_delays, _ = result.get_fastest_route(rerouting_agent, original_arrival_time_reroute, actual_departure_time, agents, discrete=True)
+    print(f">>>Agent {rerouting_agent} is delayed at time {actual_departure_time} and has new path {'-'.join([node[0].name for node in new_route if isinstance(node[0], Node)])} with atf {atf} that delays agents {' and '.join([str(k) + ' with route ' + '-'.join([node.name for node in k.route if isinstance(node, Node)]) + ' at nodes ' + ' '.join([f'{n}: {time}' for n, time in v.items() if isinstance(n, Node)]) for k, v in minimum_delays.items() if v])}{'<None>' if sum([len(v) for k,v in minimum_delays.items()]) == 0 else ''}")
 
     del minimum_delays[rerouting_agent]
     graph.update_unsafe_intervals(new_path=(rerouting_agent, new_route, actual_departure_time), minimum_delays=minimum_delays)
@@ -120,7 +120,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     axs[1,3].legend(custom_lines, ["Total delay", "Other agents delay"], title="Objective", loc="lower right")
 
     # Print updated tipping points
-    update_result.find_tipping_points(agents, original_arrival_time=original_arrival_time_breakdown, optimize_total_delay=False)
+    update_result.find_tipping_points(broken_down_agent, original_arrival_time_breakdown, agents, optimize_total_delay=False, discrete=True)
 
     plt.show()
     plt.close()
