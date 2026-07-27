@@ -81,13 +81,17 @@ class FSIPP(Generic[EdgeType, NodeType]):
         interval_index_map: dict[int, int] = {}
         last_index = 0
 
-        for node in self.nodes:
+        sorted_nodes = [(node.name, node) for node in self.nodes]
+        sorted_nodes.sort(key=lambda x: x[0])
+        for _, node in sorted_nodes:
             for interval in node.safe_intervals:
                 f.write(f"{node.name} {repr(interval)}\n")
                 interval_index_map[interval.index] = last_index
                 last_index += 1
 
-        for atf in self.atfs:
+        sorted_atfs = [atf for atf in self.atfs]
+        sorted_atfs.sort(key=lambda x: (x.from_id, x.to_id, x.alpha))
+        for atf in sorted_atfs:
             atf = atf.replace_index(interval_index_map)
             f.write(f"{repr(atf)}\n")
         f.write(f"num_trains {self.num_agents}\n")
@@ -99,15 +103,19 @@ class FSIPP(Generic[EdgeType, NodeType]):
         :param destination: Location to search to.
         :param start_time: Time to start searching from. At start_time, the origin should be safe to visit.
         :param max_delay: Search for paths starting between start_time and start_time+max_delay (default=1000).
-        :param optimize_total_delay: If True, return the first path that optimizes the total delay for all agents in the simulation.
+        :param optimize_total_delay: If True, return the any-start-time plan that optimizes the total delay for all agents in the simulation.
+        :param find_first_path: If True, return the first path that optimizes the total delay for all agents in the simulation.
         :param redirect_stdout: file to redirect the output stream from the c++ search to.
         :param redirect_stderr: file to redirect the error output stream from the c++ search to.
         """
         graph = io.StringIO()
         self._write(graph)
+        if kwargs.get("write_fsipp_graph", None):
+            with open(kwargs.get("write_fsipp_graph", None), "w") as f:
+                self._write(f)
         graph = graph.getvalue()
         log_time_start = time.time()
         with redirect_cpp_output(kwargs.get("redirect_stdout", os.devnull), kwargs.get("redirect_stderr", os.devnull)):
-            result = search.search(str(origin), str(destination), graph, start_time, max_delay, kwargs.get("optimize_total_delay", False))
+            result = search.search(str(origin), str(destination), graph, start_time, max_delay, kwargs.get("optimize_total_delay", False), kwargs.get("find_first_path", False))
         log_time_end = time.time()
         return Results.parse_json(result, self.g, log_time_end - log_time_start)
