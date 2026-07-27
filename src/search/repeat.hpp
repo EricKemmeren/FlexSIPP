@@ -120,5 +120,5 @@ namespace rePEAT{
         }
     };
 
-    CompoundATF<std::vector<GraphContainer>> search(GraphNode * source, const Location& dest, MetaData & m, double start_time, gamma_t gamma, intervalTime_t search_duration, bool optimize_total_delay);
+    CompoundATF<std::vector<GraphContainer>> search(GraphNode * source, const Location& dest, MetaData & m, double start_time, gamma_t gamma, intervalTime_t search_duration, bool optimize_total_delay, bool find_first_path);
 }
