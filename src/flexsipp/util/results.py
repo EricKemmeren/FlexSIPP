@@ -202,8 +202,36 @@ class Results:
 
         return json.dumps(out)
 
-    # TODO: get_best_route that takes into account the total delay
-    def get_fastest_route(self, actual_departure_time: float, agents: dict[Any, Agent], **kwargs):
+    def get_visiting_time_at_tipping_location(self, tipping_location_and_original_time, wait_location, best_route, agent, delayed_agent):
+        visit_time = 0
+        wait_location_nodes = [loc for loc in wait_location if isinstance(loc, Node)]
+        tipp_loc = wait_location_nodes[-2] if len(wait_location_nodes) > 1 else wait_location_nodes[-1]
+        for j, loc in enumerate(best_route["route"]):
+            if loc[0] == tipp_loc:
+                tipping_location_and_original_time[agent] = (tipp_loc, visit_time)
+                break
+            if isinstance(loc[0], Node):
+                delayed_agent_passed_through = [ui for ui in loc[0].old_unsafe_intervals if ui.by_agent == delayed_agent]
+                # If the agent passed through in its original path
+                if delayed_agent_passed_through:
+                    for ui in delayed_agent_passed_through:
+                        # Use the safe intervals to get the actual duration how long an agents visits this node
+                        visit_time += ui.duration
+                        break
+                else:
+                    # Otherwise use edge length, as agent is not waiting along new route
+                    next_edge = best_route["route"][j+1][0]
+                    visit_time += next_edge.length
+        return tipping_location_and_original_time
+
+    def get_fastest_route(self, delayed_agent: Agent, original_arrival_time: float, actual_departure_time: float, agents: dict[Any, Agent], **kwargs):
+        """
+            The following parameters can be passed in kwargs:
+            - `discrete` used for any discrete applications (such as MAPF) to calculate the correct delay
+            - `decide_tipping_point` this is only used by the `find_tipping_points` function to decide the actual tipping point, don't use this when calling this method directly
+            - `optimize_total_delay`: determine whether the route should be fastest for the delayed agent or optimal overall.
+            - `print_agent_delays`: print the delays of other agents to create this route for the delayed agent
+        """
         # To get the correct times, as the continuous intervals are exclusive of the end
         if kwargs.get("discrete", False):
             delay_addition = 1
@@ -226,28 +254,28 @@ class Results:
                     best_atf = atf
         
         minimum_delays = {}
+        tipping_location_and_original_time = {}
         if best_route is None:
-            return [0, 0, 0, 0], [], minimum_delays
+            return [0, 0, 0, 0], [], minimum_delays, tipping_location_and_original_time
         for agent in agents.values():
             minimum_delay = {}
             for delay_location, min_delay, min_gamma, max_gamma in best_route["delays"][agent.id]:
                 wait_location = agent.get_wait_location(delay_location, {tup[0] for tup in best_route["node_route"]})
+                # Determine tipping point location (last unsafe location in delay locations) per agent, independent whether same or opposite direction
+                if wait_location:
+                    tipping_location_and_original_time = self.get_visiting_time_at_tipping_location(tipping_location_and_original_time, wait_location, best_route, agent, delayed_agent)
                 delay = min_gamma + max(best_atf[1], actual_departure_time) - best_atf[1] + delay_addition
                 if kwargs.get("print_agent_delays", True):
                     print(f"Agent {agent} delayed at {delay_location}, should wait at {[x.name for x in wait_location if isinstance(x, Node)]} for at least {delay}")
                 for loc in wait_location:
                     minimum_delay[loc] = max(minimum_delay.get(loc, 0), delay)
             minimum_delays[agent] = minimum_delay
-
-        return best_atf, best_route["route"], minimum_delays
-
-    def find_tipping_points(self, agents, **kwargs):
+        return best_atf, best_route["route"], minimum_delays, tipping_location_and_original_time
+        
+    def calculate_intersecting_atfs(self, original_arrival_time, **kwargs):
         line_list:list[Line] = []
         tipping_points = []
-        original_arrival_time = kwargs.get("original_arrival_time", 0)
-
         axis = kwargs.get("plot_on_axis", None)
-
         for atf, route in self.found_routes:
             zeta, alpha, beta, delta = atf
             delay_at_alpha = alpha + delta - original_arrival_time
@@ -287,15 +315,41 @@ class Results:
                         break
 
             line_list.append(new_line)
+        return tipping_points
+
+    def find_tipping_points(self, delayed_agent, original_arrival_time, agents, **kwargs):
+        """
+        Compute the tipping points for delayed agent or to optimize total delay with kwargs:
+        * optimize_total_delay: whether to return the tipping point with our without optimizing for total delay (default=True)
+        * discrete: whether a discrete setting is used, which influences the actual arrival times and delays (default=False)
+        * print_tipping_points: whether to print tipping points or simple calculate and return them (default=True)
+        * print_agent_delays: whether to print the delays of other agents (default=True)
+        * plot_on_axis: the axis object to plot the delays in (default=None)
+        """
+        tipping_points = self.calculate_intersecting_atfs(original_arrival_time, **kwargs)
         resulting_tipping_points = []
+        found = False
         for tipping_point in tipping_points:
-            atf, new_route, minimum_delays = self.get_fastest_route(tipping_point, agents, beta_inclusive=True, **kwargs)
-            resulting_tipping_points.append((tipping_point, atf, new_route, minimum_delays))
+            decide_tipping_point = not kwargs.get("optimize_total_delay", True)
+            kwargs.setdefault("print_delays", False)
+            atf, new_route, minimum_delays, tipping_location = self.get_fastest_route(delayed_agent, original_arrival_time, tipping_point, agents, decide_tipping_point=decide_tipping_point, **kwargs)
+            # Only return tipping point and location and delays, not ATF, as these are not correct, use get_fastest_route() at this time to get ATF and route. 
+            if kwargs.get("optimize_total_delay", True):
+                assert delayed_agent not in tipping_location
+                tipping_location[delayed_agent] = (new_route[0][0], tipping_point)
+            resulting_tipping_points.append((tipping_point, tipping_location, minimum_delays))
             if kwargs.get("print_tipping_points", True):
-                for agent, delays in minimum_delays.items():
-                    if delays:
-                        if kwargs.get("optimize_total_delay", True):
-                            print(f"Optimal starting time for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
-                        else:
-                            print(f"Tipping point for agent {agent} at {list(delays.keys())[0]}, {tipping_point}")
+                if kwargs.get("optimize_total_delay", True):
+                    if delayed_agent.origin != new_route[0][0]:
+                        print(f"ERROR: delayed agent {delayed_agent} does not have same origin {new_route[0][0]} that matches new route for starting tipping point {tipping_point}, route {new_route}")
+                    print(f"Tipping point to optimize total delay for agent {delayed_agent} to start at {new_route[0][0]} is time {tipping_point}")
+                    found = True
+                else:
+                    for agent, delays in minimum_delays.items():
+                        if delays:
+                            found = True
+                            # Tipping point is time the delayed agent would have reached the tipping location: tipping point (on arrival time) plus its original arrival time
+                            print(f"Tipping point between rerouted agent {delayed_agent} and agent {agent} at location {tipping_location[agent][0]} with tipping point t={tipping_point + tipping_location[agent][1]} relates to departure time t={tipping_point} for rerouted agent {delayed_agent} at {delayed_agent.origin} and delay of {', '.join([f'{d} at {n}' for n, d in minimum_delays[agent].items() if isinstance(n, Node)])}")
+            if not found:
+                print(f"No tipping point found.")
         return resulting_tipping_points
