@@ -1,3 +1,4 @@
+import sys
 import time
 import json
 import math
@@ -128,20 +129,30 @@ def repeated_delays(location_file, scenario_file, delays, num_delays, result_fil
     return executed_delays, complete_result
 
 if __name__ == "__main__":
+    if len(sys.argv) > 1:
+        config = sys.argv[1]
+        scenario_number = int(sys.argv[2])
+        instance_flexibility = int(sys.argv[3])
+        if instance_flexibility not in [0, 3, 5, 8]:
+            raise ValueError(f"Instance flexibility must be 0, 3, 5, or 8")
+    else:
+        # Folder in data/mapf containing the scenario
+        config = "maze1"
+        # We run this experiment for a specific scenario
+        scenario_number = 1
+        # We do not assume added flexibility in the original paths (this can be 0, 3, 5, 8)
+        instance_flexibility = 5
+        
+    # We take the larger instance with 50 agents
+    num_agents = 50
+    num_delays = int(math.floor(num_agents / 2))
+
+    print(f"Running config {config} scenario {scenario_number} with {num_agents} agents and flexibility {instance_flexibility}")
+    
     random_seed = 42
     random.seed(random_seed)
     max_delay = None
     date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
-
-    # Folder in data/mapf containing the scenario
-    config = "maze1"
-    # We run this experiment for a specific scenario
-    scenario_number = 1
-    # We do not assume added flexibility in the original paths (this can be 0, 3, 5, 8)
-    instance_flexibility = 3
-    # We take the larger instance with 50 agents
-    num_agents = 50
-    num_delays = int(math.floor(num_agents / 2))
     
     # Store files in ./output/{config}
     result_dir = Path(__file__).parent / "output" / config
@@ -166,8 +177,10 @@ if __name__ == "__main__":
 
     # Generate delays for all agents, allowing only a <max_delay>
     delays = get_delays_from_seed(location, scenario_file, num_agents, scenario_end=None, max_delay=max_delay)
-
+    
+    # First run @MAEDeR to resolve <num_delays> successfully, then run FlexSIPP on those same delays
     for algorithm in ["@MAEDeR", "FlexSIPP"]:
         result_file = result_dir / f"replan_{algorithm}_{scenario}_{date}_f{instance_flexibility}_seed{random_seed}_{num_delays}delays_m{max_delay if max_delay else 'INF'}.json"
+        print(algorithm, len(delays), "delays")
         # First run @MAEDeR, then run FlexSIPP only on the executed delays - which are updated
         delays, result = repeated_delays(location, scenario_file, delays, num_delays, result_file, use_flexibility=algorithm == "FlexSIPP", scenario_end=None)

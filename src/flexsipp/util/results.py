@@ -226,6 +226,7 @@ class Results:
 
     def get_fastest_route(self, delayed_agent: Agent, original_arrival_time: float, actual_departure_time: float, agents: dict[Any, Agent], **kwargs):
         """
+            If the agent is new and has no original arrival time, then pass 0.
             The following parameters can be passed in kwargs:
             - `discrete` used for any discrete applications (such as MAPF) to calculate the correct delay
             - `decide_tipping_point` this is only used by the `find_tipping_points` function to decide the actual tipping point, don't use this when calling this method directly
