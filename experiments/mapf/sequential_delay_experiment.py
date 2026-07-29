@@ -39,7 +39,7 @@ def get_delays_from_seed(location_file, scenario_file, num_delays, scenario_end=
     delays = [(i, id, loc, delay, t) for i, (id, loc, delay, t) in enumerate(delays)]
     return delays
 
-def repeated_delays(location_file, scenario_file, delays, num_delays, result_file, scenario_end=None, use_flexibility=True):
+def repeated_delays(location_file, scenario_file, delays, num_delays, result_file, optimize_delay, scenario_end=None, use_flexibility=True):
     graph, agents = create_mapf_instance_from_paths(location_file, scenario_file, scenario_end)
     epsilon = 0.001
     # To ensure fair comparison, @MAEDeR first solves <num_delays> of the delays, and returns the delays actually solved
@@ -51,13 +51,13 @@ def repeated_delays(location_file, scenario_file, delays, num_delays, result_fil
             "arrival": (agent.destination.name, agent.destination.unsafe_intervals[-1].start)
         } for id, agent in agents.items()}
     count_delays = 0
-    while len(executed_delays) < num_delays:
+    while len(executed_delays) < num_delays and count_delays < len(delays):
         delay_idx, delay_agent_id, delay_origin, delayed_start_time, original_start_time = delays[count_delays]
         count_delays += 1
         delay_agent = agents[delay_agent_id]
         gen_time_start = time.time()
         original_arrival_time = delay_agent.destination.unsafe_intervals[-1].start
-        print(f"Now {delay_idx} delaying agent {delay_agent} at time {delayed_start_time} at node {delay_origin} with original start time {original_start_time} using flexibility: {use_flexibility}")
+        print(f"Now {delay_idx} delaying agent {delay_agent} at time {delayed_start_time} at node {delay_origin} with original start time {original_start_time} using flexibility: {use_flexibility} and optimizing total delays: {optimize_delay}")
         
         # Filter out that agents unsafe intervals
         graph.filter_out_agent(delay_agent)
@@ -72,7 +72,7 @@ def repeated_delays(location_file, scenario_file, delays, num_delays, result_fil
         failure = False
         # Run the expansion A* search
         try:
-            result = flexSIPP.run_search(delay_origin, delay_agent.destination, delayed_start_time, max_delay=delayed_start_time+epsilon, optimize_total_delay=True, find_first_path=True)
+            result = flexSIPP.run_search(delay_origin, delay_agent.destination, delayed_start_time, max_delay=delayed_start_time+epsilon, optimize_total_delay=optimize_delay, find_first_path=True)
         except RuntimeError:
             print(f"Could not find safe starting state at {delay_origin} at time {delayed_start_time} for agent {delay_agent}")
             failure = True
@@ -81,7 +81,7 @@ def repeated_delays(location_file, scenario_file, delays, num_delays, result_fil
         post_time_start = time.time()
         # Pick a route from the results the agent will take, currently selecting a given amount of delay
         if not failure:
-            atf, new_route, minimum_delays, _ = result.get_fastest_route(delay_agent, original_arrival_time, delayed_start_time, agents, discrete=True, print_agent_delays=False, optimize_total_delay=True)
+            atf, new_route, minimum_delays, _ = result.get_fastest_route(delay_agent, original_arrival_time, delayed_start_time, agents, discrete=True, print_agent_delays=False, optimize_total_delay=optimize_delay)
             result.metadata.update({
                 "unique_routes_safe": {path: [str(a) for a in atfs] for path, atfs in result.unique_routes_eatfs.items()},
                 "path_differences": result.compare_paths([str(node) for node in delay_agent.route if isinstance(node, GridCell)])
@@ -176,11 +176,17 @@ if __name__ == "__main__":
     scenario = scenario_file.stem.split("_paths")[0]
 
     # Generate delays for all agents, allowing only a <max_delay>
-    delays = get_delays_from_seed(location, scenario_file, num_agents, scenario_end=None, max_delay=max_delay)
+    all_delays = get_delays_from_seed(location, scenario_file, num_agents, scenario_end=None, max_delay=max_delay)
+    delays = all_delays.copy()
     
     # First run @MAEDeR to resolve <num_delays> successfully, then run FlexSIPP on those same delays
-    for algorithm in ["@MAEDeR", "FlexSIPP"]:
-        result_file = result_dir / f"replan_{algorithm}_{scenario}_{date}_f{instance_flexibility}_seed{random_seed}_{num_delays}delays_m{max_delay if max_delay else 'INF'}.json"
-        print(algorithm, len(delays), "delays")
-        # First run @MAEDeR, then run FlexSIPP only on the executed delays - which are updated
-        delays, result = repeated_delays(location, scenario_file, delays, num_delays, result_file, use_flexibility=algorithm == "FlexSIPP", scenario_end=None)
+    for optimal in [True, False]:
+        for algorithm in ["@MAEDeR", "FlexSIPP"]:
+            result_file = result_dir / f"replan_{algorithm}_{scenario}_{date}_f{instance_flexibility}_o{optimal}_seed{random_seed}_{num_delays}delays_m{max_delay if max_delay else 'INF'}.json"
+            print(algorithm, len(delays), "delays")
+            # First run @MAEDeR, then run FlexSIPP only on the executed delays - which are updated
+            executed_delays, result = repeated_delays(location, scenario_file, delays, num_delays, result_file, optimal, use_flexibility=algorithm == "FlexSIPP", scenario_end=None)
+            if algorithm == "@MAEDeR":
+                delays = executed_delays
+            else:
+                delays = all_delays.copy()
