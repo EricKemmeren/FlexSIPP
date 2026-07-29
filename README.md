@@ -85,25 +85,12 @@ The graph defined in `block_graph.py` uses blocking time theory, where the nodes
 The experiment in the paper can not be reproduced due to proprietary data, a mockup experiment could be run as in the test cases or the first code block in this README.
 
 # Cluster 
-To run FlexSIPP experiments on the cluster:
-
-1. Load required modules:
-```bash
-module load 2026
-module load gcc/13.3
-module load boost/1.90
-module load python/3.13
-export PKG_CONFIG_PATH=$BOOST_ROOT/lib/pkgconfig:$PKG_CONFIG_PATH
+To run FlexSIPP experiments on a slurm cluster, ensure that the virtual environment is used by the Python version running the experiment. Therefore, first run in a login-node
 ```
-2. Clone and create environment, and install dependencies:
-```bash
-git clone <repo>
-cd FlexSIPP
-python -m venv .venv
-source .venv/bin/activate
-pip install --upgrade pip setuptools
-pip install meson ninja meson-python pybind11
-pip install . -Csetup-args="-Dboost_includedir=$BOOST_ROOT/include" -Csetup-args="-Dboost_librarydir=$BOOST_ROOT/lib" -v  # Builds C++ extensions with Meson
-deactivate
+$ bash create_venv.sh
 ```
-Now you can run the script `/experiments/mapf/run_on_cluster.sh`
+Then, you can schedule the experiments, using
+```
+$ sbatch experiments/mapf/run-on-cluster.sh
+```
+which can be adjusted to different experiments.
