@@ -8,3 +8,5 @@ __pycache__/
 /data/friso
 *.txt
 **/output/
+**/timing/
+**/.DS_Store

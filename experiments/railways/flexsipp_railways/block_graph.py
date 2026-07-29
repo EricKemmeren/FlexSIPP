@@ -7,7 +7,8 @@ from copy import copy
 from tqdm import tqdm
 
 from flexsipp.agent import Agent
-from flexsipp.graphs.graph import Graph, Node, Edge
+from flexsipp.graphs.graph import Graph, Node, Edge, IntervalStore
+from flexsipp.util.intervals import UnsafeInterval
 from flexsipp.util.plotting_info import PlottingStore
 
 from .track_graph import TrackEdge, TrackNode, TrackGraph, Signal
@@ -40,12 +41,37 @@ class BlockEdge(Edge["BlockEdge", "BlockNode"], PlottingStore):
             for interval_store in track.opposites:
                 interval_store.blocks.add(self)
 
+    def merge_unsafe_intervals(self):
+        interval_stores: set[IntervalStore] = {self}
+        for track in self.track_route:
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.merge_unsafe_intervals(store)
+
+    def add_unsafe_interval(self, interval: UnsafeInterval):
+        interval_stores: set[IntervalStore] = {self}
+        for track in self.track_route:
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.add_unsafe_interval(store, interval)
+
+    def remove_unsafe_interval(self, interval: UnsafeInterval):
+        interval_stores: set[IntervalStore] = {self}
+        for track in self.track_route:
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.remove_unsafe_interval(store, interval)
+
     def add_flexibility(self, agent: Agent, bt: float, crt:float):
-        # Store the buffer and crt
-        for tr in self.track_route:
-            # blocks = tr.blocks.union(tr.from_node.blocks)
-            for block in tr.blocks:
-                super(type(block), block).add_flexibility(agent, bt, crt)
+        interval_stores: set[IntervalStore] = {self}
+        for track in self.track_route:
+            interval_stores.update(track.blocks)
+
+        for store in interval_stores:
+            IntervalStore.add_flexibility(store, agent, bt, crt)
 
 
 class TqdmLogger:
@@ -63,31 +89,28 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
     def __init__(self, g: TrackGraph):
         super().__init__()
         self.tg = g
+        self.global_end_time = g.global_end_time
 
-    @classmethod
-    def from_track_graph(cls, g: TrackGraph):
-        g_block = cls(g)
         track_to_signal = {signal.track: signal for signal in g.signals}
         for signal in g.signals:
-            block = g_block.add_node(BlockNode(f"{signal.id}"))
+            block = self.add_node(BlockNode(f"{signal.id}"))
             signal.track.blocks.add(block)
             for out_e in signal.track.outgoing:
                 for opp in out_e.to_node.opposites:
                     opp.blocks.add(block)
         for signal in tqdm(g.signals, file=TqdmLogger(logger), mininterval=1, ascii=False):
-            blocks = g_block.generate_signal_blocks(signal, g.signals)
+            blocks = self.generate_signal_blocks(signal, g.signals)
             for idx, (block, route, length, max_velocity) in enumerate(blocks):
 
-                # Create edges in g_block
-                from_signal_node = g_block.nodes[f"{signal.id}"]
+                # Create edges in self
+                from_signal_node = self.nodes[f"{signal.id}"]
 
                 # Only add edge if a signal is found at the end of the route
                 to_signal = track_to_signal[block[-1]]
-                to_signal_node = g_block.nodes[f"{to_signal.id}"]
+                to_signal_node = self.nodes[f"{to_signal.id}"]
                 direction = "".join(set(signal.direction + to_signal.direction))
-                e = g_block.add_edge(BlockEdge(from_signal_node, to_signal_node, length, route, direction, max_velocity))
+                e = self.add_edge(BlockEdge(from_signal_node, to_signal_node, length, route, direction, max_velocity))
                 logger.debug(f"Found block {e} with length {length} and max velocity {max_velocity}")
-        return g_block
 
     def __eq__(self, other):
         return super().__eq__(other)
@@ -106,7 +129,11 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
             n = 2 if direction == "A" else 0
             block_name = "|".join(track.name.split("-")[0].split("|")[n:n+2])
             if block_name not in self.nodes:
-                return None
+                # This is probably the test scenarios as naming is different
+                block_name = f"{track.name[0:-1]}|{track.name[-1]}"
+                if block_name not in self.nodes:
+                    # Other error, return None
+                    return None
             block = self.nodes[block_name]
             if block in track.blocks:
                 return block

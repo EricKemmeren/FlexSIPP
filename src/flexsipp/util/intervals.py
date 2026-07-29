@@ -71,7 +71,12 @@ class UnsafeInterval(Interval):
 
     def __str__(self):
         return f'{super().__str__()},{self.duration},{self.by_agent}'
-
+    
+    def __eq__(self, other):
+        if isinstance(other, UnsafeInterval) and super().__eq__(other):
+            return self.by_agent == other.by_agent
+        return False
+    
     def __or__(self, other):
         sup = super().__or__(other)
         return UnsafeInterval(sup.start, sup.end, self.duration + other.duration, self.by_agent, self.local_recovery_time + other.local_recovery_time)
@@ -80,7 +85,6 @@ class UnsafeInterval(Interval):
         super().merge(other)
         self.duration += other.duration
         self.local_recovery_time += other.local_recovery_time
-        # assert self.by_agent == other.by_agent
 
 class SafeInterval(Interval):
     def __init__(self, start, end, agent_before: Agent, crt_before: float, agent_after: Agent, buffer_after: float, crt_after: float):
@@ -125,20 +129,20 @@ class ArrivalTimeFunction:
 
         if self.alpha == from_interval.start:
             self.train_before = self._check_agent(from_interval.agent_before)
-        if self.alpha == edge_interval.start:
-            self.train_before = self._check_agent(edge_interval.agent_before)
         if self.alpha == (to_interval.start - delta):
             self.train_before = self._check_agent(to_interval.agent_before)
+        if self.alpha == edge_interval.start:
+            self.train_before = self._check_agent(edge_interval.agent_before)
 
         if self.beta == from_interval.end:
             self.train_after  = self._check_agent(from_interval.agent_after)
-        if self.beta == edge_interval.end:
-            self.train_after = self._check_agent(edge_interval.agent_after)
         if self.beta == (to_interval.end - delta):
             self.train_after = self._check_agent(to_interval.agent_after)
+        if self.beta == edge_interval.end:
+            self.train_after = self._check_agent(edge_interval.agent_after)
 
-    # TODO: check if still needed
     @staticmethod
+    ## Used by railways, agent 0 does not exist but serves as the agent before 
     def _check_agent(agent):
         if isinstance(agent, Agent):
             return agent
@@ -155,23 +159,22 @@ class FlexibleArrivalTimeFunction(ArrivalTimeFunction):
 
         self.heuristic = heuristic
 
-        # TODO: check if maybe it should not be from the edge but from the from or to node
         if self.alpha == from_interval.start:
             self.crt_before = from_interval.crt_before
-        if self.alpha == edge_interval.start:
-            self.crt_before = edge_interval.crt_before
         if self.alpha == (to_interval.start - delta):
             self.crt_before = to_interval.crt_before
+        if self.alpha == edge_interval.start:
+            self.crt_before = edge_interval.crt_before
 
         if self.beta == from_interval.end:
             self.crt_after = from_interval.crt_after
             self.buffer_after = from_interval.buffer_after
-        if self.beta == edge_interval.end:
-            self.crt_after = edge_interval.crt_after
-            self.buffer_after = edge_interval.buffer_after
         if self.beta == (to_interval.end - delta):
             self.crt_after = to_interval.crt_after
             self.buffer_after = to_interval.buffer_after
+        if self.beta == edge_interval.end:
+            self.crt_after = edge_interval.crt_after
+            self.buffer_after = edge_interval.buffer_after
 
     def __repr__(self):
         return f"{self.from_id} {self.to_id} {self.zeta} {self.alpha} {self.beta} {self.delta} {self.train_before} {self.crt_before} {self.train_after} {self.buffer_after} {self.crt_after} {self.heuristic}"

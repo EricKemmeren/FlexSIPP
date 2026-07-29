@@ -1,5 +1,4 @@
-#define BOOST_PYTHON_STATIC_LIB
-#include <boost/python.hpp>
+#include <pybind11/pybind11.h>
 
 #include <chrono>
 #include <filesystem>
@@ -12,7 +11,7 @@
 #include "repeat.hpp"
 #include "structs.hpp"
 
-std::string search(std::string start, std::string goal, std::string graph_str, double start_time_d=0, double max_search_time_d=1000, bool optimize_total_delay=false) {
+std::string search(std::string start, std::string goal, std::string graph_str, double start_time_d=0, double max_search_time_d=1000, bool optimize_total_delay=false, bool find_first_path=false) {
     intervalTime_t start_time = start_time_d;
     intervalTime_t max_search_time = max_search_time_d;
     Location source_loc(start);
@@ -39,10 +38,12 @@ std::string search(std::string start, std::string goal, std::string graph_str, d
     gamma_t initial_gamma(g.n_agents + 1);
 
     auto search_start_time = std::chrono::high_resolution_clock::now();
-    auto res = rePEAT::search(source, goal_loc, m, start_time, initial_gamma, max_search_time, optimize_total_delay);
+    auto res = rePEAT::search(source, goal_loc, m, start_time, initial_gamma, max_search_time, optimize_total_delay, find_first_path);
     auto search_time = std::chrono::high_resolution_clock::now();
     auto search_duration = std::chrono::duration_cast<std::chrono::milliseconds >(
             search_time - search_start_time);
+    
+    std::cerr << "\n\nresult " << res << std::endl;
 
     std::stringstream ss;
 
@@ -59,6 +60,14 @@ std::string search(std::string start, std::string goal, std::string graph_str, d
     return output;
 }
 
-BOOST_PYTHON_MODULE(search) {
-    boost::python::def("search", search);
+PYBIND11_MODULE(search, m) {
+    m.def("search", &search, 
+          "Search for flexible any-start-time plans",
+          pybind11::arg("start"),
+          pybind11::arg("goal"),
+          pybind11::arg("graph_str"),
+          pybind11::arg("start_time_d") = 0,
+          pybind11::arg("max_search_time_d") = 1000,
+          pybind11::arg("optimize_total_delay") = false,
+          pybind11::arg("find_first_path") = false);
 }

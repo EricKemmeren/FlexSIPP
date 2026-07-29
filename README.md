@@ -21,21 +21,36 @@ Building flexsipp requires `boost` to be installed using `msvc`. On Windows this
 the [boost binaries](https://www.boost.org/releases/1.90.0/) msvc version 14.3. Install these binaries in `C:\Boost` 
 or set the `BOOST_PATH_DLL` environment variable to the folder that contains the .dlls files.
 
-To run a specific scenario on a matching location for a specific agent (id=`1`):
+### How to run + Experiments
+To run a specific railways scenario on a matching location for a specific agent (id=`1`):
 ```bash
-python experiments/railways/main.py -s tests/scenario_test.json -l tests/location_test.json -a 1
+python experiments/railways/main.py -s data/railways/scenario_test.json -l data/railways/location_test.json -a 1
 ```
 Or for a MAPF scenario, you need to pass the agents paths:
 ```bash
-python experiments/mapf/main.py -s data/mapf/maze/scen-even/maze-128-128-1-even-1-k50_paths.txt -l data/mapf/maze/maze-128-128-1.map
-python experiments/mapf/main.py -s data/mapf/corridor/corridor-2agents_paths.txt -l data/mapf/corridor/corridor.map
+python experiments/mapf/main.py -s data/mapf/example_warehouse/paths.txt -l data/mapf/example_warehouse/warehouse.map
 ```
 
-To run an experiment with several sequential delays, run:
+We also created three files for the mapf experiments used in our paper, to run these execute them using python.
+
+The `warehouse.py` has a scenario with four agents, where one agent breaks down and another agent needs to reroute, using the flexibility of a third agent that cannot influence the fourth agent.
 ```bash
-python experiments/mapf/sequential_delays.py -l data/mapf/corridor/corridor.map -s data/mapf/corridor/corridor-2agents_paths.txt -d data/mapf/corridor/delays.csv -e 20
-python experiments/mapf/sequential_delays.py -l data/mapf/simple/simple.map -s data/mapf/simple/6agents_paths.txt -d data/mapf/simple/delays.csv
+python experiments/mapf/warehouse.py
 ```
+The `warehouse_delay.py` is the running example in our published paper, where we assume one agent is delayed so it either forces a second agent to use flexibility (not influencing the third agent), or finds a different route.
+```bash
+python experiments/mapf/warehouse_delay.py
+```
+The `single_delay_experiment` runs the scenarios with 0 or added flexibility in the original paths, and finds a new route for a single random delay.
+```bash
+python experiments/mapf/single_delay_experiment.py
+```
+The `sequential_delay_experiment.py` runs one single scenario where it delays half of the agent sequentially, recovering from a delay and then handling the next.
+```bash
+python experiments/mapf/sequential_delay_experiment.py
+```
+
+The railway experiment can be found in `experiments/railways/experiment_rotterdam_schiphol.ipynb`
 
 To run the tests use:
 ```bash
@@ -44,7 +59,7 @@ python -m unittest discover -s tests
 
 To cite, please use:
 
-    Issa Hanou, Eric Kemmeren, Devin Wild Thomas, and Mathijs de Weerdt.Precomputing Multi-Agent Path Replanning using Temporal Flexibility: A Case Study on the Dutch Railway Network. (2026). [In Proceedings: International Conference on Automated Planning and Scheduling](https://arxiv.org/abs/2601.04884).
+    Issa Hanou, Eric Kemmeren, Devin Wild Thomas, and Mathijs de Weerdt.Precomputing Multi-Agent Path Replanning using Temporal Flexibility: A Case Study on the Dutch Railway Network. (2026). [In Proceedings: Nineteenth International Symposium on Combinatorial Search](https://arxiv.org/abs/2601.04884).
 
 # Benchmarks
 
@@ -64,4 +79,18 @@ Agent <id1>: (y0,x0)->(y1,x1)->(y1,x1)->(y1,x1)->(y2,x2)->...->(yN,xN)->
 To add a new benchmark with a different file structure, the `Graph` class must be implemented for this type of location and the `Agent`s must be initialized with their initial routes and predefined flexibility. See `generate_mapf.py` for an example with the Moving AI benchmarks.
 
 ### Railways
-*TODO explain file structures*
+The railway specific code can be found in `experiments/railways`. 
+The railway is divided into two graphs, `track_graph.py` contains a view of the railway network using the smallest possible section on the track that can be reserved by a train. 
+The graph defined in `block_graph.py` uses blocking time theory, where the nodes are the signal and the edges the route between these.
+The experiment in the paper can not be reproduced due to proprietary data, a mockup experiment could be run as in the test cases or the first code block in this README.
+
+# Cluster 
+To run FlexSIPP experiments on a slurm cluster, ensure that the virtual environment is used by the Python version running the experiment. Therefore, first run in a login-node
+```
+$ bash create_venv.sh
+```
+Then, you can schedule the experiments, using
+```
+$ sbatch experiments/mapf/run-on-cluster.sh
+```
+which can be adjusted to different experiments.
