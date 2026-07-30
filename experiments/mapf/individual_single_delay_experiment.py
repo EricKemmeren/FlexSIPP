@@ -132,10 +132,6 @@ if __name__ == "__main__":
         results_flexsipp = {}
         results_maeder = {}
         date = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M")
-        file_with_previous_runs = os.path.join(os.path.dirname(__file__), "run_single_delay_experiment.csv")
-        if not os.path.isfile(file_with_previous_runs) or len(open(file_with_previous_runs, "r").readlines()) < 5:
-            with open(file_with_previous_runs, "w") as f:
-                f.write("random_seed,config_name,location,k,i,scenario_file,f,x\n")
             
         config_locations = {"maze1": {20: 25, 50: 22}, "warehouse1": {50: 10}}
         configurations = [(m, a, i) for m, x in config_locations.items() for a, s in x.items() for i in range(s)]
