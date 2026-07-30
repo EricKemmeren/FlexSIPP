@@ -20,6 +20,7 @@ class TestSequential(unittest.TestCase):
         flex_parameter = 0
         max_delay = 100
         number_delays = 5
+        optimize_delay = True
 
         location_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mapf", "maze1", "maze-128-128-1.map")
         scenario_file = os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "mapf", "maze1", "scen-even", f"maze-128-128-1-even-1-k{number_agents}_paths{'_' + flex_parameter if flex_parameter > 0 else ''}.txt")
@@ -27,7 +28,7 @@ class TestSequential(unittest.TestCase):
         
         result_file = os.path.join(os.path.dirname(__file__), "sequential_test_output.json")
         input_delays = get_delays_from_seed(location_file, scenario_file, number_agents, scenario_end=None, max_delay=max_delay)
-        executed_delays, result = repeated_delays(location_file, scenario_file, input_delays, number_delays, result_file, scenario_end=None, use_flexibility=True)
+        executed_delays, result = repeated_delays(location_file, scenario_file, input_delays, number_delays, result_file, optimize_delay=optimize_delay, scenario_end=None, use_flexibility=True)
         # Ensure that the first five delays were executed 
         self.assertEqual(number_delays, len(executed_delays))
         self.assertEqual(input_delays[:number_delays], executed_delays)

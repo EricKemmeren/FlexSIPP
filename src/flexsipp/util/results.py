@@ -348,7 +348,8 @@ class Results:
         found = False
         for tipping_point in tipping_points:
             decide_tipping_point = not kwargs.get("optimize_total_delay", True)
-            kwargs.setdefault("print_delays", False)
+            kwargs["print_agent_delays"] = False
+            kwargs["discrete"] = False
             atf, new_route, minimum_delays, tipping_location = self.get_fastest_route(delayed_agent, original_arrival_time, tipping_point, agents, decide_tipping_point=decide_tipping_point, **kwargs)
             # Only return tipping point and location and delays, not ATF, as these are not correct, use get_fastest_route() at this time to get ATF and route. 
             if kwargs.get("optimize_total_delay", True):
