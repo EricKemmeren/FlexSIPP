@@ -27,7 +27,7 @@ class TestTippingPoints(unittest.TestCase):
         flexSIPP_atsipp = FSIPP(graph, heuristic, agents)
 
         # Compute any-start-time plan
-        result_optimize_agent = flexSIPP_atsipp.run_search(delay_agent.origin.name, delay_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_grid_test_any-start-time-plan.txt")
+        result_optimize_agent = flexSIPP_atsipp.run_search(delay_agent.origin.name, delay_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False)
         self.assertEqual(len(result_optimize_agent.unique_path_eatfs), 1)
         self.assertEqual(len(result_optimize_agent.unique_path_eatfs['(0,1)->(1,1)->(2,1)->(3,1)->(4,1)->(5,1)']), 4)
         self.assertEqual(result_optimize_agent.unique_path_eatfs['(0,1)->(1,1)->(2,1)->(3,1)->(4,1)->(5,1)'][0], [float('-inf'), 0, 1, 5])
@@ -48,7 +48,7 @@ class TestTippingPoints(unittest.TestCase):
         self.assertEqual(len(tipping_points), 1)
         self.assertEqual(tipping_points[0][0], 4)
         self.assertEqual(tipping_points[0][1][agents[1]], (graph.nodes["(4,1)"], 4))
-        self.assertEqual(tipping_points[0][2][agents[1]][graph.nodes["(3,1)"]], 8)
+        self.assertEqual(tipping_points[0][2][agents[1]][graph.nodes["(3,1)"]], 7)
         atf, route, _, _ = result_optimize_agent.get_fastest_route(delay_agent, original_arrival, tipping_points[0][0], agents, discrete=True, optimize_total_delay=False)
         self.assertEqual(atf, [float("-inf"), 4, 7, 5])
         # Check the nodes in the route
@@ -60,7 +60,7 @@ class TestTippingPoints(unittest.TestCase):
         self.assertEqual(len(tipping_points_start_opt_delay), 1)
         self.assertEqual(tipping_points_start_opt_delay[0][0], 0.5)
         self.assertEqual(tipping_points_start_opt_delay[0][1][agents[1]], (graph.nodes["(4,1)"], 4))
-        self.assertEqual(tipping_points_start_opt_delay[0][2][agents[1]][graph.nodes["(3,1)"]], 4.5)
+        self.assertEqual(tipping_points_start_opt_delay[0][2][agents[1]][graph.nodes["(3,1)"]], 3.5)
         atf, route, _, _ = result_optimize_agent.get_fastest_route(delay_agent, original_arrival, tipping_points_start_opt_delay[0][0], agents)
         self.assertEqual(atf, [float("-inf"), 0, 1, 5])
         # Check the nodes in the route
@@ -152,9 +152,15 @@ class TestTippingPoints(unittest.TestCase):
         self.assertEqual(len(tipping_points), 1)
         self.assertEqual(tipping_points[0][0], 1.5)
         self.assertEqual(tipping_points[0][1][agents[2]], (graph.nodes["(0,1)"], 1.5))
-        # No delays
-        self.assertDictEqual(tipping_points[0][2], {agents[1]: {}, agents[2]: {}})
-        tipping_points = result.find_tipping_points(delay_agent, original_arrival, agents, discrete=True, optimize_total_delay=False, print_tipping_points=True)
+        self.assertEqual(tipping_points[0][2][agents[1]][graph.nodes["(4,1)"]], 0.5)
+        
+        tipping_points_opt = result.find_tipping_points(delay_agent, original_arrival, agents, discrete=True, optimize_total_delay=False, print_tipping_points=True)
+        print(tipping_points_opt)
+        self.assertEqual(len(tipping_points_opt), 1)
+        self.assertEqual(tipping_points_opt[0][0], 3)
+        self.assertEqual(tipping_points_opt[0][1], {})
+        # No delay
+        self.assertEqual(tipping_points_opt[0][2], {agents[1]: {}, agents[2]: {}})
 
     def test_single_plan(self):
         # When not optimizing delay, find a different route
@@ -174,7 +180,7 @@ class TestTippingPoints(unittest.TestCase):
         flexSIPP = FSIPP(graph, heuristic, agents)
 
         # Compute optimal single plan
-        result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=optimal_delay, find_first_path=True, redirect_stderr="stderr_test_single-plan.txt")
+        result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=optimal_delay, find_first_path=True)
         self.assertEqual(len(result.unique_routes), 1)
         self.assertEqual(len(result.unique_path_eatfs['(0,1)->(1,1)->(2,1)->(3,1)->(4,1)->(5,1)']), 1)
         
@@ -211,7 +217,7 @@ class TestTippingPoints(unittest.TestCase):
         flexSIPP = FSIPP(graph, heuristic, agents)
 
         # Compute optimal single plan
-        result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=optimal_delay, find_first_path=True, redirect_stderr="stderr_test_single-plan_opt.txt")
+        result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=optimal_delay, find_first_path=True)
         self.assertEqual(len(result.unique_routes), 1)
         self.assertEqual(len(result.unique_path_eatfs['(0,1)->(1,1)->(2,1)->(2,2)->(2,1)->(3,1)->(4,1)->(5,1)']), 1)
         
