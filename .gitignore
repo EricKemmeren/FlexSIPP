@@ -3,6 +3,7 @@ __pycache__/
 .venv/
 *.egg-info/
 /experiments/railways/flexsipp_railways/experiment_generation/donna_parsing/log.txt
+/experiments/railways/flexsipp_railways/experiment_generation/ns-api/stations-2023-09.csv
 /data/railways/prorail/*
 !/data/railways/prorail/scenarios/case_study
 /data/friso
