@@ -12,3 +12,6 @@ __pycache__/
 **/db_output/
 **/timing/
 **/.DS_Store
+
+# Too large
+experiments/mapf/result_parsing/complete_results_individual_delays.json

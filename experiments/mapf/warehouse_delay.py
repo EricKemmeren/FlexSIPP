@@ -33,7 +33,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     heuristic = {node.name: 0 for node in graph.nodes.values()}
 
     flexSIPP = FSIPP(graph, heuristic, agents, use_flexibility=True)
-    result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse_FlexSIPP.txt")
+    result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False, redirect_stderr="stderr_warehouse_FlexSIPP.txt", write_fsipp_graph="warehouse_SIPP.txt")
     print(f"FlexSIPP Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
 
     fig, axs = plt.subplots(2, 4, figsize = (15,10))
