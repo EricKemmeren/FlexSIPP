@@ -19,13 +19,10 @@ class TrainItem:
     walking_speed: float
 
     minimum_stop_time: float
-
     sight_reaction_time: float
     setup_time: float
     release_time: float
-
     start_time: float
-
 
 class TrainAgent(Agent[BlockEdge, BlockNode]):
     def __init__(self, id:int, route: list[BlockEdge], train: TrainItem):
@@ -101,12 +98,11 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
 
         return interval, approach_blocks
 
-
-    # TODO: Maybe make this overwrite a function of Agent
     def calculate_blocking_times(self):
         cur_time = self.measures.start_time
         velocity = 0.0
 
+        # TODO train id =6. block_e = Edge from Rlb|718 to Nvbro_Zlw|506 - each of the e in the track route has many e.blocks, with slightly different length but same edge
         for block_e in self.route:
             block_e.add_start_time(self, cur_time)
             for e in block_e.track_route:

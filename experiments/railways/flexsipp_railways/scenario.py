@@ -1,6 +1,8 @@
 from pathlib import Path
 from typing import Union, Tuple, Any
+from logging import getLogger
 
+import time
 import numpy as np
 from matplotlib import cm
 from matplotlib.axis import Axis
@@ -11,6 +13,9 @@ from flexsipp.util.timing import timing
 from .track_graph import TrackEdge
 from .block_graph import BlockGraph, BlockNode, BlockEdge
 from .train_agent import TrainItem, TrainAgent
+
+logger = getLogger('__main__.' + __name__)
+
 
 class Scenario:
     @timing(Path(__file__).parent)
@@ -67,13 +72,17 @@ class Scenario:
 
     @timing(Path(__file__).parent)
     def process(self):
-        for agent in self.agents.values():
+        for i, agent in enumerate(self.agents.values()):
+            start_time = time.time()
             agent.calculate_blocking_times()
+            logger.info(f"{i}/{len(self.agents)}: Agent {agent} calculated blocking times in {time.time() - start_time} for {len(agent.route)} blocks in route")
         merge_list: list[IntervalStore] = list(self.g.nodes.values()) + self.g.edges
         for node in merge_list:
             IntervalStore.merge_unsafe_intervals(node)
+        logger.info("Merged all unsafe intervals in scenario")
         for agent in self.agents.values():
             agent.calculate_flexibility()
+        logger.info("Calculated flexibility for all agents")
 
     def get_replanning_agent(self, a: Union[TrainAgent, int, str]) -> TrainAgent:
         if isinstance(a, str):

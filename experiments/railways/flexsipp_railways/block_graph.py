@@ -110,7 +110,7 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
                 to_signal_node = self.nodes[f"{to_signal.id}"]
                 direction = "".join(set(signal.direction + to_signal.direction))
                 e = self.add_edge(BlockEdge(from_signal_node, to_signal_node, length, route, direction, max_velocity))
-                logger.debug(f"Found block {e} with length {length} and max velocity {max_velocity}")
+                logger.debug(f"Found block {e} with length {length} and max velocity {max_velocity:.2f}")
 
     def __eq__(self, other):
         return super().__eq__(other)
@@ -184,5 +184,5 @@ class BlockGraph(Graph[BlockEdge, BlockNode]):
                     cedge_route.append(e)
 
                     queue.put((croute, cedge_route, cvisited, length + e.length, min(max_velocity, e.max_speed)))
-
+        logger.debug(f"Signal {from_signal} has {len(result)} signal blocks from {len(start_tracks):.2f} starting tracks")
         return result
