@@ -25,7 +25,7 @@ class Results:
         return f"Found {len(self.found_routes)} start times with unique paths:{"\n    ".join([""] + list(self.unique_routes.keys()))}"
 
     @classmethod
-    def parse_json(cls, s: str, g: Graph, search_time: float):
+    def parse_json(cls, s: str, g: Graph, search_time: float, filename = None):
         self = cls()
 
         input = json_decoder(s)
@@ -90,6 +90,12 @@ class Results:
                             route.append((edge, pl["edge"]["atf"]))
                             break
             self.found_routes.append((atf, {"route": route, "node_route": node_route, "delays": delays}))
+        
+        if filename:
+            with open(filename, "w") as f:
+                store_json = input
+                store_json["MetaData"] = self.metadata
+                json.dump(store_json, f, indent=4)
         return self
 
     linestyles = [

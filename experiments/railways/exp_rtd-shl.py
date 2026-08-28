@@ -43,8 +43,7 @@ print("Constructed FSIPP graph and calculated heuristic")
 
 filter_nodes = {node for name, node in graph.nodes.items() if name.split("|")[0] in allowed_dpt}
 flexSIPP = FSIPP(graph, heuristic, tad_exp.agents, filter_nodes=filter_nodes)
-result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time, optimize_total_delay=False, find_first_path=False,
-                             redirect_stderr="stderr_Eurostar.txt", redirect_stdout="stdout_Eurostar.txt", write_fsipp_graph="fsipp_Eurostar_graph.txt", store_fsipp_output="fsipp_Eurostar_search.json")
+result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time, optimize_total_delay=False, find_first_path=False, redirect_stderr="stderr_Eurostar.txt", redirect_stdout="stdout_Eurostar.txt", write_fsipp_graph="fsipp_Eurostar_graph.txt", store_fsipp_output="fsipp_Eurostar_search.json")
 
 ### Show the results
 fig, axs = plt.subplots(2, 1, figsize=(5, 10), sharex=True)

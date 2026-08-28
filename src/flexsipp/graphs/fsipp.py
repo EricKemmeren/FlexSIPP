@@ -123,7 +123,4 @@ class FSIPP(Generic[EdgeType, NodeType]):
         with redirect_cpp_output(kwargs.get("redirect_stdout", os.devnull), kwargs.get("redirect_stderr", os.devnull)):
             result = search.search(str(origin), str(destination), graph, start_time, max_delay, kwargs.get("optimize_total_delay", False), kwargs.get("find_first_path", False))
         log_time_end = time.time()
-        if kwargs.get("store_fsipp_output", None):
-            with open(kwargs.get("store_fsipp_output", None), "w") as f:
-                json.dump(result, f)
-        return Results.parse_json(result, self.g, log_time_end - log_time_start)
+        return Results.parse_json(result, self.g, log_time_end - log_time_start, kwargs.get("store_fsipp_output", None))
