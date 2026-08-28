@@ -8,6 +8,29 @@
     "trains": [
         {
             "movements": {
+                "endLocation": "SHL|1",
+                "endTime": 4646,
+                "startLocation": "RTD|12",
+                "startTime": 780.0,
+                "stops": [
+                    {
+                        "expected_arrival": 2340.0,
+                        "location": "SHL|1",
+                        "time": 4646.0
+                    }
+                ]
+            },
+            "trainNumber": "1867",
+            "trainUnitTypes": [
+                "EUROSTAR"
+            ],
+            "trainUnits": [
+                "3138",
+                "3206"
+            ]
+        },
+        {
+            "movements": {
                 "endLocation": "DDR|5",
                 "endTime": 2880.0,
                 "startLocation": "GVMW|1",

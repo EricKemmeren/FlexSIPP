@@ -1,6 +1,8 @@
 import os
 import io
 import time
+import json
+from pathlib import Path
 from logging import getLogger
 from typing import Generic, TextIO, Iterable, Any
 
@@ -10,6 +12,7 @@ from ..agent import Agent
 from ..util.intervals import SafeInterval, FlexibleArrivalTimeFunction
 from ..util.results import Results
 from ..util.types import EdgeType, NodeType
+from ..util.timing import timing
 
 logger = getLogger('__main__.' + __name__)
 
@@ -96,6 +99,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
             f.write(f"{repr(atf)}\n")
         f.write(f"num_trains {self.num_agents}\n")
 
+    @timing(Path(__file__).parent)
     def run_search(self, origin, destination, start_time, max_delay=1000, **kwargs) -> Results:
         """ Search on the FSIPP graph.
 
@@ -107,6 +111,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
         :param find_first_path: If True, return the first path that optimizes the total delay for all agents in the simulation.
         :param redirect_stdout: file to redirect the output stream from the c++ search to.
         :param redirect_stderr: file to redirect the error output stream from the c++ search to.
+        :param store_fsipp_output: write the JSON output of the FlexSIPP search to this file.
         """
         graph = io.StringIO()
         self._write(graph)
@@ -118,4 +123,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
         with redirect_cpp_output(kwargs.get("redirect_stdout", os.devnull), kwargs.get("redirect_stderr", os.devnull)):
             result = search.search(str(origin), str(destination), graph, start_time, max_delay, kwargs.get("optimize_total_delay", False), kwargs.get("find_first_path", False))
         log_time_end = time.time()
+        if kwargs.get("store_fsipp_output", None):
+            with open(kwargs.get("store_fsipp_output", None), "w") as f:
+                json.dump(result, f)
         return Results.parse_json(result, self.g, log_time_end - log_time_start)
