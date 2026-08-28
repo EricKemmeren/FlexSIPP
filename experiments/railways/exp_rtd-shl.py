@@ -53,4 +53,5 @@ fig.savefig("fsipp_eurostar.png")
 
 tipping_points = result.find_tipping_points(delay_agent, delay_agent.measures.start_time, tad_exp.agents, optimize_total_delay=False, print_tipping_points=True, print_agent_delays=True)
 with open("tipping_points_eurostar.txt", "w") as f:
-    f.write(tipping_points)
+    for (tipping_point, tipping_location, minimum_delays) in tipping_points:
+        f.write(f"{tipping_point},{tipping_location},{minimum_delays}")
