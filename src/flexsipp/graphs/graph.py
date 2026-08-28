@@ -25,6 +25,7 @@ class IntervalStore(object):
         self.bt: dict[int, float] = {}
         self.crt: dict[int, float] = {}
         self.merged = False
+        self.old_unsafe_intervals = None
 
     def add_unsafe_interval(self, interval: UnsafeInterval):
         self.unsafe_intervals.add(interval)
@@ -82,6 +83,7 @@ class IntervalStore(object):
         self.unsafe_intervals = merged_intervals
 
     def filter_out_agent(self, agent: Agent):
+        self.old_unsafe_intervals = self.unsafe_intervals
         self.unsafe_intervals = SortedKeyList([ui for ui in self.unsafe_intervals if ui.by_agent != agent], key=lambda x: x.start)
         self.merge_unsafe_intervals()
 

@@ -19,18 +19,15 @@ node_types = {
 class GridCell(Node["GridConnection", "GridCell"]):
     def __init__(self, name):
         super().__init__(name)
-        self.old_unsafe_intervals = None
 
     def filter_out_agent(self, agent: MapfAgent):
         # Before filtering out the agents, store the unsafe intervals
-        self.old_unsafe_intervals = self.unsafe_intervals
         super().filter_out_agent(agent)
 
 class GridConnection(Edge["GridConnection", "GridCell"]):
     def __init__(self, f, t, length, max_speed):
         super().__init__(f, t, length, max_speed)
         self.opposite: GridConnection = None
-        self.old_unsafe_intervals = None
 
     def add_unsafe_interval(self, interval: UnsafeInterval):
         super().add_unsafe_interval(interval)
@@ -56,7 +53,6 @@ class GridConnection(Edge["GridConnection", "GridCell"]):
 
     def filter_out_agent(self, agent: MapfAgent):
         # Before filtering out the agents, store the unsafe intervals
-        self.old_unsafe_intervals = self.unsafe_intervals
         super().filter_out_agent(agent)
 
 class Grid(Graph[Edge, Node]):
