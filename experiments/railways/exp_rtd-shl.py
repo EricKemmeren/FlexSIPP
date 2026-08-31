@@ -12,6 +12,9 @@ os.environ["LOGLEVEL"] = "CRITICAL"
 
 # Use an argument to select the scenario file
 scen_num = int(sys.argv[1]) - 1
+outdir = f"resultsEurostar{scen_num}"
+if not os.path.isdir(outdir):
+    os.mkdir(outdir)
 
 logging.basicConfig()
 logging.root.setLevel(logging.INFO)
@@ -43,15 +46,15 @@ print("Constructed FSIPP graph and calculated heuristic")
 
 filter_nodes = {node for name, node in graph.nodes.items() if name.split("|")[0] in allowed_dpt}
 flexSIPP = FSIPP(graph, heuristic, tad_exp.agents, filter_nodes=filter_nodes)
-result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time, optimize_total_delay=False, find_first_path=False, redirect_stderr="stderr_Eurostar.txt", redirect_stdout="stdout_Eurostar.txt", write_fsipp_graph="fsipp_Eurostar_graph.txt", store_fsipp_output="fsipp_Eurostar_search.json")
+result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time, optimize_total_delay=False, find_first_path=False, redirect_stderr=f"{outdir}/stderr_Eurostar-{scen_num}.txt", redirect_stdout=f"{outdir}/stdout_Eurostar-{scen_num}.txt", write_fsipp_graph=f"{outdir}/fsipp_Eurostar_graph-{scen_num}.txt", store_fsipp_output=f"{outdir}/fsipp_Eurostar_search-{scen_num}.json")
 
 ### Show the results
 fig, axs = plt.subplots(2, 1, figsize=(5, 10), sharex=True)
 result.plot(axs[0], linestyle=3)
 result.plot(axs[1], show_atf=False, show_total_delays=True, original_arrival_time=delay_agent.measures.start_time)
-fig.savefig("fsipp_eurostar.png")
+fig.savefig(f"{outdir}/fsipp_eurostar-{scen_num}.png")
 
 tipping_points = result.find_tipping_points(delay_agent, delay_agent.measures.start_time, tad_exp.agents, optimize_total_delay=False, print_tipping_points=True, print_agent_delays=True)
-with open("tipping_points_eurostar.txt", "w") as f:
+with open(f"{outdir}/tipping_points_eurostar-{scen_num}.txt", "w") as f:
     for (tipping_point, tipping_location, minimum_delays) in tipping_points:
         f.write(f"{tipping_point},{tipping_location},{minimum_delays}")
