@@ -3,6 +3,7 @@ import sys
 from typing import Tuple
 from logging import getLogger, Logger
 from copy import copy
+from pathlib import Path
 
 from tqdm import tqdm
 
@@ -10,6 +11,7 @@ from flexsipp.agent import Agent
 from flexsipp.graphs.graph import Graph, Node, Edge, IntervalStore
 from flexsipp.util.intervals import UnsafeInterval
 from flexsipp.util.plotting_info import PlottingStore
+from flexsipp.util.timing import timing
 
 from .track_graph import TrackEdge, TrackNode, TrackGraph, Signal
 
@@ -86,6 +88,7 @@ class TqdmLogger:
         pass
 
 class BlockGraph(Graph[BlockEdge, BlockNode]):
+    @timing(Path(__file__).parent)
     def __init__(self, g: TrackGraph):
         super().__init__()
         self.tg = g

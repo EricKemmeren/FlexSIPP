@@ -104,10 +104,10 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
 
         # TODO train id =6. block_e = Edge from Rlb|718 to Nvbro_Zlw|506 - each of the e in the track route has many e.blocks, with slightly different length but same edge
         for block_e in self.route:
-            block_e.add_start_time(self, cur_time)
+            # block_e.add_start_time(self, cur_time)
             for e in block_e.track_route:
-                for e_opp in e.opposites + e.associated + [e]:
-                    e_opp.add_start_time(self, cur_time)
+                # for e_opp in e.opposites + e.associated + [e]:
+                #     e_opp.add_start_time(self, cur_time)
                 station_time = 0
                 if self.id in e.stops_at_station:
                     station_time = e.stops_at_station[self.id] - cur_time
@@ -124,9 +124,9 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
                     block.add_unsafe_interval(approach_interval)
 
                 cur_time = approach_interval.end
-                for e_opp in e.opposites + e.associated + [e]:
-                    e_opp.add_end_time(self, cur_time)
-            block_e.add_end_time(self, cur_time)
+            #     for e_opp in e.opposites + e.associated + [e]:
+            #         e_opp.add_end_time(self, cur_time)
+            # block_e.add_end_time(self, cur_time)
 
     def plot_route(self, ax: Axis, edges_to_plot: dict[TrackEdge, Tuple[float, float]], color):
         for block in self.route:

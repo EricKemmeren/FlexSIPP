@@ -2,11 +2,13 @@ import json
 import re
 from logging import getLogger
 from typing import Tuple
+from pathlib import Path
 
 from flexsipp.graphs.graph import Graph, Node, Edge, IntervalStore
 from flexsipp.util.intervals import UnsafeInterval
 from flexsipp.util.plotting_info import PlottingStore
 from flexsipp.util.util import angle_to_speed
+from flexsipp.util.timing import timing
 
 logger = getLogger('__main__.' + __name__)
 
@@ -83,6 +85,7 @@ class Signal:
         return f"Signal {self.id} on track {self.track}"
 
 class TrackGraph(Graph[TrackEdge, TrackNode]):
+    @timing(Path(__file__).parent)
     def __init__(self, file, scenario_end_time):
         super().__init__()
         self.signals: list[Signal] = []

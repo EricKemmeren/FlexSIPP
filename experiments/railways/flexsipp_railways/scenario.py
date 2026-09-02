@@ -71,15 +71,17 @@ class Scenario:
             self.agents[train['trainNumber']] = agent
 
     @timing(Path(__file__).parent)
-    def process(self):
+    def process_blocking_time_intervals(self):
         for i, agent in enumerate(self.agents.values()):
             start_time = time.time()
             agent.calculate_blocking_times()
             logger.info(f"{i}/{len(self.agents)}: Agent {agent} calculated blocking times in {time.time() - start_time} for {len(agent.route)} blocks in route")
-        merge_list: list[IntervalStore] = list(self.g.nodes.values()) + self.g.edges
-        for node in merge_list:
-            IntervalStore.merge_unsafe_intervals(node)
-        logger.info("Merged all unsafe intervals in scenario")
+            merge_list: list[IntervalStore] = list(self.g.nodes.values()) + self.g.edges
+            for node in merge_list:
+                IntervalStore.merge_unsafe_intervals(node)
+
+    @timing(Path(__file__).parent)
+    def compute_flexibility(self):
         for agent in self.agents.values():
             agent.calculate_flexibility()
         logger.info("Calculated flexibility for all agents")
