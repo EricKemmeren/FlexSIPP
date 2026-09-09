@@ -8,7 +8,7 @@ from flexsipp_railways.generate import graph_from_file, scenario_from_file
 from flexsipp.graphs.fsipp import FSIPP
 
 # Disable logging of the program in the notebook
-os.environ["LOGLEVEL"] = "CRITICAL"
+os.environ["LOGLEVEL"] = "INFO"
 
 # Use an argument to select the scenario file
 scen_num = int(sys.argv[1]) - 1

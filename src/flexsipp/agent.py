@@ -73,7 +73,7 @@ class Agent(Generic[EdgeType, NodeType]):
         last_buffer_time = 0
         for move in self.route[::-1]:
             local_buffer, local_recovery = self._get_local_flexibility(move)
-            logger.info(f"Agent {self.id} with move {move} has local buffer {local_buffer} and recovery {local_recovery}")
+            logger.debug(f"Agent {self.id} with move {move} has local buffer {local_buffer} and recovery {local_recovery}")
 
             # Because we are going backwards over the route, the buffer time cannot be larger than the buffer time in the future (if ignoring recovery time).
             last_buffer_time = min(last_buffer_time, max(0, local_buffer))
