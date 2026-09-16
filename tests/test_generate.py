@@ -165,7 +165,8 @@ class TestUnsafeIntervals(unittest.TestCase):
     def setUpClass(cls):
         bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
         scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), bg)
-        scenario.process()
+        scenario.process_blocking_time_intervals()
+        scenario.compute_flexibility()
         cls.g = scenario.g
 
     def test_unsafe_intervals(self):
@@ -217,7 +218,8 @@ class TestSafeIntervals(unittest.TestCase):
     def setUpClass(cls):
         cls.bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
         scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), cls.bg)
-        scenario.process()  
+        scenario.process_blocking_time_intervals()
+        scenario.compute_flexibility()  
         heuristic = {node.name: 0 for node in cls.bg.nodes.values()}
         new_agent = copy(scenario.agents["1"])
         new_agent.id = -1

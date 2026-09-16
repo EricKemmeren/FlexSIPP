@@ -71,10 +71,10 @@ class Scenario:
             self.agents[train['trainNumber']] = agent
 
     @timing(Path(__file__).parent)
-    def process_blocking_time_intervals(self):
+    def process_blocking_time_intervals(self, save_plotting_info=True):
         for i, agent in enumerate(self.agents.values()):
             start_time = time.time()
-            agent.calculate_blocking_times()
+            agent.calculate_blocking_times(save_plotting_info)
             logger.info(f"{i}/{len(self.agents)}: Agent {agent} calculated blocking times in {time.time() - start_time} for {len(agent.route)} blocks in route")
             merge_list: list[IntervalStore] = list(self.g.nodes.values()) + self.g.edges
             for node in merge_list:

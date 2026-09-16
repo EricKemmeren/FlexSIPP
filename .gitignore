@@ -10,9 +10,14 @@ __pycache__/
 *.txt
 **/output/
 **/db_output/
+**/db-results/
 **/timing/
 **/.DS_Store
 **/.vscode
 
 # Too large
-experiments/mapf/result_parsing/complete_results_individual_delays.json
+/experiments/mapf/result_parsing/complete_results_individual_delays.json
+
+# For testing
+/experiments/railways/small_exp_rtd-shl.py
+/data/railways/case_study_scenarios/2025-07-08_test-small.json

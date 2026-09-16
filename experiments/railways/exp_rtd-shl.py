@@ -36,7 +36,7 @@ basepath = Path(os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.
 scenario_files = ["2025-07-08_1.json", "2025-07-08_2.json", "2025-07-08_3.json", "2025-07-08_4.json"]
 print("Using scenario file", scenario_files[scen_num])
 tad_exp = scenario_from_file(basepath / scenario_files[scen_num], layout)
-tad_exp.process_blocking_time_intervals()
+tad_exp.process_blocking_time_intervals(False)
 tad_exp.compute_flexibility()
 delay_agent = tad_exp.get_replanning_agent("1867")
 print("Computed unsafe intervals and flexibility.")

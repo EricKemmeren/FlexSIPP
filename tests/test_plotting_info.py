@@ -10,13 +10,15 @@ class TestPlottingInfo(unittest.TestCase):
     def setUpClass(cls):
         bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
         cls.scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), bg)
-        cls.scenario.process()
+        cls.scenario.process_blocking_time_intervals()
+        cls.scenario.compute_flexibility()
 
     def test_start_times(self):
         agent_1 = self.scenario.get_replanning_agent(1)
 
         node = self.scenario.g.nodes["w|A"]
         for edge in node.outgoing:
+            print(edge.plotting_info)
             pi = edge.plotting_info[agent_1]
             self.assertEqual(pi.start_time, 3)
             self.assertEqual(pi.end_time, 4)

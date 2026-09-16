@@ -12,7 +12,8 @@ class TestSearch(unittest.TestCase):
     def setUpScenario(self, max_buffer, max_crt):
         bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
         scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), bg, train_agent_limited_flexibility_generator(max_buffer, max_crt))
-        scenario.process()
+        scenario.process_blocking_time_intervals()
+        scenario.compute_flexibility()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         self.new_agent = copy(scenario.agents["1"])
         self.new_agent.id = -1
@@ -35,7 +36,8 @@ class TestSearchEndTime(unittest.TestCase):
         scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), bg)
         self.assertEqual(scenario.g.global_end_time, 36)
         
-        scenario.process()
+        scenario.process_blocking_time_intervals()
+        scenario.compute_flexibility()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         self.new_agent = copy(scenario.agents["1"])
         self.new_agent.id = -1
@@ -56,7 +58,8 @@ class TestSearchEndTime(unittest.TestCase):
         scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), bg)
         self.assertEqual(scenario.g.global_end_time, end_time)
         
-        scenario.process()
+        scenario.process_blocking_time_intervals()
+        scenario.compute_flexibility()
         heuristic = {node.name: 0 for node in bg.nodes.values()}
         self.new_agent = copy(scenario.agents["1"])
         self.new_agent.id = -1
