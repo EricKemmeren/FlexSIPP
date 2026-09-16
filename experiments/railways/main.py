@@ -16,7 +16,8 @@ parser.add_argument('-e', "--end-time", help="End time of the scenario, if None 
 def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end=None):
     railway_graph = graph_from_file(location_file, scenario_end)
     scenario = scenario_from_file(scenario_file, railway_graph)
-    scenario.process()
+    scenario.process_blocking_time_intervals()
+    scenario.compute_flexibility()
     if delay_agent is None:
         delay_agent = scenario.agents["1"]
     else:

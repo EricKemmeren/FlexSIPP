@@ -3,6 +3,7 @@ from __future__ import annotations
 import sys
 import queue as Q
 
+from pathlib import Path
 from logging import getLogger
 from typing import Generic, ClassVar, Tuple
 
@@ -12,6 +13,7 @@ from sortedcontainers import SortedKeyList
 from ..agent import Agent
 from ..util.intervals import UnsafeInterval, SafeInterval
 from ..util.types import EdgeType, NodeType
+from ..util.timing import timing
 
 logger = getLogger('__main__.' + __name__)
 
@@ -322,6 +324,7 @@ class Graph(Generic[EdgeType, NodeType]):
                     self.global_end_time == other.global_end_time)
         return NotImplemented
 
+    @timing(Path(__file__).parent)
     def invert_unsafe_intervals(self):
         """
             Creates safe intervals by inverting the unsafe intervals of all the nodes and edges in the graph.

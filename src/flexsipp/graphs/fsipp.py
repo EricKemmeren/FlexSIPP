@@ -1,7 +1,6 @@
 import os
 import io
 import time
-import json
 from pathlib import Path
 from logging import getLogger
 from typing import Generic, TextIO, Iterable, Any
@@ -40,6 +39,7 @@ def redirect_cpp_output(stdout_path, stderr_path):
         os.close(old_stderr)
 
 class FSIPP(Generic[EdgeType, NodeType]):
+    @timing(Path(__file__).parent)
     def __init__(self, g:Graph[EdgeType, NodeType], heuristic:dict[str, float], agents: dict[Any, Agent], filter_nodes:Iterable[NodeType]=None, filter_edges:Iterable[EdgeType]=None, use_flexibility=True):
         """ Create a flexible safe interval any-start-time graph of the given graph, that can be used to run the search algorithm.
 

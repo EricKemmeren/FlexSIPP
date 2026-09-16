@@ -1,8 +1,8 @@
 import logging
 import os
 import sys
+import json
 from pathlib import Path
-from matplotlib import pyplot as plt
 
 from flexsipp_railways.generate import graph_from_file, scenario_from_file
 from flexsipp.graphs.fsipp import FSIPP
@@ -53,14 +53,14 @@ result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.na
                              redirect_stderr=f"{outdir}/stderr_FlexSIPP_Eurostar-{scen_num}.txt", 
                              redirect_stdout=f"{outdir}/stdout_FlexSIPP_Eurostar-{scen_num}.txt", 
                              write_fsipp_graph=f"{outdir}/fsipp_FlexSIPP_Eurostar_graph-{scen_num}.txt", 
-                             store_fsipp_output=f"{outdir}/fsipp_FlexSIPP_Eurostar_search-{scen_num}.json")
+                             store_fsipp_output=f"{outdir}/fsipp_FlexSIPP_Eurostar_search_output-{scen_num}.json")
 print("Ran the FlexSIPP algorithm")
 
 # Compute the tipping points
 tipping_points = result.find_tipping_points(delay_agent, delay_agent.measures.start_time, tad_exp.agents, optimize_total_delay=False, print_tipping_points=True, print_agent_delays=True)
-with open(f"{outdir}/tipping_points_eurostar-{scen_num}.txt", "w") as f:
-    for (tipping_point, tipping_location, minimum_delays) in tipping_points:
-        f.write(f"{tipping_point},{tipping_location},{minimum_delays}")
+tipping_point_output = [{"time": tipping_point, "location": [{"loc": str(tup[0]), "passing_time": tup[1]} for id, tup in tipping_location.items()][0], "delays": {str(train): {str(loc): d for loc, d in delays.items()} for train, delays in minimum_delays.items()}} for (tipping_point, tipping_location, minimum_delays) in tipping_points]
+with open(f"{outdir}/tipping_points_eurostar-{scen_num}.json", "w") as f:
+    json.dump(tipping_point_output, f)
 print("Computed the tipping points")
 
 # Run the experiment with @MAEDeR
@@ -69,5 +69,5 @@ result2 = maeder.run_search(delay_agent.origin.name, delay_agent.destination.nam
                             redirect_stderr=f"{outdir}/stderr_@MAEDeR_Eurostar-{scen_num}.txt", 
                             redirect_stdout=f"{outdir}/stdout_@MAEDeR_Eurostar-{scen_num}.txt", 
                             write_fsipp_graph=f"{outdir}/fsipp_@MAEDeR_Eurostar_graph-{scen_num}.txt", 
-                            store_fsipp_output=f"{outdir}/fsipp_@MAEDeR_Eurostar_search-{scen_num}.json")
+                            store_fsipp_output=f"{outdir}/fsipp_@MAEDeR_Eurostar_search_output-{scen_num}.json")
 print("Ran the @MAEDeR algorithm")
