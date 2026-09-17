@@ -58,7 +58,7 @@ print("Ran the FlexSIPP algorithm")
 
 # Compute the tipping points
 tipping_points = result.find_tipping_points(delay_agent, delay_agent.measures.start_time, tad_exp.agents, optimize_total_delay=False, print_tipping_points=True, print_agent_delays=True)
-tipping_point_output = [{"time": tipping_point, "location": [{"loc": str(tup[0]), "passing_time": tup[1]} for id, tup in tipping_location.items()][0], "delays": {str(train): {str(loc): d for loc, d in delays.items()} for train, delays in minimum_delays.items()}} for (tipping_point, tipping_location, minimum_delays) in tipping_points]
+tipping_point_output = [{"time": tipping_point, "location": [{"loc": str(tup[0]), "passing_time": tup[1]} for id, tup in tipping_location.items()], "delays": {str(train): {str(loc): d for loc, d in delays.items()} for train, delays in minimum_delays.items()}} for (tipping_point, tipping_location, minimum_delays) in tipping_points]
 with open(f"{outdir}/tipping_points_eurostar-{scen_num}.json", "w") as f:
     json.dump(tipping_point_output, f)
 print("Computed the tipping points")
