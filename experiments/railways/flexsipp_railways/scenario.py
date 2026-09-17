@@ -18,7 +18,7 @@ logger = getLogger('__main__.' + __name__)
 
 
 class Scenario:
-    @timing(Path(__file__).parent)
+    @timing(Path.cwd())
     def __init__(self, data, g_block: BlockGraph, agent_cls):
         self.types = {x["name"]: x for x in data["types"]}
         self.g = g_block
@@ -70,7 +70,7 @@ class Scenario:
             agent = agent_cls(id, agent_cls.calculate_route(stops[0], stops[1:]), measures)
             self.agents[train['trainNumber']] = agent
 
-    @timing(Path(__file__).parent)
+    @timing(Path.cwd())
     def process_blocking_time_intervals(self, save_plotting_info=True):
         for i, agent in enumerate(self.agents.values()):
             start_time = time.time()
@@ -80,7 +80,7 @@ class Scenario:
             for node in merge_list:
                 IntervalStore.merge_unsafe_intervals(node)
 
-    @timing(Path(__file__).parent)
+    @timing(Path.cwd())
     def compute_flexibility(self):
         for agent in self.agents.values():
             agent.calculate_flexibility()
@@ -93,7 +93,7 @@ class Scenario:
             return list(self.agents.values())[a - 1]
         return a
 
-    @timing(Path(__file__).parent)
+    @timing(Path.cwd())
     def fsipp(self, agent: Union[TrainAgent, int, str]) -> BlockGraph:
         """
         Create a BlockGraph that can be used by FSIPP.

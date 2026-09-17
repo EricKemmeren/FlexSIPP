@@ -85,7 +85,7 @@ class Signal:
         return f"Signal {self.id} on track {self.track}"
 
 class TrackGraph(Graph[TrackEdge, TrackNode]):
-    @timing(Path(__file__).parent)
+    @timing(Path.cwd())
     def __init__(self, file, scenario_end_time):
         super().__init__()
         self.signals: list[Signal] = []

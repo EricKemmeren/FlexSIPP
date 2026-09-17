@@ -39,7 +39,7 @@ def redirect_cpp_output(stdout_path, stderr_path):
         os.close(old_stderr)
 
 class FSIPP(Generic[EdgeType, NodeType]):
-    @timing(Path(__file__).parent)
+    @timing(Path.cwd())
     def __init__(self, g:Graph[EdgeType, NodeType], heuristic:dict[str, float], agents: dict[Any, Agent], filter_nodes:Iterable[NodeType]=None, filter_edges:Iterable[EdgeType]=None, use_flexibility=True):
         """ Create a flexible safe interval any-start-time graph of the given graph, that can be used to run the search algorithm.
 
@@ -99,7 +99,7 @@ class FSIPP(Generic[EdgeType, NodeType]):
             f.write(f"{repr(atf)}\n")
         f.write(f"num_trains {self.num_agents}\n")
 
-    @timing(Path(__file__).parent)
+    @timing(Path.cwd())
     def run_search(self, origin, destination, start_time, max_delay=1000, **kwargs) -> Results:
         """ Search on the FSIPP graph.
 

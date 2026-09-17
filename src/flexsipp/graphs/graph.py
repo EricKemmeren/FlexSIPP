@@ -324,7 +324,7 @@ class Graph(Generic[EdgeType, NodeType]):
                     self.global_end_time == other.global_end_time)
         return NotImplemented
 
-    @timing(Path(__file__).parent)
+    @timing(Path.cwd())
     def invert_unsafe_intervals(self):
         """
             Creates safe intervals by inverting the unsafe intervals of all the nodes and edges in the graph.

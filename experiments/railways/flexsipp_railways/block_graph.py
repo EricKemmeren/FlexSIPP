@@ -88,7 +88,7 @@ class TqdmLogger:
         pass
 
 class BlockGraph(Graph[BlockEdge, BlockNode]):
-    @timing(Path(__file__).parent)
+    @timing(Path.cwd())
     def __init__(self, g: TrackGraph):
         super().__init__()
         self.tg = g
