@@ -74,5 +74,6 @@ class TestSearchEndTime(unittest.TestCase):
         self.assertEqual(result.unique_path_eatfs['u|A->w|A->s1|A->s2|A->s3|A->s4|A->s5|A->sv|A'][0][1], 3)
         self.assertEqual(result.unique_path_eatfs['u|A->w|A->s1|A->s2|A->s3|A->s4|A->s5|A->sv|A'][0][2], 4)
 
+
 if __name__ == '__main__':
     unittest.main()

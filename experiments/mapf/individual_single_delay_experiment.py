@@ -119,8 +119,9 @@ def single_delay(location_file, scenario_file, delays, optimize_delay, scenario_
 
 
 if __name__ == "__main__":
-    if len(sys.argv) < 1:
+    if len(sys.argv) <= 1:
         print("Please add the index in range [1, 57] to run a specific configuration")
+        exit(1)
     if ',' in sys.argv[1]:
         indices = [int(ix)-1 for ix in sys.argv[1].split(",")]
     else:

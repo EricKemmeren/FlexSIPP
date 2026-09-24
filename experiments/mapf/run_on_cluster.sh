@@ -13,12 +13,6 @@ module load gcc/13.3
 module load boost/1.90
 module load python/3.13
 
-# Load modules
-module load 2026
-module load gcc/13.3
-module load boost/1.90
-module load python/3.13
-
 # Activate environment
 cd /home/<netid>/FlexSIPP
 rm -rf .venv

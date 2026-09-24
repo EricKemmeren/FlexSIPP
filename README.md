@@ -50,7 +50,7 @@ The `sequential_delay_experiment.py` runs one single scenario where it delays ha
 python experiments/mapf/sequential_delay_experiment.py
 ```
 
-The railway experiment can be found in `experiments/railways/experiment_rotterdam_schiphol.ipynb`
+The railway experiment can be found in `experiments/railways/exp_rtd-shl.ipynb`
 
 To run the tests use:
 ```bash
@@ -60,6 +60,7 @@ python -m unittest discover -s tests
 To cite, please use:
 
     Issa Hanou, Eric Kemmeren, Devin Wild Thomas, and Mathijs de Weerdt.Precomputing Multi-Agent Path Replanning using Temporal Flexibility: A Case Study on the Dutch Railway Network. (2026). [In Proceedings: Nineteenth International Symposium on Combinatorial Search](https://arxiv.org/abs/2601.04884).
+
 
 # Benchmarks
 
@@ -94,3 +95,4 @@ Then, you can schedule the experiments, using
 $ sbatch experiments/mapf/run-on-cluster.sh
 ```
 which can be adjusted to different experiments.
+

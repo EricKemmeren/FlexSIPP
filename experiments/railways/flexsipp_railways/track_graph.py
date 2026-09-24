@@ -202,17 +202,6 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
             if track["type"] == "RailRoad" and track["sawMovementAllowed"] and not bumper_aside and not bumper_bside:
                 self.add_edge(TrackEdge(self.nodes[nodes_per_id_A[track["id"]]], self.nodes[nodes_per_id_B[track["id"]]], 0))
                 self.add_edge(TrackEdge(self.nodes[nodes_per_id_B[track["id"]]], self.nodes[nodes_per_id_A[track["id"]]], 0))
-            # Assign the associated edges (same side of switch)
-            # for x in a_edges:
-            #     for y in a_edges:
-            #         if x != y and (x.from_node.name == y.from_node.name or x.to_node.name == y.to_node.name):
-            #             x.associated.append(y)
-            #             y.associated.append(x)
-            # for x in b_edges:
-            #     for y in b_edges:
-            #         if x != y and (x.from_node.name == y.from_node.name or x.to_node.name == y.to_node.name):
-            #             x.associated.append(y)
-            #             y.associated.append(x)
 
         # Assign all opposite nodes and edges
         for track_data in data["trackParts"]:
@@ -241,19 +230,6 @@ class TrackGraph(Graph[TrackEdge, TrackNode]):
                     for other_e in track.outgoing:
                         if e != other_e:
                             e.associated.append(other_e)
-
-
-        # for node in g.nodes:
-        #     for e in g.nodes[node].outgoing:
-        #         for opposite_node in g.nodes[node].opposites:
-        #             for other_edge in g.nodes[opposite_node.name].incoming:
-        #                 if other_edge.from_node in e.to_node.opposites:
-        #                     e.opposites.append(other_edge)
-            # for e in g.nodes[node].incoming:
-            #     for opposite_node in g.nodes[node].opposites:
-            #         for other_edge in g.nodes[opposite_node.name].outgoing:
-            #             if other_edge.to_node in e.from_node.opposites:
-            #                 e.opposites.append(other_edge)
 
         self.distance_markers = data["distanceMarkers"] if "distanceMarkers" in data and data["distanceMarkers"] else {"Start": 0}
         min_distance = min(self.distance_markers.values())

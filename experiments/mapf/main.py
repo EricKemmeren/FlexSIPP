@@ -1,3 +1,4 @@
+import os
 import argparse
 from matplotlib import pyplot as plt
 from matplotlib.lines import Line2D
@@ -37,7 +38,7 @@ def run_flexsipp(location_file, scenario_file, delay_agent_id, scenario_end, act
     # Heuristic for delay agent
     heuristic = graph.calculate_heuristic(delay_agent.destination)
     flexSIPP = FSIPP(graph, heuristic, agents)
-    result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=optimize_total_delay, find_first_path=single_path, redirect_stderr="flexsipp_main.txt")
+    result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=optimize_total_delay, find_first_path=single_path, redirect_stderr=os.path.join("output", "flexsipp_main.txt"))
     print(f"Found {len(result.unique_path_eatfs)} unique paths:", result.unique_path_eatfs)
 
     if not single_path:

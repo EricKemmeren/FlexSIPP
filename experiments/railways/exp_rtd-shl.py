@@ -10,6 +10,10 @@ from flexsipp.graphs.fsipp import FSIPP
 # Disable logging of the program in the notebook
 os.environ["LOGLEVEL"] = "INFO"
 
+if len(sys.argv) <= 1:
+    print("Must pass number of scenario as argument: choose from [1,2,3,4]")
+    exit(1)
+
 # Use an argument to select the scenario file
 scen_num = int(sys.argv[1]) - 1
 outdir = f"resultsEurostar{scen_num}"

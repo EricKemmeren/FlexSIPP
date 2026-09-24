@@ -152,6 +152,7 @@ class TestBlockGraph(unittest.TestCase):
         #TODO: should this include the starting track, currently does not
         self.assertEqual(len(path), 8, f"Length of path should be 9: {path}")
 
+
 class TestScenario(unittest.TestCase):
 
     @classmethod

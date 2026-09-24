@@ -18,7 +18,6 @@ class TestPlottingInfo(unittest.TestCase):
 
         node = self.scenario.g.nodes["w|A"]
         for edge in node.outgoing:
-            print(edge.plotting_info)
             pi = edge.plotting_info[agent_1]
             self.assertEqual(pi.start_time, 3)
             self.assertEqual(pi.end_time, 4)
