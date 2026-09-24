@@ -6,9 +6,9 @@ from .track_graph import TrackGraph
 from .train_agent import TrainAgent
 from flexsipp.util.types import GraphType
 
-def graph_from_file(file) -> BlockGraph:
-    track_graph = TrackGraph.read_graph(file)
-    block_graph = BlockGraph.from_track_graph(track_graph)
+def graph_from_file(file, global_end_time=None) -> BlockGraph:
+    track_graph = TrackGraph(file, global_end_time)
+    block_graph = BlockGraph(track_graph)
     return block_graph
 
 def scenario_from_file(file, graph: GraphType, agent_cls=TrainAgent):

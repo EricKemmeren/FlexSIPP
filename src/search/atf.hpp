@@ -13,17 +13,15 @@
 #include "constants.hpp"
 #include "segment.hpp"
 
-//using NeightbouringAgent = std::tuple<int, intervalTime_t>;
-
-struct NeightbouringAgent{
+struct NeighboringAgent{
     long id;
     intervalTime_t max_buffer_time;
     intervalTime_t compound_recovery_time;
-    NeightbouringAgent() = default;
-    NeightbouringAgent(long _id, intervalTime_t _compound_recovery_time): id(_id), max_buffer_time(), compound_recovery_time(_compound_recovery_time){}
-    NeightbouringAgent(long _id, intervalTime_t _max_buffer_time, intervalTime_t _compound_recovery_time): id(_id), max_buffer_time(_max_buffer_time), compound_recovery_time(_compound_recovery_time){}
+    NeighboringAgent() = default;
+    NeighboringAgent(long _id, intervalTime_t _compound_recovery_time): id(_id), max_buffer_time(), compound_recovery_time(_compound_recovery_time){}
+    NeighboringAgent(long _id, intervalTime_t _max_buffer_time, intervalTime_t _compound_recovery_time): id(_id), max_buffer_time(_max_buffer_time), compound_recovery_time(_compound_recovery_time){}
 
-    inline friend std::ostream& operator<< (std::ostream& stream, const NeightbouringAgent& train){
+    inline friend std::ostream& operator<< (std::ostream& stream, const NeighboringAgent& train){
         stream << "{";
         stream << "\"train\":" << train.id << ", ";
         stream << "\"bt\": " << train.max_buffer_time << ", ";
@@ -41,13 +39,13 @@ struct EdgeATF{
     intervalTime_t beta;
     intervalTime_t delta;
     std::vector<EdgeATF*> successors;
-    NeightbouringAgent agent_before;
-    NeightbouringAgent agent_after;
+    NeighboringAgent agent_before;
+    NeighboringAgent agent_after;
     gamma_t gamma;
     intervalTime_t heuristic;
     EdgeATF() = default;
 
-// Constructor for initial edge ATF
+    // Constructor for initial edge ATF
     EdgeATF(
             intervalTime_t _zeta,
             intervalTime_t _alpha,
@@ -58,35 +56,33 @@ struct EdgeATF{
             int id_a,
             intervalTime_t max_buf_a,
             intervalTime_t crt_a,
-            intervalTime_t _heuristic)
-        :
-            zeta(_zeta),
-            alpha(_alpha),
-            beta(_beta),
-            delta(_delta),
-            agent_before(NeightbouringAgent(id_b, crt_b)),
-            agent_after(NeightbouringAgent(id_a, max_buf_a, crt_a)),
-            gamma(0),
-            heuristic(_heuristic)
-        {};
+            intervalTime_t _heuristic):
+        zeta(_zeta),
+        alpha(_alpha),
+        beta(_beta),
+        delta(_delta),
+        agent_before(NeighboringAgent(id_b, crt_b)),
+        agent_after(NeighboringAgent(id_a, max_buf_a, crt_a)),
+        gamma(0),
+        heuristic(_heuristic)
+    {};
 
-// Constructor for CATF
+    // Constructor for CATF
     EdgeATF(
             intervalTime_t _zeta,
             intervalTime_t _alpha,
             intervalTime_t _beta,
             intervalTime_t _delta,
-            gamma_t _gamma)
-        :
-            zeta(_zeta),
-            alpha(_alpha),
-            beta(_beta),
-            delta(_delta),
-            gamma(_gamma)
+            gamma_t _gamma):
+        zeta(_zeta),
+        alpha(_alpha),
+        beta(_beta),
+        delta(_delta),
+        gamma(_gamma)
     {
         gamma = gamma_t(_gamma);
-        agent_before = NeightbouringAgent(0, 0);
-        agent_after  = NeightbouringAgent(0, 0);
+        agent_before = NeighboringAgent(0, 0);
+        agent_after  = NeighboringAgent(0, 0);
     }
 
     inline intervalTime_t earliest_arrival_time() const{
@@ -94,7 +90,6 @@ struct EdgeATF{
     }
 
     inline intervalTime_t arrival_time(intervalTime_t t) const{
-//        if(t < zeta || beta <= t){
         if(t < zeta){
             return std::numeric_limits<intervalTime_t>::infinity();
         }
@@ -236,11 +231,6 @@ struct CompoundATF{
                 break;
             }
             it = std::prev(it);
-            //if(it == segments.begin()){
-            //    std::cerr << "At begin 2: " << seg << std::endl;
-            //    segments.emplace_hint(it, seg);
-            //    break;
-            //}
         }        
     }
 
@@ -253,7 +243,6 @@ struct CompoundATF{
             std::cerr << "Adding segment " << segment << std::endl;
             add_segment(segment);
         }
-        // assert(bumper_to_bumper());
         assert(monotonic_non_decreasing());
     }
 
@@ -317,4 +306,3 @@ struct CompoundATF{
         return stream;
     }
 };
-

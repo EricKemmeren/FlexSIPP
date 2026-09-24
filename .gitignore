@@ -2,9 +2,25 @@ __pycache__/
 .idea/
 .venv/
 *.egg-info/
-/experiments/railways/flexsipp_railways/experiment_generation/donna_parsing/log.txt
-/data/railways/prorail/*
-!/data/railways/prorail/scenarios/case_study
-/data/friso
 *.txt
+**/.DS_Store
+**/.vscode
+
+**/timing/
 **/output/
+**/db_output/
+**/db-results/
+**/resultsEurostar*/
+
+# Confidential data
+/experiments/railways/flexsipp_railways/experiment_generation/donna_parsing/log.txt
+/experiments/railways/flexsipp_railways/experiment_generation/ns-api/stations-2023-09.csv
+/data/railways/prorail/*
+/data/friso
+
+# Too large
+/experiments/mapf/result_parsing/complete_results_individual_delays.json
+
+# For testing
+/experiments/railways/small_exp_rtd-shl.py
+/data/railways/case_study_scenarios/2025-07-08_test-small.json

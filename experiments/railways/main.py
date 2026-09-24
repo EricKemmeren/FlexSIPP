@@ -1,9 +1,10 @@
+import os
 import argparse
+from matplotlib import pyplot as plt
 
-from flexsipp_railways.train_agents.train_agent_limited_flexibility import \
-    train_agent_limited_flexibility_generator
 from flexsipp_railways.generate import graph_from_file, scenario_from_file
 from flexsipp.graphs.fsipp import FSIPP
+from flexsipp.graphs.graph import Node, Edge
 
 parser = argparse.ArgumentParser(
                     prog='FlexSIPP',
@@ -13,23 +14,36 @@ parser.add_argument('-s', "--scenario-file", help = "Path to the scenario file",
 parser.add_argument('-a', "--delay-agent", help="Identifier (int) of the agent in the scenario_file that is delayed. If not specified, the first agent in the scenario wil be chosen.", required=False, default=None)
 parser.add_argument('-e', "--end-time", help="End time of the scenario, if None is given", required=False, default=None)
 
-def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end):
-    # TODO the merging of intervals is not from the same agent, so we get an assertion error
-    railway_graph = graph_from_file(location_file)
+
+def run_flexsipp(location_file, scenario_file, delay_agent, scenario_end=None):
+    if not os.path.isdir("output"):
+        os.mkdir("output")
+    railway_graph = graph_from_file(location_file, scenario_end)
     scenario = scenario_from_file(scenario_file, railway_graph)
-    scenario.process()
-    # TODO do we need to set up flexibility here?
+    scenario.process_blocking_time_intervals()
+    scenario.compute_flexibility()
     if delay_agent is None:
-        delay_agent = scenario.agents[0]
+        delay_agent = scenario.agents["1"]
     else:
-        delay_agent = scenario.get_replanning_agent(int(delay_agent))
-    agents = {agent.id: agent for agent in scenario.agents}
+        delay_agent = scenario.get_replanning_agent(delay_agent)
     graph = scenario.fsipp(delay_agent)
-    heuristic = {node.name: 0 for node in graph.nodes.values()}
-    flexSIPP = FSIPP(graph, heuristic, agents)
-    result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time)
-    # TODO readable output
-    print(result)
+    heuristic = graph.calculate_heuristic(delay_agent.destination)
+    flexSIPP = FSIPP(graph, heuristic, scenario.agents, filter_nodes=[node for node in delay_agent.route if isinstance(node, Node)], filter_edges=[edge for edge in delay_agent.route if isinstance(edge, Edge)])
+    result = flexSIPP.run_search(delay_agent.origin.name, delay_agent.destination.name, delay_agent.measures.start_time, optimize_total_delay=False, find_first_path=False, 
+                                 redirect_stderr=os.path.join("output", "stderr_railways.txt"), 
+                                 redirect_stdout=os.path.join("output", "stdout_railways.txt"), 
+                                 write_fsipp_graph=os.path.join("output", "fsipp_graph_railways.txt"), 
+                                 store_fsipp_output=os.path.join("output", "fsipp_search_railways.json"))
+
+    result.find_tipping_points(delay_agent, delay_agent.measures.start_time, scenario.agents, optimize_total_delay=False, print_tipping_points=True, print_agent_delays=True)
+    
+    ### Show the results
+    fig, axs = plt.subplots(2, 1, figsize=(5, 10), sharex=True)
+    result.plot(axs[0], linestyle=3)
+    result.plot(axs[1], show_atf=False, show_total_delays=True, original_arrival_time=delay_agent.measures.start_time)
+    plt.show()
+    plt.close()
+
 
 if __name__ == "__main__":
     args = parser.parse_args()

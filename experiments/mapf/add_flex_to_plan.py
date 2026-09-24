@@ -1,17 +1,7 @@
 import os
-import time
 import json
-import math
 import datetime
 import random
-import numpy as np
-from pathlib import Path
-
-from matplotlib import pyplot as plt
-
-from graph import GridCell
-from flexsipp.graphs.fsipp import FSIPP
-from read_experiment import create_mapf_instance_from_paths
 
 import logging
 logger = logging.getLogger()
@@ -66,6 +56,3 @@ if __name__ == "__main__":
                         for agent, path in enumerate(paths):
                             new_file.write(f"Agent {agent}: {'->'.join(path)}\n")
                     json.dump(stat_results, open(stats, "w"), indent=4)
-
-
-

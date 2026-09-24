@@ -19,13 +19,10 @@ class TrainItem:
     walking_speed: float
 
     minimum_stop_time: float
-
     sight_reaction_time: float
     setup_time: float
     release_time: float
-
     start_time: float
-
 
 class TrainAgent(Agent[BlockEdge, BlockNode]):
     def __init__(self, id:int, route: list[BlockEdge], train: TrainItem):
@@ -101,17 +98,16 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
 
         return interval, approach_blocks
 
-
-    # TODO: Maybe make this overwrite a function of Agent
-    def calculate_blocking_times(self):
+    def calculate_blocking_times(self, save_plotting_info=True):
         cur_time = self.measures.start_time
         velocity = 0.0
-
         for block_e in self.route:
-            block_e.add_start_time(self, cur_time)
+            if save_plotting_info:
+                block_e.add_start_time(self, cur_time)
             for e in block_e.track_route:
-                for e_opp in e.opposites + e.associated + [e]:
-                    e_opp.add_start_time(self, cur_time)
+                if save_plotting_info:
+                    for e_opp in e.opposites + e.associated + [e]:
+                        e_opp.add_start_time(self, cur_time)
                 station_time = 0
                 if self.id in e.stops_at_station:
                     station_time = e.stops_at_station[self.id] - cur_time
@@ -128,9 +124,11 @@ class TrainAgent(Agent[BlockEdge, BlockNode]):
                     block.add_unsafe_interval(approach_interval)
 
                 cur_time = approach_interval.end
-                for e_opp in e.opposites + e.associated + [e]:
-                    e_opp.add_end_time(self, cur_time)
-            block_e.add_end_time(self, cur_time)
+                if save_plotting_info:
+                    for e_opp in e.opposites + e.associated + [e]:
+                        e_opp.add_end_time(self, cur_time)
+            if save_plotting_info:
+                block_e.add_end_time(self, cur_time)
 
     def plot_route(self, ax: Axis, edges_to_plot: dict[TrackEdge, Tuple[float, float]], color):
         for block in self.route:

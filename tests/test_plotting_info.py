@@ -1,16 +1,17 @@
 import os
 import unittest
 
-from flexsipp_railways.generate import graph_from_file, scenario_from_file
+from experiments.railways.flexsipp_railways.generate import graph_from_file, scenario_from_file
 
 
 class TestPlottingInfo(unittest.TestCase):
 
     @classmethod
     def setUpClass(cls):
-        bg = graph_from_file(os.path.join(os.path.dirname(__file__), "location_test.json"))
-        cls.scenario = scenario_from_file(os.path.join(os.path.dirname(__file__), "scenario_test.json"), bg)
-        cls.scenario.process()
+        bg = graph_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "location_test.json"))
+        cls.scenario = scenario_from_file(os.path.join(os.path.dirname(os.path.dirname(__file__)), "data", "railways", "scenario_test.json"), bg)
+        cls.scenario.process_blocking_time_intervals()
+        cls.scenario.compute_flexibility()
 
     def test_start_times(self):
         agent_1 = self.scenario.get_replanning_agent(1)
