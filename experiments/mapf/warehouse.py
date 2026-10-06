@@ -52,7 +52,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
 
     flexSIPP = FSIPP(graph, heuristic, agents)
     result = flexSIPP.run_search(rerouting_agent.origin.name, rerouting_agent.destination.name, start_time, graph.global_end_time, optimize_total_delay=False)
-    print(f"FlexSIPP Search time (python) {result.metadata["Search Time Python"]:.2f}, (c++) {result.metadata["Search Time"]} yields: ", result)
+    print(f"FlexSIPP Search time (python) {result.metadata['Search Time Python']:.2f}, (c++) {result.metadata['Search Time']} yields: ", result)
 
     fig, axs = plt.subplots(2, 4, figsize = (15,10))
     result.plot(axs[0,0], linestyle=3)
@@ -109,7 +109,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     graph.nodes["(0,0)"].merge_unsafe_intervals()
     flexSIPP = FSIPP(graph, heuristic, agents)
     update_result = flexSIPP.run_search(broken_down_agent.origin.name, new_goal, restart_time, graph.global_end_time)
-    print(f"FlexSIPP agent {broken_down_agent.id} Search time {result.metadata["Search Time Python"]:.2f} yields: ", update_result,)
+    print(f"FlexSIPP agent {broken_down_agent.id} Search time {result.metadata['Search Time Python']:.2f} yields: ", update_result,)
 
     update_result.plot(axs[0,3], linestyle=3)
     axs[1,3].grid(alpha=0.3)

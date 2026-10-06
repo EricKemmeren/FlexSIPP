@@ -23,7 +23,7 @@ def run_flexsipp_scenario(location_file, scenario_file):
     
     # Agent 2 has flexibility
     flexibility_agent = agents[2]
-    print(f"Agent {flexibility_agent} has flexibility: {', and '.join([f'buffer={str(flexibility_agent._get_local_flexibility(n)[0])} and recovery={str(flexibility_agent._get_local_flexibility(n)[1])} at node {n}' for n in flexibility_agent.route if isinstance(n, Node) and flexibility_agent._get_local_flexibility(n)[0] < float("inf") and flexibility_agent._get_local_flexibility(n)[1] > 0])}")
+    print(f"Agent {flexibility_agent} has flexibility: {', and '.join([f'buffer={str(flexibility_agent._get_local_flexibility(n)[0])} and recovery={str(flexibility_agent._get_local_flexibility(n)[1])} at node {n}' for n in flexibility_agent.route if isinstance(n, Node) and flexibility_agent._get_local_flexibility(n)[0] < float('inf') and flexibility_agent._get_local_flexibility(n)[1] > 0])}")
 
     start_time = 0
     continues = False
